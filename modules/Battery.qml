@@ -38,19 +38,19 @@ RowLayout {
     function iconForBattery() {
       let pct = Math.round(root.percentage > 0 ? root.percentage * 100 : 1)
       let charging = root.charging
-
       function pick(base) {
           return charging
             ? `${base}-charging-symbolic`
             : `${base}-symbolic`
           }
+            console.log(root.percentage)
 
       if (pct > 95) return pick("battery-full")
       if (pct > 70) return pick("battery-good")
       if (pct > 45) return pick("battery-medium")
       if (pct > 20) return pick("battery-low")
       if (pct > 5)  return pick("battery-caution")
-      return ""
+      return pick("battery-empty")
     }
 
     IconImage {

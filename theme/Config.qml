@@ -25,20 +25,30 @@ Singleton {
     //
     property color fg:        "#a0a8b7"
     property color fgDark:    "#abb2bf"
-    property color grey:      "#7a818e"
+    // property color grey:      "#7a818e"
+    property color grey: "#535965"
 
     //
     // ───────────────────────────────────────────────
     //  ACCENT COLORS
     // ───────────────────────────────────────────────
     //
-    property color purple:    "#bf68d9"
-    property color green:     "#8ebd6b"
-    property color orange:    "#cc9057"
-    property color blue:      "#4fa6ed"
-    property color yellow:    "#e2b86b"
-    property color cyan:      "#48b0bd"
-    property color red:       "#e55561"
+     property color purple: "#bf68d9"
+    property color green: "#8ebd6b"
+    property color orange: "#cc9057"
+    property color blue: "#4fa6ed"
+   property color  yellow: "#e2b86b"
+    property color cyan: "#48b0bd"
+    property color red: "#e55561"
+    property color bg_blue: "#61afef"
+    property color bg_yellow: "#e8c88c"
+    // property color purple:    "#bf68d9"
+    // property color green:     "#8ebd6b"
+    // property color orange:    "#cc9057"
+    // property color blue:      "#4fa6ed"
+    // property color yellow:    "#e2b86b"
+    // property color cyan:      "#48b0bd"
+    // property color red:       "#e55561"
 
     //
     // ───────────────────────────────────────────────
@@ -60,4 +70,7 @@ Singleton {
 
     /* Misc */
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
+
+
+    property int controlCenterWidth: 550
 }

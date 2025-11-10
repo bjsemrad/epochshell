@@ -5,7 +5,7 @@ import Quickshell.Services.UPower
 import Quickshell.Wayland
 import Quickshell.Io
 import "./theme" as T
-
+import "./popups"
 import "./components"
 import "./modules"
 
@@ -17,8 +17,10 @@ Scope {
     model: Quickshell.screens
 
     PanelWindow {
+      id: barWindow
       required property var modelData
       screen: modelData
+      WlrLayershell.layer: WlrLayer.Top
       anchors {
         top: true
         left: true
@@ -50,7 +52,7 @@ Scope {
           }
           readonly property int available: parent.width
 
-          width: available
+          implicitWidth: available
           children: [BarFill{}, Clock{}, BarFill{}]
       }
 
@@ -65,8 +67,20 @@ Scope {
           right: parent.right
         }
 
-        children: [BarFill{}, Network{id:net}, Battery{}, BarFill{}] 
+        children: [BarFill{}, Network{
+          id:net
+          popup: controlPanel
+        }, Battery{}, BarFill{}] 
+      }
 
+      NetworkPopup {
+        id: netPopup
+        screen: barWindow.screen
+      }
+
+      ControlPanel {
+        id: controlPanel
+        trigger: net
       }
     }
   }

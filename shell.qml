@@ -1,6 +1,7 @@
 import Quickshell
+import Quickshell.Wayland 
 
-Scope {
+ShellRoot {
   Bar {}
   SoundOSD{}
   BrightnessOSD{}
