@@ -1,19 +1,16 @@
 import QtQuick
+import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
-import QtQuick.Controls
-import QtQuick.Layouts
+import Quickshell.Services.Pipewire
 import "../theme" as T
 
 Rectangle {
     id: root
 
-    NetworkMonitor {
-        id: netMon
-    }
-
     property string iconName: ""
+    property var audioInterface: Pipewire.defaultAudioSink
     // property color iconColor: Theme.surfaceText
     property string primaryText: ""
     property string secondaryText: ""
@@ -29,10 +26,9 @@ Rectangle {
     height: 60
     radius: 40
 
-
     readonly property color _containerBg: T.Config.bg0
     color: _containerBg
-    border.color: T.Config.grey
+    border.color: T.Config.grey//Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.10)
     border.width: 1
     antialiasing: true
 
@@ -66,6 +62,36 @@ Rectangle {
     property int _tileSize: 48
     property int _tileRadius: 40
 
+            function audioIcon(vol, muted) {
+             if (muted) return "audio-volume-muted-symbolic"
+             if (vol >= 65) return "audio-volume-high-symbolic"
+             if (vol >= 25) return "audio-volume-medium-symbolic"
+             if (vol >   0) return "audio-volume-low-symbolic"
+            return "audio-volume-muted-symbolic"
+        }
+
+               Connections {
+		target: audioInterface?.audio
+
+                function updateSlider() {
+                    volume.value = (audioInterface?.audio.volume ?? 0) * 100
+                }
+                
+                function onVolumeChanged() {
+                    updateSlider()
+		}
+
+
+                function onMutedChanged() {
+                    updateSlider()
+                }
+
+                Component.onCompleted: updateSlider()
+
+        }
+
+
+
     Rectangle {
         id: rightHoverOverlay
         anchors.fill: parent
@@ -76,7 +102,6 @@ Rectangle {
         antialiasing: true
         Behavior on opacity { NumberAnimation { duration: Theme.shortDuration } }
     }
-
 
     Row {
         id: row
@@ -90,7 +115,7 @@ Rectangle {
             z: 1
             width: _tileSize
             height: _tileSize
-            anchors.left: parent.left
+             anchors.left: parent.left
             anchors.leftMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             radius: _tileRadius
@@ -100,23 +125,19 @@ Rectangle {
             antialiasing: true
 
             Rectangle {
+                id: clickIcon
                 anchors.fill: parent
-                anchors.left: parent.left
                 radius: _tileRadius
                 opacity: tileMouse.pressed ? 0.3 : (tileMouse.containsMouse ? 0.2 : 0.0)
                 visible: opacity > 0
                 antialiasing: true
                 Behavior on opacity { NumberAnimation { duration: Theme.shortDuration } }
             }
-
-              IconImage {
-                    source:  Quickshell.iconPath(netMon.connected
-                            ? "network-wireless-signal-excellent-symbolic"
-                            : "network-offline-symbolic")
-                    implicitWidth: 18
-                    implicitHeight: 18
-                    anchors.centerIn: parent
-
+            IconImage {
+                implicitWidth: 18
+                implicitHeight: 18
+                anchors.centerIn: parent
+                source: Quickshell.iconPath(audioIcon(volume.value, audioInterface?.audio.muted))
                 }
 
 
@@ -129,65 +150,47 @@ Rectangle {
             }
         }
 
-        Item {
-            id: body
-            width: row.width - iconTile.width - row.spacing
-            height: row.height
-            anchors.left: iconTile.right
-            anchors.leftMargin: 10
+
+        Slider {
+        id: volume
+        width: 190
+        height: 20
+        from: 0; to: 100
+        anchors.left: iconTile.right
+        anchors.leftMargin: 10
+         anchors.verticalCenter: parent.verticalCenter
 
 
-            Column {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 2
+        background: Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: T.Config.grey
+        }
 
-                Label {
-                    text: netMon.connected
-                          ? `${netMon.ssid}`
-                          : "Wi-Fi Disabled"
-                          color: "white" //T.Config.fg
-                    font.pixelSize: 14
-                    font.weight: Font.Normal
-                    font.family: T.Config.fontFamily
-                    Layout.fillWidth: true
-                }
-                Label {
-                    text: netMon.connected
-                          ? "Connected"
-                          : "Disconnected"
-                          color: T.Config.fg
-                    font.pixelSize: 12
-                    font.weight: Font.Normal
-                    font.family: T.Config.fontFamily
-                    Layout.fillWidth: true
-                }
+        handle: Rectangle {
+            width: 10
+            height: 10
+            radius: 6
+            color: T.Config.fg
+            anchors.verticalCenter: parent.verticalCenter
+        }
 
+        // fill bar
+        contentItem: Rectangle {
+            anchors {
+                left: parent.left
+                verticalCenter: parent.verticalCenter
             }
-
-            MouseArea {
-                id: bodyMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onEntered: { rightHoverOverlay.visible = true; rightHoverOverlay.opacity = 0.08 }
-                onExited:  { rightHoverOverlay.opacity = 0.0; rightHoverOverlay.visible = false }
-                onPressed: rightHoverOverlay.opacity = 0.16
-                onReleased: rightHoverOverlay.opacity = containsMouse ? 0.08 : 0.0
-                onClicked: root.expandClicked()
-                onWheel: function (ev) {
-                    root.wheelEvent(ev)
-                }
-            }
-
+            width: volume.position * volume.width
+            height: 10
+            radius: height / 2
+            color: T.Config.fg
         }
     }
 
+
+        }
+
     focus: true
-    Keys.onPressed: function (ev) {
-        if (ev.key === Qt.Key_Space || ev.key === Qt.Key_Return) { root.toggled(); ev.accepted = true }
-        else if (ev.key === Qt.Key_Right) { root.expandClicked(); ev.accepted = true }
-    }
 }
 

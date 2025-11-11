@@ -8,7 +8,7 @@ Rectangle {
     id: root
 
     property string iconName: ""
-    property color iconColor: Theme.surfaceText
+    // property color iconColor: Theme.surfaceText
     property string primaryText: ""
     property string secondaryText: ""
     property bool expanded: false
@@ -23,17 +23,9 @@ Rectangle {
     height: 60
     radius: 40
 
-    function hoverTint(base) {
-        const factor = 1.2
-        return Theme.isLightMode ? Qt.darker(base, factor) : Qt.lighter(base, factor)
-    }
-
-    readonly property color _containerBg: T.Config.bg1
-        // Qt.rgba(Theme.surfaceVariant.r, Theme.surfaceVariant.g, Theme.surfaceVariant.b,
-        //         Theme.getContentBackgroundAlpha() * SettingsData.controlCenterWidgetBackgroundOpacity)
-
+    readonly property color _containerBg: T.Config.bg0
     color: _containerBg
-    border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.10)
+    border.color: T.Config.grey//Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.10)
     border.width: 1
     antialiasing: true
 
@@ -73,7 +65,6 @@ Rectangle {
         radius: root.radius
         z: 0
         visible: false
-        color: hoverTint(_containerBg)
         opacity: 0.08
         antialiasing: true
         Behavior on opacity { NumberAnimation { duration: Theme.shortDuration } }
@@ -82,15 +73,17 @@ Rectangle {
     Row {
         id: row
         anchors.fill: parent
-        anchors.leftMargin: _padH
-        anchors.rightMargin: Theme.spacingM
-        spacing: Theme.spacingM
+        // anchors.leftMargin: _padH
+        // anchors.rightMargin: Theme.spacingM
+        spacing: 10
 
         Rectangle {
             id: iconTile
             z: 1
             width: _tileSize
             height: _tileSize
+             anchors.left: parent.left
+            anchors.leftMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             radius: _tileRadius
             color: T.Config.bg0 //isActive ? _tileBgActive : _tileBgInactive
@@ -101,7 +94,6 @@ Rectangle {
             Rectangle {
                 anchors.fill: parent
                 radius: _tileRadius
-                color: hoverTint(iconTile.color)
                 opacity: tileMouse.pressed ? 0.3 : (tileMouse.containsMouse ? 0.2 : 0.0)
                 visible: opacity > 0
                 antialiasing: true
@@ -109,7 +101,7 @@ Rectangle {
             }
 
               IconImage {
-                    source:  Quickshell.iconPath("bluetooth-connected-symbolic")
+                    source:  Quickshell.iconPath("bluetooth-active-symbolic")
                     implicitWidth: 18
                     implicitHeight: 18
                     anchors.centerIn: parent

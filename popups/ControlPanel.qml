@@ -20,10 +20,14 @@ HoverPopupWindow {
         width: parent.width
         Column {
             width: T.Config.controlCenterWidth * 0.5 //Math.min(networkPopup.implicitWidth + 20,  parent.width / 2)
+            spacing: 20
+            AudioVolumePill {}
             NetworkPill{}
         }
         Column {
-           width: T.Config.controlCenterWidth * 0.5 //Math.min(networkPopup.implicitWidth + 20,  parent.width / 2)
+            width: T.Config.controlCenterWidth * 0.5 //Math.min(networkPopup.implicitWidth + 20,  parent.width / 2)
+            spacing: 20
+            MicVolumeSlider {}
             BluetoothPill{}
         }
     }
