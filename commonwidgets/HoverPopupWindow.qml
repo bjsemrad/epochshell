@@ -40,8 +40,8 @@ PopupWindow {
     //
     // If you want automatic content sizing:
     // use a reasonable fixed/default width
-    width: Math.max(container.implicitWidth + 20, T.Config.controlCenterWidth + 30)
-    height: container.implicitHeight + 20
+    implicitWidth: container.implicitWidth + 20
+    implicitHeight: container.implicitHeight + 20
 
 
     Rectangle {

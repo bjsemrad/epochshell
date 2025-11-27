@@ -49,7 +49,9 @@ Row {
 
     Connections {
         target: Hyprland.workspaces
-        onValuesChanged: workspaces.forceLayout()
+        function onValuesChanged() {
+            workspaces.forceLayout()
+        }
     }
 
 }

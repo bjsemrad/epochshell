@@ -4,16 +4,17 @@ import Quickshell
 import Quickshell.Widgets
 import Quickshell.Io
 import '../theme' as T
+import '../services' as S
 Rectangle {
     id: root
     // implicitWidth: 24
     // implicitHeight: 24
-    color: T.Config.bg2
+    color: "transparent"
     //border.color: T.Config.blue //isActive ? _tileRingActive : "transparent"
-    border.width: 2 
-    radius: 20
-    implicitWidth: inner.implicitWidth + 10 * 2
-    implicitHeight: inner.implicitHeight + 10 * 2
+    // border.width: 2 
+    // radius: 20
+    implicitWidth: inner.implicitWidth + 10
+    implicitHeight: inner.implicitHeight + 10
 
     // wired to popup from the bar
     property var popup
@@ -130,11 +131,13 @@ Rectangle {
     }
 
     MouseArea {
-    anchors.fill: parent
-    onClicked: {
-        popup.visible = !popup.visible
+        anchors.fill: parent
+        onClicked: {
+            popup.visible = !popup.visible
+        }
     }
-    }
+
+
     // // open on click OR hover (your choice C)
     // MouseArea {
     //     anchors.fill: parent
@@ -158,20 +161,9 @@ Rectangle {
         anchors.centerIn: parent
         anchors.rightMargin: 10
         spacing: 5 
-        // Rectangle {
-        // anchors.centerIn: parent
-        // border.width: 1
-       // border.color: '#578778'
-    IconImage {
-        // anchors.centerIn: parent
+         IconImage {
         implicitSize: 18
         source: Quickshell.iconPath(root.iconName)
-    }
-    
-    IconImage {
-        // anchors.centerIn: parent
-        implicitSize: 18
-        source: Quickshell.iconPath("blueman-tray")
-    }
+         }
     }
 }

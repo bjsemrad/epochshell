@@ -43,7 +43,6 @@ RowLayout {
             ? `${base}-charging-symbolic`
             : `${base}-symbolic`
           }
-            console.log(root.percentage)
 
       if (pct > 95) return pick("battery-full")
       if (pct > 70) return pick("battery-good")

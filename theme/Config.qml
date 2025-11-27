@@ -73,4 +73,5 @@ Singleton {
 
 
     property int controlCenterWidth: 550
+    property int networkPopupWidth: 300
 }

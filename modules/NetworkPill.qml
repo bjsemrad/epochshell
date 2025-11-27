@@ -5,13 +5,10 @@ import Quickshell.Widgets
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../theme" as T
+import "../services" as S
 
 Rectangle {
     id: root
-
-    NetworkMonitor {
-        id: netMon
-    }
 
     property string iconName: ""
     // property color iconColor: Theme.surfaceText
@@ -110,7 +107,7 @@ Rectangle {
             }
 
               IconImage {
-                    source:  Quickshell.iconPath(netMon.connected
+                    source:  Quickshell.iconPath(S.NetworkMonitor.connected
                             ? "network-wireless-signal-excellent-symbolic"
                             : "network-offline-symbolic")
                     implicitWidth: 18
@@ -144,8 +141,8 @@ Rectangle {
                 spacing: 2
 
                 Label {
-                    text: netMon.connected
-                          ? `${netMon.ssid}`
+                    text: S.NetworkMonitor.connected
+                          ? `${S.NetworkMonitor.ssid}`
                           : "Wi-Fi Disabled"
                           color: "white" //T.Config.fg
                     font.pixelSize: 14
@@ -154,7 +151,7 @@ Rectangle {
                     Layout.fillWidth: true
                 }
                 Label {
-                    text: netMon.connected
+                    text: S.NetworkMonitor.connected
                           ? "Connected"
                           : "Disconnected"
                           color: T.Config.fg

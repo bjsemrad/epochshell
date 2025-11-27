@@ -1,10 +1,10 @@
 // NetworkMonitor.qml
+pragma Singleton
 import QtQuick
 import Quickshell.Io
 
 Item {
     id: net
-
     //
     // === PUBLIC PROPERTIES ===
     //
@@ -13,17 +13,24 @@ Item {
     property string ssid: ""
     property int strength: 0
     property var accessPoints: []        // array of { ssid, strength, active }
+    // model of saved wifi connections (those with a profile in NM)
+    property alias savedAccessPoints: savedWifiModel
+    ListModel {
+        id: savedWifiModel
+    }
+
+
 
     //
     // === TIMED REFRESH ===
     //
-    Timer {
-        id: refreshTimer
-        interval: 4000    // 4 seconds
-        running: true
-        repeat: true
-        onTriggered: net.refresh()
-    }
+    // Timer {
+        // id: refreshTimer
+        // interval: 4000    // 4 seconds
+        // running: true
+        // repeat: true
+        // onTriggered: net.refresh()
+    // }
 
     Component.onCompleted: net.refresh()
 
@@ -68,16 +75,54 @@ Item {
         //}
     }
 
+       // grab saved connections once at startup
+    // you can re-run this on a timer if you want it to refresh
+    Process {
+        id: savedNetworks
+        // running: true
+        // -t: terse, -f: fields we care about
+        // we only keep entries where TYPE == wifi
+        command: [ "sh", "-c", "nmcli -t -f NAME,TYPE connection show" ]
+
+        stdout: SplitParser {
+            onRead: line => {
+                if (!line.length)
+                    return;
+
+                const parts = line.split(":");
+                if (parts.length < 2)
+                    return;
+
+                const name = parts[0];
+                const type = parts[1];
+                if (type.indexOf("wireless") !== -1) {
+                    for (let i = 0; i < savedWifiModel.count; ++i) {
+                        if (savedWifiModel.get(i).ssid === name)
+                            return;
+                        }
+                        savedWifiModel.append({ ssid: name });
+                }
+            }
+        }
+    }
+    
+    function refreshSavedNetworks() {
+        savedNetworks.running = true
+    }
+
+
+
     //
     // === API ===
     //
     function refresh() {
+        savedNetworks.running = true
         wifiStatusCmd.running = true
         scanCmd.running = true
     }
 
     function connectTo(ssidName) {
-        connectCmd.arguments = [ "dev", "wifi", "connect", ssidName ]
+        connectCmd.command = ["nmcli", "device", "wifi", "connect", ssidName]
         connectCmd.running = true
     }
 
@@ -120,8 +165,8 @@ Item {
                 strength: parseInt(p[2] ?? "0") || 0
             })
         }
-        
-        // ✅ Dedupe by SSID
+
+        // Dedupe by SSID
         let map = {}
         for (let ap of aps) {
             if (!ap.ssid) continue
@@ -133,20 +178,4 @@ Item {
         accessPoints = Object.values(map).sort((a, b) => b.strength - a.strength)
     }
 
-    // function _parseScan(text) {
-    //     let lines = text.trim().split("\n")
-    //     let aps = []
-    //
-    //     for (let line of lines) {
-    //         if (!line.length) continue
-    //         let p = line.split(":")
-    //         aps.push({
-    //             active: (p[0] === "yes"),
-    //             ssid: p[1],
-    //             strength: parseInt(p[2] ?? "0") || 0,
-    //         })
-    //     }
-    //     accessPoints = aps
-    // }
 }
-

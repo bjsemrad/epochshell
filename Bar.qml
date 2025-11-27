@@ -6,13 +6,15 @@ import Quickshell.Wayland
 import Quickshell.Io
 import "./theme" as T
 import "./popups"
-import "./components"
 import "./modules"
 
 Scope {
   id: bar
   property string time
 
+  // NetworkMonitor {
+    // id: netMon
+  // }
   Variants {
     model: Quickshell.screens
 
@@ -68,13 +70,13 @@ Scope {
         }
 
         children: [
-          BarFill{}, 
-          Network{
+          BarFill{},
+         Network{
             id:net
-            popup: controlPanel
+            popup: networkPanel
           }, 
           Battery{}, 
-          TrayWidget{}, 
+          // TrayWidget{}, 
           BarFill{} ] 
       }
 
@@ -83,8 +85,8 @@ Scope {
       //   screen: barWindow.screen
       // }
 
-      ControlPanel {
-        id: controlPanel
+      NetworkPanel {
+        id: networkPanel
         trigger: net
       }
     }
