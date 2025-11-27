@@ -32,7 +32,7 @@ Rectangle {
                 if (!S.NetworkMonitor.connected) return "󰤭"
                 if (s >= 75) return "󰤨"
                 if (s >= 50) return "󰤢"
-                if (s >= 25) return ""
+                if (s >= 25) return "󰤟"
                 return "󰤟"
             }
             font.pixelSize: 18

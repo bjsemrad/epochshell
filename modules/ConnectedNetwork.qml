@@ -27,16 +27,32 @@ Rectangle {
             border.width: 2 
             antialiasing: true
 
-            IconImage {
-                    source:  Quickshell.iconPath(S.NetworkMonitor.connected
-                            ? "network-wireless-signal-excellent-symbolic"
-                            : "network-offline-symbolic")
-                    implicitWidth: 18
-                    implicitHeight: 18
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.centerIn: parent
+              Text {
+                text:  {
+                    const s = S.NetworkMonitor.strength
 
+                    if (!S.NetworkMonitor.connected) return "󰤭"
+                    if (s >= 75) return "󰤨"
+                    if (s >= 50) return "󰤢"
+                    if (s >= 25) return "󰤟"
+                    return "󰤟"
+                }
+                font.pixelSize: 18
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.centerIn: parent
+                color: T.Config.fg
             }
+
+            // IconImage {
+            //         source:  Quickshell.iconPath(S.NetworkMonitor.connected
+            //                 ? "network-wireless-signal-excellent-symbolic"
+            //                 : "network-offline-symbolic")
+            //         implicitWidth: 18
+            //         implicitHeight: 18
+            //         anchors.verticalCenter: parent.verticalCenter
+            //         anchors.centerIn: parent
+            //
+            // }
         }
 
         Text {

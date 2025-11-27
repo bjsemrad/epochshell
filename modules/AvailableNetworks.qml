@@ -114,20 +114,20 @@ Rectangle {
                         spacing: 8
 
 
+                        Text {
+                            text:  {
+                                const s = modelData.strength
 
-                        IconImage {
-                              source: {
-                                if (modelData.strength >= 75) return Quickshell.iconPath("network-wireless-signal-excellent-symbolic")
-                                if (modelData.strength >= 50) return Quickshell.iconPath("network-wireless-signal-good-symbolic")
-                                if (modelData.strength >= 25) return Quickshell.iconPath("network-wireless-signal-ok-symbolic")
-                                if (modelData.strength > 0)   return Quickshell.iconPath("network-wireless-signal-weak-symbolic")
-                                return Quickshell.iconPath("network-wireless-signal-none-symbolic")
+                                if (s >= 75) return "󰤨"
+                                if (s >= 50) return "󰤢"
+                                if (s >= 25) return "󰤟"
+                                return "󰤟"
                             }
+                            font.pixelSize: 18
                             anchors.verticalCenter: parent.verticalCenter
-                            width: 18
-                            implicitHeight: 18
+                            color: T.Config.fg
                         }
-
+ 
                         Text {
                             text: modelData.ssid
                             color: "white"

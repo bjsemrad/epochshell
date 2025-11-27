@@ -52,11 +52,11 @@ Rectangle {
                     width: parent.width
 
 
-                    IconImage {
-                        source:  Quickshell.iconPath("network-wireless-symbolic")
+                    Text {
+                        text: "󰤨"
+                        font.pixelSize: 18
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 18
-                        height: 18
+                        color: T.Config.fg
                     }
 
                     Text {
