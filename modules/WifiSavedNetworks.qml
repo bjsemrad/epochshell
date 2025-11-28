@@ -34,7 +34,7 @@ Rectangle {
         Repeater {
             model: S.NetworkMonitor.savedAccessPoints
 
-            delegate: SavedNetworkRow {
+            delegate: WifiSavedNetworkRow {
                 width: root.width
                 ssid: model.ssid
             }

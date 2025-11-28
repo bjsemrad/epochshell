@@ -46,13 +46,9 @@ HoverPopupWindow {
         Column {
             width: T.Config.networkPopupWidth
             spacing: 10
-            NetworkOnOff {}
+            EthernetHeader {}
             ComponentSplitter{}
-            ConnectedNetwork{}
-            ComponentSplitter{}
-            SavedWifiNetworks{}
-            ComponentSplitter{}
-            AvailableNetworks{}
+            EthernetConnectedNetwork{}
             ComponentSpacer{}
         }
     }

@@ -31,7 +31,7 @@ Rectangle {
                 text:  {
                     const s = S.NetworkMonitor.strength
 
-                    if (!S.NetworkMonitor.connected) return "󰤭"
+                    if (!S.NetworkMonitor.wifiConnected) return "󰤭"
                     if (s >= 75) return "󰤨"
                     if (s >= 50) return "󰤢"
                     if (s >= 25) return "󰤟"

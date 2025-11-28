@@ -10,6 +10,16 @@ BarIconPopup {
 
     mouseEnabled: false
 
+    property bool hasBattery: {
+        for (var i = 0; i < UPower.devices.length; i++) {
+            var dev = UPower.devices[i];
+            if (dev.isPresent && dev.type === UPower.UPowerDeviceType.Battery)
+                return true;
+        }
+        return false;
+    }
+    visible: hasBattery
+
     iconText: {
       let pct = Math.round(root.percentage > 0 ? root.percentage * 100 : 1)
       if (pct > 95) return root.charging ? "󰂋" : "󰁹"

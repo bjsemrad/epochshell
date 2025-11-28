@@ -19,8 +19,8 @@ Rectangle {
 
 
     Connections {
-        target: networkPanel
-        onVisibleChanged: if (!networkPanel.visible) networksSection.expanded = false
+        target: wifiNetworkPanel
+        onVisibleChanged: if (!wifiNetworkPanel.visible) networksSection.expanded = false
     }
 
     Column {
@@ -52,7 +52,7 @@ Rectangle {
 
                 Spinner {
                     id: wifiSpinner
-                    running: S.NetworkMonitor.scanning
+                    running: S.NetworkMonitor.wifiScanning
                 }
             }
 

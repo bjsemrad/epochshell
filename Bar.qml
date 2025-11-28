@@ -7,6 +7,7 @@ import Quickshell.Io
 import "./theme" as T
 import "./popups"
 import "./modules"
+import "./services" as S
 
 Scope {
   id: bar
@@ -71,9 +72,15 @@ Scope {
 
         children: [
           BarFill{},
-          Network{
-            id:net
-            popup: networkPanel
+          WifiNetwork{
+            id:wifiNet
+            visible: S.NetworkMonitor.wifiDevice && !S.NetworkMonitor.ethernetConnected
+            popup: wifiNetworkPanel
+          },
+          EthernetNetwork{
+            id:ethNet
+            visible: S.NetworkMonitor.ethernetDevice && !S.NetworkMonitor.wifiConnected
+            popup: ethernetNetworkPanel
           },
           Bluetooth{
             id:bluet
@@ -92,9 +99,14 @@ Scope {
       //   screen: barWindow.screen
       // }
 
-      NetworkPanel {
-        id: networkPanel
-        trigger: net
+      WifiNetworkPanel {
+        id: wifiNetworkPanel
+        trigger: wifiNet
+      }
+
+      EthernetNetworkPanel {
+        id: ethernetNetworkPanel
+        trigger: ethNet
       }
 
       AudioPanel {

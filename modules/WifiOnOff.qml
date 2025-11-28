@@ -9,7 +9,6 @@ import "../theme" as T
 import "../services" as S
 import "../commonwidgets"
 
-// NetworkHeaderRow.qml
 import QtQuick
 import QtQuick.Controls
 
@@ -20,25 +19,6 @@ Rectangle {
     radius: 40
     color: "transparent"
 
-    // "wifi" or "ethernet"
-    property string mode: "wifi"
-
-    // fired when user clicks anywhere on the row (to open popup)
-    signal activated()
-
-    // derived status line
-    property string subtitle: {
-        if (mode === "wifi") {
-            if (!S.NetworkMonitor.wifiEnabled)
-                return "Off"
-            if (S.NetworkMonitor.connected && S.NetworkMonitor.ssid)
-                return S.NetworkMonitor.ssid
-            return "Not connected"
-        } else { // ethernet – you can adapt this to your own ethernet monitor later
-            return S.NetworkMonitor.connected ? "Connected" : "Not connected"
-        }
-    }
-
     Row {
         anchors.fill: parent
         anchors.leftMargin: 10
@@ -47,13 +27,13 @@ Rectangle {
 
         Column {
             spacing: 20
-            // anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenter: parent.verticalCenter
             width: parent.width*.75
             Text {
-                text: mode === "wifi" ? "Wi-Fi" : "Ethernet"
+                text: "Wifi"
                 color: T.Config.fg
                 font.bold: true
-                font.pointSize: 11
+                font.pointSize: 13
             }
         }
 
@@ -65,7 +45,6 @@ Rectangle {
             spacing: 8
             Row {
                 spacing: 10
-                // anchors.verticalCenter: parent.verticalCenter
                 anchors.right: parent.right
                 anchors.left: parent.left
                 width: parent.width
@@ -74,7 +53,6 @@ Rectangle {
 
                 RoundedSwitch{
                     id: wifiSwitch
-                    visible: mode === "wifi"
                     anchors.verticalCenter: parent.verticalCenter
                     checked: S.NetworkMonitor.wifiEnabled
                     onToggled: {

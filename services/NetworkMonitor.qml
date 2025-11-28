@@ -1,38 +1,134 @@
-// NetworkMonitor.qml
 pragma Singleton
 import QtQuick
 import Quickshell.Io
 
 Item {
     id: net
-    //
-    // === PUBLIC PROPERTIES ===
-    //
-    property bool wifiEnabled: true      // no direct nmcli output — assume true
-    property bool scanning: false      // no direct nmcli output — assume true
-    property bool connecting: false
-    property string connectingTo: ""
-    property bool connected: false
+
+    property var networkConnections: {} // map of device,  { name, type, strength, ipv4 }
+
+    property bool wifiEnabled: true
+    property bool wifiScanning: false
+    property bool wifiConnecting: false
+    property string wifiConnectingTo: ""
     property string ssid: ""
     property int strength: 0
+
     property var accessPoints: []        // array of { ssid, strength, active }
-    // model of saved wifi connections (those with a profile in NM)
     property alias savedAccessPoints: savedWifiModel
     ListModel {
         id: savedWifiModel
     }
 
-
+    property bool wifiConnected: false
+    property bool wifiDevice: false
+    property bool ethernetConnected: false
+    property bool ethernetDevice: false
+    property string ethernetDeviceName: ""
+    property string ethernetConnectedIP: ""
+    property bool vpnConnected: false
 
     Timer {
         id: refreshTimer
         interval: 5000    // 4 seconds
         running: true
         repeat: true
-        onTriggered: refreshStatus()
+        onTriggered: refresh()
     }
 
     Component.onCompleted: net.refresh()
+
+    Process {
+        id: activeConnCmd
+        command: ["nmcli", "-t", "-f", "ACTIVE,NAME,DEVICE,TYPE", "connection", "show"]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                net._parseActiveConnections(text)
+            }
+        }
+    }
+
+    function updateProperties() {
+        wifiConnected = Object.values(networkConnections).some(c => c.active && c.type === "wifi")
+        ethernetConnected = Object.values(networkConnections).some(c => c.active && c.type === "ethernet")
+        let eth = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "ethernet");
+        if(eth) {
+            ethernetDeviceName = eth[0]
+            ethernetConnectedIP = eth[1].ipv4
+        }
+        vpnConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn")
+    }
+
+    
+
+    function _parseActiveConnections(text) {
+        if (!networkConnections) networkConnections = {}
+    
+        wifiDevice = false
+        ethernetDevice = false
+        let lines = text.trim().split("\n")
+        for (let line of lines) {
+            let parts = line.split(":")
+            let active = parts[0]
+            let name = parts[1]
+            let device = parts[2]
+            let parsedType = parts[3]
+            let type = "none"
+
+            if (parsedType.indexOf("wireless") >= 0) {
+                type = "wifi"
+                wifiDevice = true
+            } else if (parsedType.indexOf("ethernet") >= 0) {
+                type = "ethernet"
+                ethernetDevice = true
+            } else if (parsedType.indexOf("tun") >= 0) {
+                type = "vpn"
+            }
+
+            if(type !== "none"){
+                if (!networkConnections[device]) networkConnections[device] = {}
+                Object.assign(networkConnections[device], {
+                    active: active === "yes" ? true : false ,
+                    name: name,
+                    type: type,
+                    ipv4: "",
+                })
+            }
+        }
+        ipCmd.running = true
+    }
+
+    Process {
+        id: ipCmd
+        command: ["sh", "-c", 
+              "for d in $(nmcli -t -f DEVICE device); do " +
+              "ip=$(nmcli -t -f IP4.ADDRESS device show \"$d\" | head -n1 | cut -d: -f2 | cut -d/ -f1); " +
+              "echo \"$d:$ip\"; " +
+              "done"]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                _parseActiveIPAddresses(text)
+                updateProperties()
+            }
+        }
+    }
+
+
+    function _parseActiveIPAddresses(text) {
+        let lines = text.trim().split("\n")
+        for (let line of lines) {
+            if(line.trim() === "") {continue}
+            let parts = line.split(":")
+            let device = parts[0]
+            let ip = parts[1] || ""
+            if (networkConnections[device]) {
+                networkConnections[device].ipv4 = ip
+            }
+        }
+    }
+
 
     Process {
         id: wifiStatusCmd
@@ -51,7 +147,7 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 net._parseScan(text)
-                scanning = false
+                wifiScanning = false
             }
         }
     }
@@ -62,8 +158,8 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 net.refresh()
-                connecting = false
-                connectingTo = ""
+                wifiConnecting = false
+                wifiConnectingTo = ""
             }
         }
     }
@@ -110,7 +206,7 @@ Item {
     
 
     function refreshAvailable(callback) {
-        scanning = true
+        wifiScanning = true
         scanCmd.running = true
     }
 
@@ -124,13 +220,14 @@ Item {
     }
 
     function refresh() {
+        activeConnCmd.running = true
         savedNetworks.running = true
         wifiStatusCmd.running = true
     }
 
     function connectTo(ssidName) {
-        connecting = true
-        connectingTo = ssidName
+        wifiConnecting = true
+        wifiConnectingTo = ssidName
         connectCmd.command = ["nmcli", "device", "wifi", "connect", ssidName]
         connectCmd.running = true
     }
@@ -145,7 +242,7 @@ Item {
     function _parseWifiStatus(text) {
         let lines = text.trim().split("\n")
         if (lines.length === 0) {
-            connected = false
+            wifiConnected = false
             ssid = ""
             strength = 0
             return
@@ -154,14 +251,14 @@ Item {
         // Find the active entry (ACTIVE=yes)
         let activeLine = lines.find(l => l.startsWith("yes:"))
         if (!activeLine) {
-            connected = false
+            wifiConnected = false
             ssid = ""
             strength = 0
             return
         }
 
         let p = activeLine.split(":")
-        connected = (p[0] === "yes")
+        wifiConnected = (p[0] === "yes")
         ssid = p[1] ?? ""
         strength = parseInt(p[2] ?? "0") || 0
     }
