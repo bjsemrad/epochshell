@@ -3,12 +3,12 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
-import "../services" as S
+import Quickshell.Services.Pipewire
 import "../theme" as T
 import "../commonwidgets"
 
 Rectangle {
-    id: networksSection
+    id: audioOutputSection
     width: parent.width
     anchors.right: parent.right
     anchors.left: parent.left
@@ -17,10 +17,15 @@ Rectangle {
     property bool expanded: false
     implicitHeight: header.height + listContainer.height
 
+    property var sinks //Pipewire.nodes.filter(n => n.isSink && n.audio) 
 
     Connections {
-        target: networkPanel
-        onVisibleChanged: if (!networkPanel.visible) networksSection.expanded = false
+        target: audioPanel
+        onVisibleChanged: {
+            if (!audioPanel.visible) {
+                audioOutputSection.expanded = false
+            }
+        }
     }
 
     Column {
@@ -37,7 +42,7 @@ Rectangle {
                 spacing: 10
                 Text {
                     id: avText
-                    text: "Available Networks"
+                    text: "Available Outputs"
                     color: T.Config.fg
                     font.pixelSize: 13
                     Layout.leftMargin: 4
@@ -47,13 +52,8 @@ Rectangle {
                     text: expanded ? "▲" : "▼"
                     color: "#aaaaaa"
                     font.pixelSize: 12
-                    // anchors.left: avText.left + 20 
                 }
 
-                Spinner {
-                    id: wifiSpinner
-                    running: S.NetworkMonitor.scanning
-                }
             }
 
             MouseArea {
@@ -62,10 +62,7 @@ Rectangle {
                 cursorShape: Qt.PointingHandCursor
 
                 onClicked: function() {
-                    if(!networksSection.expanded) {
-                        S.NetworkMonitor.refreshAvailable()
-                    }
-                    networksSection.expanded = !networksSection.expanded
+                    audioOutputSection.expanded = !audioOutputSection.expanded
 
                 }
             }
@@ -80,8 +77,8 @@ Rectangle {
             border.width: 2
             border.color: T.Config.bg2
             width: parent.width
-            implicitHeight: networksSection.expanded
-                    ? Math.min(networkList.contentHeight, 300)
+            implicitHeight: audioOutputSection.expanded
+                    ? Math.min(audioList.contentHeight, 300)
                     : 0
 
             Behavior on height {
@@ -92,10 +89,10 @@ Rectangle {
             }
 
             ListView {
-                id: networkList
+                id: audioList
                 anchors.fill: parent
                 implicitHeight: Math.min(listContainer.implicitHeight,  100)
-                model: S.NetworkMonitor.accessPoints
+                model: sinks
                 interactive: true
 
                 delegate: Rectangle {
@@ -116,7 +113,7 @@ Rectangle {
 
                         Text {
                             text:  {
-                                const s = modelData.strength
+                                const s = modelData.name
 
                                 if (s >= 75) return "󰤨"
                                 if (s >= 50) return "󰤢"
@@ -129,7 +126,7 @@ Rectangle {
                         }
  
                         Text {
-                            text: modelData.ssid
+                            text: modelData.name
                             color: "white"
                             font.pixelSize: 13
                             elide: Text.ElideRight
@@ -143,7 +140,7 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                           S.NetworkMonitor.connectTo(modelData.ssid) 
+                           // S.NetworkMonitor.connectTo(modelData.ssid) 
                             // connect to this AP here if you want
                             // e.g. call your nmcli Process with ssid
                         }

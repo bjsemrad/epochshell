@@ -7,12 +7,12 @@ PopupWindow {
     id: root
     visible: false
     color: "transparent"
+    implicitWidth: container.implicitWidth + 20
+    implicitHeight: container.implicitHeight + 20
 
-    // Public API
     property Item trigger: null
     default property alias content: container.data
 
-    // Hover state
     property bool _triggerHover: false
     property bool _popupHover: false
 
@@ -20,29 +20,18 @@ PopupWindow {
         if (!_triggerHover && !_popupHover)
             root.visible = false
     }
-
-    // Close on unfocus
+    
     Window.onActiveChanged: {
         if (!Window.active)
             root.visible = false
     }
 
-    // Anchor popup to trigger button
     anchor {
         item: trigger
         edges: Edges.Left | Edges.Bottom
         gravity: Edges.Bottom | Edges.Right
         adjustment: PopupAdjustment.Slide | PopupAdjustment.Flip
     }
-
-    //
-    // ✅ This must have a real visible size
-    //
-    // If you want automatic content sizing:
-    // use a reasonable fixed/default width
-    implicitWidth: container.implicitWidth + 20
-    implicitHeight: container.implicitHeight + 20
-
 
     Rectangle {
         id: bg
@@ -58,7 +47,6 @@ PopupWindow {
             }
         }
 
-        // ✅ Content fills, but margin keeps padding
         Column {
             id: container
             anchors.fill: parent

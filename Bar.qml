@@ -71,10 +71,17 @@ Scope {
 
         children: [
           BarFill{},
-         Network{
+          Network{
             id:net
             popup: networkPanel
-          }, 
+          },
+          Bluetooth{
+            id:bluet
+          },
+          Volume {
+            id: vol
+            popup: audioPanel
+          },
           Battery{}, 
           // TrayWidget{}, 
           BarFill{} ] 
@@ -88,6 +95,11 @@ Scope {
       NetworkPanel {
         id: networkPanel
         trigger: net
+      }
+
+      AudioPanel {
+        id: audioPanel
+        trigger: vol
       }
     }
   }

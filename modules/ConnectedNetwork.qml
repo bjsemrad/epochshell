@@ -42,17 +42,6 @@ Rectangle {
                 anchors.centerIn: parent
                 color: T.Config.fg
             }
-
-            // IconImage {
-            //         source:  Quickshell.iconPath(S.NetworkMonitor.connected
-            //                 ? "network-wireless-signal-excellent-symbolic"
-            //                 : "network-offline-symbolic")
-            //         implicitWidth: 18
-            //         implicitHeight: 18
-            //         anchors.verticalCenter: parent.verticalCenter
-            //         anchors.centerIn: parent
-            //
-            // }
         }
 
         Text {

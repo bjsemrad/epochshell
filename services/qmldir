@@ -1,1 +1,3 @@
 singleton NetworkMonitor 1.0 NetworkMonitor.qml
+singleton PopupManager 1.0 PopupManager.qml
+

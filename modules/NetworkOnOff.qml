@@ -47,11 +47,11 @@ Rectangle {
 
         Column {
             spacing: 20
-            anchors.verticalCenter: parent.verticalCenter
+            // anchors.verticalCenter: parent.verticalCenter
             width: parent.width*.75
             Text {
                 text: mode === "wifi" ? "Wi-Fi" : "Ethernet"
-                color: "white"
+                color: T.Config.fg
                 font.bold: true
                 font.pointSize: 11
             }
@@ -65,7 +65,7 @@ Rectangle {
             spacing: 8
             Row {
                 spacing: 10
-                anchors.verticalCenter: parent.verticalCenter
+                // anchors.verticalCenter: parent.verticalCenter
                 anchors.right: parent.right
                 anchors.left: parent.left
                 width: parent.width
@@ -97,7 +97,7 @@ Rectangle {
                         font.pixelSize: 18
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.centerIn: parent
-                        color: "white"
+                        color: T.Config.fg
                     }
                     MouseArea {
                         id: settingsMouseArea
