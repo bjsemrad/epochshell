@@ -29,7 +29,7 @@ Rectangle {
 
               Text {
                 text:  {
-                  if(S.NetworkMonitor.ethernetConnected) return "󰈀"
+                  if(S.NetworkMonitor.ethernetConnected) return "󰌗"
                   return "󰌙"
                 }
                 font.pixelSize: 18

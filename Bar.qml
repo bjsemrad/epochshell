@@ -82,6 +82,11 @@ Scope {
             visible: S.NetworkMonitor.ethernetDevice && !S.NetworkMonitor.wifiConnected
             popup: ethernetNetworkPanel
           },
+          TailscaleNetwork {
+            id:tailNet
+            visible: S.NetworkMonitor.tailscaleConnected
+            popup: ethernetNetworkPanel
+          },
           Bluetooth{
             id:bluet
           },

@@ -26,7 +26,7 @@ Item {
     property bool ethernetDevice: false
     property string ethernetDeviceName: ""
     property string ethernetConnectedIP: ""
-    property bool vpnConnected: false
+    property bool tailscaleConnected: false
 
     Timer {
         id: refreshTimer
@@ -57,7 +57,7 @@ Item {
             ethernetDeviceName = eth[0]
             ethernetConnectedIP = eth[1].ipv4
         }
-        vpnConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn")
+        tailscaleConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn" && c.name.indexOf("tailscale") >= 0)
     }
 
     
