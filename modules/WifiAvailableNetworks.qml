@@ -103,11 +103,9 @@ Rectangle {
                 delegate: Rectangle {
                     width: ListView.view.width*.9
                     implicitHeight: 30
-                    color: "transparent"
-                    border.width: T.Config.selectedBorderWidth
                     radius: 6
                     anchors.margins: 10
-                    border.color: mouseArea.containsMouse ? T.Config.fg : "transparent"
+                    color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
                     Row {
                         anchors.fill: parent
