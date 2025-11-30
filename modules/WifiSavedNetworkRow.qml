@@ -28,12 +28,10 @@ Rectangle {
         height: parent.height
 
         Rectangle {
-            border.width: T.Config.selectedBorderWidth
             radius: 6
-            border.color: mouseArea.containsMouse ? T.Config.fg : "transparent"
+            color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
             implicitWidth: parent.width
             implicitHeight: parent.height
-            color: "transparent"
              Row {
                     spacing: 10
                     anchors.verticalCenter: parent.verticalCenter

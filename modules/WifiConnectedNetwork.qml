@@ -23,7 +23,7 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             radius: 20
             color: T.Config.bg0 
-            border.color: S.Network.wifiConnected ? T.Config.blue : T.Config.red
+            border.color: S.Network.wifiConnected ? T.Config.green : T.Config.red
             border.width: 2 
             antialiasing: true
 

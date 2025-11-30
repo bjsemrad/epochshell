@@ -22,8 +22,8 @@ Rectangle {
             anchors.leftMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             radius: 20
-            color: T.Config.bg0 //isActive ? _tileBgActive : _tileBgInactive
-            border.color: T.Config.blue //isActive ? _tileRingActive : "transparent"
+            color: T.Config.bg0
+            border.color: S.Network.ethernetConnected ? T.Config.green : T.Config.red
             border.width: 2 
             antialiasing: true
 
@@ -54,7 +54,7 @@ Rectangle {
                 text: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
                 color: T.Config.fg
                 font.pixelSize: 14;
-                            anchors.horizontalCenter: parent.horizontalCenter
+                anchors.horizontalCenter: parent.horizontalCenter
             }
         }
 

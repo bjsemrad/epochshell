@@ -67,7 +67,7 @@ Rectangle {
                     implicitHeight: 40
                     radius: 20
                     border.width: 2
-                    border.color: settingsMouseArea.containsMouse ? T.Config.blue : "transparent"
+                    border.color: settingsMouseArea.containsMouse ? T.Config.fg : "transparent"
                     color: "transparent"
                     anchors.verticalCenter: parent.verticalCenter
                     Text {

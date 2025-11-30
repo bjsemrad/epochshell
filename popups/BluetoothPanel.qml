@@ -16,12 +16,12 @@ HoverPopupWindow {
     onVisibleChanged: {
         if (visible) {
             refresh()
-            S.PopupManager.closeOthers(networkPopup)
+            S.PopupManager.closeOthers(bluetoothPopup)
         }
     }
 
     Component.onCompleted: {
-        S.PopupManager.register(networkPopup)
+        S.PopupManager.register(bluetoothPopup)
     }
 
 

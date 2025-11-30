@@ -10,6 +10,7 @@ Singleton {
   property color bg: "#000000"
   property color inactive:  "#758799"
   property color active:  fg
+  property color activeSelection: "#2A2A2A"
 
    property color black:    "#0e1013"
     property color bgDark:   "#1E2127"
