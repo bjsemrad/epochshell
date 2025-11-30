@@ -49,18 +49,10 @@ Rectangle {
             }
 
             Text {
-                text: S.NetworkMonitor.tailscaleConnected ? S.NetworkMonitor.tailscaleConnectedIP : "Disconnected"
+                text: S.Network.tailscaleConnected ? S.Network.tailscaleConnectedIP : "Disconnected"
                 color: T.Config.fg
                 font.pixelSize: 14;
                 anchors.horizontalCenter: parent.horizontalCenter
             }
         }
-
-        // Text {
-        //     text: S.NetworkMonitor.wificonnected ? S.NetworkMonitor.ssid : "Disconnected"
-        //     color: "white"
-        //     font.pixelSize: 16
-        //     anchors.verticalCenter: parent.verticalCenter
-        //     anchors.centerIn: parent
-        // }
 }

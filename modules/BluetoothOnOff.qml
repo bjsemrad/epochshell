@@ -31,7 +31,7 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width*.80
             Text {
-                text: "Wifi"
+                text: "Bluetooth"
                 color: T.Config.fg
                 font.bold: true
                 font.pointSize: 13
@@ -53,11 +53,11 @@ Rectangle {
 
 
                 RoundedSwitch{
-                    id: wifiSwitch
+                    id: btSwitch
                     anchors.verticalCenter: parent.verticalCenter
                     checked: S.Network.wifiEnabled
                     onToggled: {
-                        S.Network.disableWifi(wifiSwitch.checked)
+                        //TODO:
                     }
                 }
 
@@ -84,7 +84,7 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            S.Network.editNetworks()
+                            //TODO:
                         }
 
                     }

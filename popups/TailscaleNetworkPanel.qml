@@ -14,7 +14,7 @@ HoverPopupWindow {
     trigger: trigger
     
     function refresh() {
-        S.NetworkMonitor.refresh()
+        S.Tailscale.refresh()
     }
 
     // Timer {

@@ -10,23 +10,8 @@ import "../theme" as T
 import "../services" as S
 
 HoverPopupWindow {
-    id: networkPopup
+    id: bluetoothPopup
     trigger: trigger
-    
-    function refresh() {
-        S.Network.refresh()
-    }
-
-    Timer {
-        id: refreshTimer
-        interval: 5000  
-        repeat: true
-        running: networkPopup.visible
-
-        onTriggered: {
-            refresh()
-        }
-    }
 
     onVisibleChanged: {
         if (visible) {
@@ -41,18 +26,16 @@ HoverPopupWindow {
 
 
     Row {
-        id: networkContent
+        id: bluetoothContent
         spacing: 10
         Column {
-            width: T.Config.networkPopupWidth
+            width: T.Config.bluetoothPopupWidth
             spacing: 10
-            WifiOnOff {}
+            BluetoothOnOff {}
             ComponentSplitter{}
-            WifiConnectedNetwork{}
+            // WifiConnectedNetwork{}
             ComponentSplitter{}
-            WifiSavedNetworks{}
-            ComponentSplitter{}
-            WifiAvailableNetworks{}
+            // WifiAvailableNetworks{}
             ComponentSpacer{}
         }
     }

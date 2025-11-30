@@ -29,7 +29,7 @@ Rectangle {
 
               Text {
                 text:  {
-                  if(S.NetworkMonitor.ethernetConnected) return "󰌗"
+                  if(S.Network.ethernetConnected) return "󰌗"
                   return "󰌙"
                 }
                 font.pixelSize: 18
@@ -44,14 +44,14 @@ Rectangle {
             spacing: 10
 
             Text {
-                text: S.NetworkMonitor.ethernetConnected ? S.NetworkMonitor.ethernetDeviceName : "Disconnected"
+                text: S.Network.ethernetConnected ? S.Network.ethernetDeviceName : "Disconnected"
                 color: "white"
                 font.pixelSize: 16
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
             Text {
-                text: S.NetworkMonitor.ethernetConnected ? S.NetworkMonitor.ethernetConnectedIP : "Disconnected"
+                text: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
                 color: T.Config.fg
                 font.pixelSize: 14;
                             anchors.horizontalCenter: parent.horizontalCenter

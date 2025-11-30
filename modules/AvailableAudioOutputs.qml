@@ -140,7 +140,6 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                           // S.NetworkMonitor.connectTo(modelData.ssid) 
                             // connect to this AP here if you want
                             // e.g. call your nmcli Process with ssid
                         }

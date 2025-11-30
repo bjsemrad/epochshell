@@ -72,7 +72,7 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            S.NetworkMonitor.editNetworks()
+                            S.Network.editNetworks()
                         }
 
                     }

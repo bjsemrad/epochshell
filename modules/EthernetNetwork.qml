@@ -5,7 +5,7 @@ BarIconPopup {
     id: root
     mouseEnabled: true
     iconText:  {
-        if (S.NetworkMonitor.ethernetConnected) {
+        if (S.Network.ethernetConnected) {
             return "󰌗"
         }
         return "󰌙"

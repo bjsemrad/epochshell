@@ -74,21 +74,22 @@ Scope {
           BarFill{},
           WifiNetwork{
             id:wifiNet
-            visible: S.NetworkMonitor.wifiDevice && !S.NetworkMonitor.ethernetConnected
+            visible: S.Network.wifiDevice && !S.Network.ethernetConnected
             popup: wifiNetworkPanel
           },
           EthernetNetwork{
             id:ethNet
-            visible: S.NetworkMonitor.ethernetDevice && !S.NetworkMonitor.wifiConnected
+            visible: S.Network.ethernetDevice && !S.Network.wifiConnected
             popup: ethernetNetworkPanel
           },
           TailscaleNetwork {
             id:tailNet
-            visible: S.NetworkMonitor.tailscaleConnected
+            visible: S.Network.tailscaleConnected
             popup: tailscaleNetworkPanel
           },
           Bluetooth{
             id:bluet
+            popup: bluetoothPanel
           },
           Volume {
             id: vol
@@ -122,6 +123,11 @@ Scope {
       AudioPanel {
         id: audioPanel
         trigger: vol
+      }
+
+      BluetoothPanel {
+        id: bluetoothPanel
+        trigger: bluet
       }
     }
   }

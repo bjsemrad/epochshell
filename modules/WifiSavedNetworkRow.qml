@@ -59,7 +59,7 @@ Rectangle {
 
                     Spinner {
                         id: wifiSpinner
-                        running: S.NetworkMonitor.wifiConnecting && S.NetworkMonitor.wifiConnectingTo === root.ssid
+                        running: S.Network.wifiConnecting && S.Network.wifiConnectingTo === root.ssid
                     }
                 }
                 MouseArea {
@@ -68,7 +68,7 @@ Rectangle {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        S.NetworkMonitor.connectTo(root.ssid)
+                        S.Network.connectTo(root.ssid)
                     }
                 }
         }

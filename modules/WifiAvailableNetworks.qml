@@ -54,7 +54,7 @@ Rectangle {
 
                 Spinner {
                     id: wifiSpinner
-                    running: S.NetworkMonitor.wifiScanning
+                    running: S.Network.wifiScanning
                 }
             }
 
@@ -65,7 +65,7 @@ Rectangle {
 
                 onClicked: function() {
                     if(!networksSection.expanded) {
-                        S.NetworkMonitor.refreshAvailable()
+                        S.Network.refreshAvailable()
                     }
                     networksSection.expanded = !networksSection.expanded
 
@@ -97,7 +97,7 @@ Rectangle {
                 id: networkList
                 anchors.fill: parent
                 implicitHeight: Math.min(listContainer.implicitHeight,  100)
-                model: S.NetworkMonitor.accessPoints
+                model: S.Network.accessPoints
                 interactive: true
 
                 delegate: Rectangle {
@@ -145,9 +145,7 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                           S.NetworkMonitor.connectTo(modelData.ssid) 
-                            // connect to this AP here if you want
-                            // e.g. call your nmcli Process with ssid
+                           S.Network.connectTo(modelData.ssid) 
                         }
                     }
                 }
