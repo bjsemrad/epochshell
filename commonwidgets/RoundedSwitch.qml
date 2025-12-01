@@ -1,7 +1,6 @@
-
-// RoundedSwitch.qml
 import QtQuick
 import QtQuick.Controls
+import "../theme" as T
 
 Item {
     id: root
@@ -15,7 +14,7 @@ Item {
         id: track
         anchors.fill: parent
         radius: height / 2
-        color: checked ? "#4A93FF" : "#3A3A3E"
+        color: checked ? T.Config.blue : "#3A3A3E" //TODO: Come back to this // "#4A93FF" : "#3A3A3E"
         Behavior on color { ColorAnimation { duration: 160 } }
     }
 

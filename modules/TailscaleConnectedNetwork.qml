@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
 import Quickshell
+import Quickshell.Io
 import Quickshell.Widgets
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -13,6 +14,10 @@ Rectangle {
     height: 40
     radius: 6
     color: "transparent"
+
+    Process {
+        id: wlcopy
+    }
 
     Rectangle {
             id: iconTile
@@ -41,18 +46,62 @@ Rectangle {
             width: parent.width
             spacing: 10
 
-            Text {
-                text: S.Tailscale.connected ? S.Tailscale.magicDNSSuffix : "Disconnected"
-                color: "white"
-                font.pixelSize: 16
+              Rectangle {
+                id: dnsWrapper
+                width: dns.implicitWidth
+                height: dns.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
+                color: "transparent"
+
+                Text {
+                    id: dns
+                    text: S.Tailscale.connected ? S.Tailscale.magicDNSSuffix : "Disconnected"
+                    color: "white"
+                    font.pixelSize: 16
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                MouseArea {
+                    id: mouseAreaDns
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton
+                    onClicked:(mouse)=> {
+                        wlcopy.command = ["wl-copy", S.Tailscale.magicDNSSuffix]
+                        wlcopy.running = true
+                    }
+                }
+
             }
 
-            Text {
-                text: S.Network.tailscaleConnected ? S.Network.tailscaleConnectedIP : "Disconnected"
-                color: T.Config.fg
-                font.pixelSize: 14;
+            Rectangle {
+                id: ipWrapper
+                width: ip.implicitWidth
+                height: ip.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
+                color: "transparent"
+
+                Text {
+                    id: ip
+                    text: S.Network.tailscaleConnected ? S.Network.tailscaleConnectedIP : "Disconnected"
+                    color: T.Config.fg
+                    font.pixelSize: 14;
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+
+                MouseArea {
+                    id: mouseAreaIp
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton
+                    onClicked:(mouse)=> {
+                        wlcopy.command = ["wl-copy", S.Network.tailscaleConnectedIP]
+                        wlcopy.running = true
+                    }
+                }
             }
         }
 }

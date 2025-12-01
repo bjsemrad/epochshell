@@ -9,12 +9,12 @@ import "../commonwidgets"
 import "../services" as S
 
 AvailableAudio {
-    id: audioOutputSection
+    id: audioInputSection
 
-    type: "Outputs"
-    defaultAudioNode: Pipewire.defaultAudioSink
+    type: "Inputs"
+    defaultAudioNode: Pipewire.defaultAudioSource
 
     function isAudioType(node){
-        return (node.isSink && node.audio)
+        return (!node.isSink && node.audio)
     }
 }

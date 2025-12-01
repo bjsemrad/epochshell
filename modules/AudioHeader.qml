@@ -27,10 +27,9 @@ Rectangle {
 
         Column {
             spacing: 20
-            // anchors.verticalCenter: parent.verticalCenter
-            width: parent.width*.93
+            width: parent.width*.90
             Text {
-                text: "Ethernet"
+                text: "Sound"
                 color: T.Config.fg
                 font.bold: true
                 font.pointSize: 13
@@ -38,7 +37,7 @@ Rectangle {
         }
 
         Column {
-            width: parent.width*.07
+            width: parent.width*.10
             height: parent.height
             anchors.right: parent.right
             anchors.rightMargin: 10
@@ -72,7 +71,7 @@ Rectangle {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            S.Network.editNetworks()
+                            S.AudioService.openSettings()
                         }
 
                     }

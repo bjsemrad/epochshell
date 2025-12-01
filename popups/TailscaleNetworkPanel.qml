@@ -17,17 +17,6 @@ HoverPopupWindow {
         S.Tailscale.refresh()
     }
 
-    // Timer {
-    //     id: refreshTimer
-    //     interval: 5000  
-    //     repeat: true
-    //     running: tailscalePopup.visible
-    //
-    //     onTriggered: {
-    //         refresh()
-    //     }
-    // }
-    //
     onVisibleChanged: {
         if (visible) {
             refresh()

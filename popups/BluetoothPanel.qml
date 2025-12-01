@@ -15,7 +15,6 @@ HoverPopupWindow {
 
     onVisibleChanged: {
         if (visible) {
-            refresh()
             S.PopupManager.closeOthers(bluetoothPopup)
         }
     }

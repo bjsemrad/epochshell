@@ -42,7 +42,7 @@ Item {
 
     Timer {
         id: statusProcTim
-        interval: 5000
+        interval: 30000
         running: true
         repeat: true
         onTriggered: refresh()

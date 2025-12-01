@@ -68,8 +68,8 @@ Rectangle {
                     implicitHeight: 40
                     radius: 20
                     border.width: 2
-                    border.color: settingsMouseArea.containsMouse ? T.Config.blue : "transparent"
-                    color: "transparent"
+                    border.color: settingsMouseArea.containsMouse ? T.Config.fg : "transparent"
+                    color: settingsMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
                     anchors.verticalCenter: parent.verticalCenter
                     Text {
                         text: ""

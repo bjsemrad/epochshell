@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell.Io
 import "../services" as S
 import "../theme" as T
 Rectangle {
@@ -13,6 +14,10 @@ Rectangle {
     height: 40
     radius: 6
     color: "transparent"
+
+    Process {
+        id: wlcopy
+    }
 
     Rectangle {
             id: iconTile
@@ -43,18 +48,61 @@ Rectangle {
             width: parent.width
             spacing: 10
 
-            Text {
-                text: S.Network.ethernetConnected ? S.Network.ethernetDeviceName : "Disconnected"
-                color: "white"
-                font.pixelSize: 16
+            Rectangle {
+                id: deviceWrapper
+                width: device.implicitWidth
+                height: device.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
+                color: "transparent"
+                Text {
+                    id: device
+                    text: S.Network.ethernetConnected ? S.Network.ethernetDeviceName : "Disconnected"
+                    color: "white"
+                    font.pixelSize: 16
+                    // anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                MouseArea {
+                    id: mouseAreaDevice
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton
+                    onClicked:(mouse)=> {
+                        wlcopy.command = ["wl-copy", S.Network.ethernetDeviceName]
+                        wlcopy.running = true
+                    }
+                }
+
             }
 
-            Text {
-                text: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
-                color: T.Config.fg
-                font.pixelSize: 14;
+            Rectangle {
+                id: ipWrapper
+                width: ip.implicitWidth
+                height: ip.implicitHeight
                 anchors.horizontalCenter: parent.horizontalCenter
+                color: "transparent"
+
+                Text {
+                    id: ip
+                    text: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
+                    color: T.Config.fg
+                    font.pixelSize: 14;
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+
+                MouseArea {
+                    id: mouseAreaIp
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton
+                    onClicked:(mouse)=> {
+                        wlcopy.command = ["wl-copy", S.Network.ethernetConnectedIP]
+                        wlcopy.running = true
+                    }
+                }
             }
         }
 

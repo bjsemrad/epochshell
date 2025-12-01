@@ -17,13 +17,17 @@ HoverPopupWindow {
         id: audioContent
         spacing: 10
         Column {
-            width: T.Config.networkPopupWidth
+            width: T.Config.audioPopupWidth
             spacing: 10
+            AudioHeader{}
+            ComponentSplitter{}
             AudioVolumeRow {}
             ComponentSplitter{}
             AvailableAudioOutputs{}
             ComponentSplitter{}
             MicVolumeRow{}
+            ComponentSplitter{}
+            AvailableAudioInputs{}
             ComponentSpacer{}
         }
     }

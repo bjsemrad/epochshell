@@ -8,7 +8,7 @@ Rectangle {
     required property var audioInterface
     required property var iconText
     width: parent.width
-    height: 60
+    height: 30
     radius: 40
 
     color: "transparent"
@@ -19,8 +19,8 @@ Rectangle {
         implicitHeight: 40
         radius: 20
         border.width: 2
-        border.color: audioMouseArea.containsMouse ? T.Config.blue : "transparent"
-        color: "transparent"
+        border.color: audioMouseArea.containsMouse ? T.Config.fg : "transparent"
+        color: audioMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
         anchors.verticalCenter: parent.verticalCenter
         Text {
             anchors.verticalCenter: parent.verticalCenter

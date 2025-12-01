@@ -17,9 +17,9 @@ Rectangle {
         id: column
         anchors.fill: parent
         width: parent.width
-        spacing: 5
+        spacing: 10
         Text {
-            text: "Microphone"
+            text: "Microphone" + (Pipewire.defaultAudioSource ? " - " + Pipewire.defaultAudioSource?.nickname : "")
             color: T.Config.fg
             font.bold: true
             font.pointSize: 11
