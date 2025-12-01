@@ -95,7 +95,9 @@ Scope {
             id: vol
             popup: audioPanel
           },
-          Battery{}, 
+          Battery{},
+          Clipboard{},
+          Colorpicker{},
           // TrayWidget{}, 
           BarFill{} ] 
       }

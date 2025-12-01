@@ -3,6 +3,7 @@ import "../commonwidgets"
 BarIconPopup {
     id: root
     mouseEnabled: true
+    hoverEnabled: false
     iconText: "󰂯"
             // TODO: Have this based on the connectivity and the battery etc status
             // {

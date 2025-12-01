@@ -4,6 +4,7 @@ import '../services' as S
 BarIconPopup {
     id: root
     mouseEnabled: true
+    hoverEnabled: false
     iconText:  {
         const s = S.Network.strength
         if (!S.Network.wifiConnected) return "󰤭"

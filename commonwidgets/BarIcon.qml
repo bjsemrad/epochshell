@@ -9,27 +9,29 @@ Rectangle {
     color: "transparent"
     implicitWidth: inner.implicitWidth + 5
     implicitHeight: inner.implicitHeight + 5
-    property var popup
     required property string iconText
     required property bool mouseEnabled
-    required property bool hoverEnabled
+
+
+    function performLeftClickAction(){
+        console.log("Missing Implementation")
+    }
+
+    function performRightClickAction(){
+        performLeftClickAction()
+    }
 
     MouseArea {
-        id: mouseArea
         enabled: mouseEnabled
         anchors.fill: parent
-        hoverEnabled: hoverEnabled
         cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: {
-            popup.visible = !popup.visible
-        }
-
-        onEntered: {
-            popup.visible = mouseArea.containsMouse
-        }
-
-        onExited: {
-            popup.visible = !mouseArea.containMouse
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked:(mouse)=> {
+            if (mouse.button == Qt.RightButton) {
+                performRightClickAction()
+            } else {
+                performLeftClickAction()
+            }
         }
     }
 

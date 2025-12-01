@@ -9,6 +9,8 @@ BarIconPopup {
     property bool charging: false
 
     mouseEnabled: false
+    hoverEnabled: true
+
 
     property bool hasBattery: {
         for (let dev of UPower.devices.values) {
