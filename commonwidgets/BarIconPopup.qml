@@ -21,7 +21,9 @@ Rectangle {
         hoverEnabled: hoverEnabled
         cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         onClicked: {
-            popup.visible = !popup.visible
+            if(!popup.visible) {
+                popup.visible = true //Don't set this to !popup.visible, on high-refresh get odd flickering
+            }
         }
 
         onEntered: {
