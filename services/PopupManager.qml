@@ -17,4 +17,12 @@ QtObject {
             }
         }
     }
+
+    function closeAll() {
+        for (let p of openPopups) {
+            if (p.visible) {
+                p.visible = false
+            }
+        }
+    }
 }

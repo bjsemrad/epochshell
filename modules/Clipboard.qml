@@ -1,6 +1,7 @@
 import "../commonwidgets"
 import Quickshell
 import Quickshell.Io
+import "../services" as S
 BarIcon {
     id: root
     mouseEnabled: true
@@ -11,6 +12,7 @@ BarIcon {
     }
 
     function performLeftClickAction(){
+        S.PopupManager.closeAll()
         clipboard.command = ["uwsm", "app", "--", "walker", "--provider", "clipboard"]
         clipboard.running = true
     }

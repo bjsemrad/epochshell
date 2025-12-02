@@ -103,13 +103,12 @@ Scope {
           Clipboard{},
           Colorpicker{},
           // TrayWidget{}, 
+          SystemOptions{
+            id: systemOptions
+            popup: systemOptionsPanel
+          },
           BarFill{} ] 
       }
-
-      // NetworkPopup {
-      //   id: netPopup
-      //   screen: barWindow.screen
-      // }
 
       WifiNetworkPanel {
         id: wifiNetworkPanel
@@ -134,6 +133,10 @@ Scope {
       BluetoothPanel {
         id: bluetoothPanel
         trigger: bluet
+      }
+      SystemOptionsPanel {
+        id: systemOptionsPanel
+        trigger: systemOptions
       }
     }
   }

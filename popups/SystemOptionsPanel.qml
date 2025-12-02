@@ -19,15 +19,8 @@ HoverPopupWindow {
         Column {
             width: T.Config.audioPopupWidth
             spacing: 10
-            AudioHeader{}
+            SystemOptionsHeader{}
             ComponentSplitter{}
-            AudioVolumeRow {}
-            ComponentSplitter{}
-            AvailableAudioOutputs{}
-            ComponentSplitter{}
-            MicVolumeRow{}
-            ComponentSplitter{}
-            AvailableAudioInputs{}
             ComponentSpacer{}
         }
     }
