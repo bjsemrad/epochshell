@@ -49,33 +49,41 @@ Rectangle {
                 height: parent.height
 
 
-                Rectangle {
-                    id: networkSettings
-                    implicitWidth: 40;
-                    implicitHeight: 40
-                    radius: 20
-                    border.width: 2
-                    border.color: settingsMouseArea.containsMouse ? T.Config.fg : "transparent"
-                    color: settingsMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
-                    Text {
-                        text: ""
-                        font.pixelSize: 18
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.centerIn: parent
-                        color: T.Config.fg
-                    }
-                    MouseArea {
-                        id: settingsMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            S.AudioService.openSettings()
-                        }
-
+                PanelHeaderIcon {
+                    id: audioSettings
+                    iconText: ""
+                    function onClick(){
+                        S.AudioService.openSettings()
                     }
                 }
+
+                // Rectangle {
+                //     id: networkSettings
+                //     implicitWidth: 40;
+                //     implicitHeight: 40
+                //     radius: 20
+                //     border.width: 2
+                //     border.color: settingsMouseArea.containsMouse ? T.Config.fg : "transparent"
+                //     color: settingsMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
+                //     anchors.verticalCenter: parent.verticalCenter
+                //     Text {
+                //         text: ""
+                //         font.pixelSize: 18
+                //         anchors.verticalCenter: parent.verticalCenter
+                //         anchors.centerIn: parent
+                //         color: T.Config.fg
+                //     }
+                //     MouseArea {
+                //         id: settingsMouseArea
+                //         anchors.fill: parent
+                //         hoverEnabled: true
+                //         cursorShape: Qt.PointingHandCursor
+                //         onClicked: {
+                //             S.AudioService.openSettings()
+                //         }
+                //
+                //     }
+                // }
             }
         }
      }

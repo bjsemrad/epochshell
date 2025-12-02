@@ -91,7 +91,6 @@ Scope {
 						        : ""
 						}
 						font.pixelSize: 30
-						anchors.verticalCenter: parent.verticalCenter
 						color: "white"
 					}
 

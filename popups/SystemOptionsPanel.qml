@@ -10,11 +10,11 @@ import "../theme" as T
 import "../services" as S
 
 HoverPopupWindow {
-    id: audioPopup
+    id: systemOptionsPopup
     trigger: trigger
 
     Row {
-        id: audioContent
+        id: systemContent
         spacing: 10
         Column {
             width: T.Config.audioPopupWidth
@@ -27,12 +27,12 @@ HoverPopupWindow {
 
     onVisibleChanged: {
         if (visible){
-            S.PopupManager.closeOthers(audioPopup)
+            S.PopupManager.closeOthers(systemOptionsPopup)
         }
     }
 
     Component.onCompleted: {
-        S.PopupManager.register(audioPopup)
+        S.PopupManager.register(systemOptionsPopup)
     }
 }
 

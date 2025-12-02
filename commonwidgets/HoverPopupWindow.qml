@@ -13,14 +13,13 @@ PopupWindow {
     property Item trigger: null
     default property alias content: container.data
 
-    property bool _triggerHover: false
     property bool _popupHover: false
 
     function _updateHover() {
-        if (!_triggerHover && !_popupHover)
+        if (!_popupHover)
             root.visible = false
     }
-    
+
     Window.onActiveChanged: {
         if (!Window.active)
             root.visible = false

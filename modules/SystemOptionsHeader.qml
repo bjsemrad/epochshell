@@ -1,9 +1,7 @@
 import QtQuick
-import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
-import QtQuick.Layouts
 import Quickshell.Io
 import "../theme" as T
 import "../services" as S
@@ -27,7 +25,7 @@ Rectangle {
 
         Column {
             spacing: 20
-            width: parent.width*.90
+            width: parent.width*.75
             Text {
                 text: "System"
                 color: T.Config.fg
@@ -37,71 +35,40 @@ Rectangle {
         }
 
         Column {
-            width: parent.width*.10
+            width: parent.width*.25
             height: parent.height
             anchors.right: parent.right
             anchors.rightMargin: 10
             Row {
-                spacing: 10
+                spacing: 5
                 anchors.right: parent.right
                 anchors.left: parent.left
                 width: parent.width
                 height: parent.height
 
+                Process {
+                    id: missionCenter
+                    command: ["flatpak", "run", "io.missioncenter.MissionCenter"]
+                }
 
-                Rectangle {
-                    id: missionCenterSettings
-                    implicitWidth: 40;
-                    implicitHeight: 40
-                    radius: 20
-                    border.width: 2
-                    border.color: missionCenterMouseArea.containsMouse ? T.Config.fg : "transparent"
-                    color: missionCenterMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
-                    Text {
-                        text: "󰄧"
-                        font.pixelSize: 18
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.centerIn: parent
-                        color: T.Config.fg
-                    }
-                    MouseArea {
-                        id: missionCenterMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-
-                        }
-
+                PanelHeaderIcon {
+                    id: systemMonitorSettings
+                    iconText: "󰄧"
+                    function onClick(){
+                        missionCenter.running = true
                     }
                 }
 
-                Rectangle {
+                Process {
+                    id: firmware
+                    command: ["gnome-firmware"]
+                }
+
+                PanelHeaderIcon {
                     id: firmwareSettings
-                    implicitWidth: 40;
-                    implicitHeight: 40
-                    radius: 20
-                    border.width: 2
-                    border.color: firmwareMouseArea.containsMouse ? T.Config.fg : "transparent"
-                    color: firmwareMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-                    anchors.verticalCenter: parent.verticalCenter
-                    Text {
-                        text: "󰄧"
-                        font.pixelSize: 18
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.centerIn: parent
-                        color: T.Config.fg
-                    }
-                    MouseArea {
-                        id: firmwareMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-
-                        }
-
+                    iconText: ""
+                    function onClick(){
+                        firmware.running = true
                     }
                 }
             }
