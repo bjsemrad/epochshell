@@ -3,7 +3,8 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.Pipewire
-import "../theme" as T
+import qs.theme as T
+
 Rectangle {
     required property var audioInterface
     required property var iconText

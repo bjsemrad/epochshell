@@ -4,18 +4,21 @@ import Quickshell
 import Quickshell.Services.UPower
 import Quickshell.Wayland
 import Quickshell.Io
-import "./theme" as T
-import "./popups"
-import "./modules"
-import "./services" as S
+import qs.theme as T
+import qs.popups
+import qs.modules
+import qs.modules.audio
+import qs.modules.battery
+import qs.modules.bluetooth
+import qs.modules.ethernet
+import qs.modules.wifi
+import qs.modules.tailscale
+import qs.services as S
 
 Scope {
   id: bar
   property string time
 
-  // NetworkMonitor {
-    // id: netMon
-  // }
   Variants {
     model: Quickshell.screens
 
@@ -29,7 +32,7 @@ Scope {
         left: true
         right: true
       }
-      color: "black"       // ← BLACK PANEL
+      color: T.Config.bg
 
       implicitHeight: 40
 

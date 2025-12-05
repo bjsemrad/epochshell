@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "../theme" as T
+import qs.theme as T
 
 Rectangle {
     id: clock

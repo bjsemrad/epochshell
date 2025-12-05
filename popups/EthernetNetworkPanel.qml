@@ -1,13 +1,14 @@
 import Quickshell
-import Quickshell.Wayland        // for WlrLayershell + WlrLayer
+import Quickshell.Wayland
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Widgets
-import "../commonwidgets"
-import "../modules"
-import "../theme" as T
-import "../services" as S
+import qs.commonwidgets
+import qs.modules
+import qs.modules.ethernet
+import qs.theme as T
+import qs.services as S
 
 HoverPopupWindow {
     id: networkPopup

@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Pipewire
 import Quickshell.Widgets
-import "./theme" as T
+import qs.theme as T
 Scope {
 	id: root
 

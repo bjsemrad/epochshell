@@ -4,10 +4,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Widgets
-import "../commonwidgets"
-import "../modules"
-import "../theme" as T
-import "../services" as S
+import qs.commonwidgets
+import qs.modules
+import qs.theme as T
+import qs.services as S
 
 HoverPopupWindow {
     id: systemOptionsPopup

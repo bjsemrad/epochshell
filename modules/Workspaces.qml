@@ -1,10 +1,9 @@
-// modules/Workspaces.qml
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Hyprland
-import "../theme" as T
+import qs.theme as T
 
 Row {
     id: workspaces
@@ -15,7 +14,7 @@ Row {
         model: Hyprland.workspaces.values
 
         delegate: WrapperMouseArea {
-            required property var modelData   // workspace object from hyprland
+            required property var modelData
             readonly property int wsId: modelData.id
 
             implicitWidth: 30

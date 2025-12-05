@@ -2,13 +2,12 @@ import QtQuick
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
-import "../theme" as T
+import qs.theme as T
 
 Rectangle {
     id: root
 
     property string iconName: ""
-    // property color iconColor: Theme.surfaceText
     property string primaryText: ""
     property string secondaryText: ""
     property bool expanded: false

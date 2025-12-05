@@ -1,7 +1,9 @@
 import QtQuick
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell.Io
 import qs.theme as T
 import qs.services as S
@@ -19,16 +21,17 @@ Rectangle {
 
     Rectangle {
         anchors.fill: parent
+        width: parent.width
         anchors.leftMargin: 10
         anchors.rightMargin: 10
         color: "transparent"
 
         Column {
             spacing: 20
-            width: parent.width*.55
             anchors.verticalCenter: parent.verticalCenter
+            width: parent.width*.80
             Text {
-                text: "System"
+                text: "Bluetooth"
                 color: T.Config.fg
                 font.bold: true
                 font.pointSize: 13
@@ -36,40 +39,34 @@ Rectangle {
         }
 
         Column {
-            width: parent.width*.45
+            width: parent.width*.20
             height: parent.height
             anchors.right: parent.right
             anchors.rightMargin: 10
+            spacing: 8
             Row {
-                spacing: 5
+                spacing: 10
                 anchors.right: parent.right
                 anchors.left: parent.left
                 width: parent.width
                 height: parent.height
 
-                Process {
-                    id: missionCenter
-                    command: ["flatpak", "run", "io.missioncenter.MissionCenter"]
-                }
 
-                PanelHeaderIcon {
-                    id: systemMonitorSettings
-                    iconText: "󰄧"
-                    function onClick(){
-                        missionCenter.running = true
+                RoundedSwitch{
+                    id: btSwitch
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: S.Bluetooth.enabled
+                    onToggled: {
+                        S.Bluetooth.toggle(btSwitch.checked)
                     }
                 }
 
-                Process {
-                    id: firmware
-                    command: ["gnome-firmware"]
-                }
 
                 PanelHeaderIcon {
-                    id: firmwareSettings
-                    iconText: ""
+                    id: bluetoothSettings
+                    iconText: ""
                     function onClick(){
-                        firmware.running = true
+                        S.Bluetooth.settings()
                     }
                 }
             }

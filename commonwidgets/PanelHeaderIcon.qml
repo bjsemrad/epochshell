@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
 import Quickshell.Io
-import "../theme" as T
+import qs.theme as T
 
 Rectangle {
     id: panelHeaderIcon

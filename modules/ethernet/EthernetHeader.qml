@@ -1,14 +1,13 @@
 import QtQuick
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
+import QtQuick.Layouts
 import Quickshell.Io
 import qs.theme as T
 import qs.services as S
 import qs.commonwidgets
-
-import QtQuick
-import QtQuick.Controls
 
 Rectangle {
     id: root
@@ -25,10 +24,9 @@ Rectangle {
 
         Column {
             spacing: 20
-            width: parent.width*.55
-            anchors.verticalCenter: parent.verticalCenter
+            width: parent.width*.93
             Text {
-                text: "System"
+                text: "Ethernet"
                 color: T.Config.fg
                 font.bold: true
                 font.pointSize: 13
@@ -36,40 +34,22 @@ Rectangle {
         }
 
         Column {
-            width: parent.width*.45
+            width: parent.width*.07
             height: parent.height
             anchors.right: parent.right
             anchors.rightMargin: 10
             Row {
-                spacing: 5
+                spacing: 10
                 anchors.right: parent.right
                 anchors.left: parent.left
                 width: parent.width
                 height: parent.height
 
-                Process {
-                    id: missionCenter
-                    command: ["flatpak", "run", "io.missioncenter.MissionCenter"]
-                }
-
                 PanelHeaderIcon {
-                    id: systemMonitorSettings
-                    iconText: "󰄧"
+                    id: networkSettings
+                    iconText: ""
                     function onClick(){
-                        missionCenter.running = true
-                    }
-                }
-
-                Process {
-                    id: firmware
-                    command: ["gnome-firmware"]
-                }
-
-                PanelHeaderIcon {
-                    id: firmwareSettings
-                    iconText: ""
-                    function onClick(){
-                        firmware.running = true
+                        S.Network.editNetworks()
                     }
                 }
             }

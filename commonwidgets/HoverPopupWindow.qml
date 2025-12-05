@@ -3,7 +3,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
-import "../theme" as T
+import qs.theme as T
+
 PopupWindow {
     id: root
     visible: false
@@ -51,7 +52,7 @@ PopupWindow {
         id: bg
         anchors.fill: parent
         radius: 8
-        color: T.Config.black
+        color: T.Config.bg
         border.color: T.Config.grey
 
         HoverHandler {

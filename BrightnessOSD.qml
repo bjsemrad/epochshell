@@ -1,10 +1,10 @@
-
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Io
-import "./theme" as T
+import qs.theme as T
+
 Scope {
     id: root
 

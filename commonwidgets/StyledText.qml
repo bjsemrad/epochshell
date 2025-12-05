@@ -1,8 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
-import "../theme" as T
+import qs.theme as T
+
 Text {
-  renderType: Text.NativeRendering //: Text.QtRendering
+  renderType: Text.NativeRendering
   verticalAlignment: Text.AlignVCenter
   font {
     hintingPreference: Font.PreferFullHinting

@@ -3,7 +3,8 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
-import "../theme" as T
+import qs.theme as T
+
 Rectangle {
     id: contents
     implicitHeight: 40

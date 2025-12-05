@@ -1,6 +1,7 @@
-import "../commonwidgets"
 import Quickshell
 import Quickshell.Io
+import qs.commonwidgets
+
 BarIcon {
     id: root
     mouseEnabled: true

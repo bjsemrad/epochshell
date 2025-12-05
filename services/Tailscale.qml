@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../theme" as T
+import qs.theme as T
 
 Singleton {
     id: tail

@@ -4,9 +4,9 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Io
-import "../services" as S
-import "../theme" as T
-import "../commonwidgets"
+import qs.services as S
+import qs.theme as T
+import qs.commonwidgets
 
 Rectangle {
     id: systemOptionsSection
