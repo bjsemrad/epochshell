@@ -2,6 +2,7 @@ import Quickshell
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import "../theme" as T
 PopupWindow {
     id: root
@@ -21,8 +22,21 @@ PopupWindow {
     }
 
     Window.onActiveChanged: {
-        if (!Window.active)
+        if (!Window.active) {
             root.visible = false
+        }
+    }
+
+     // --- SHADOW ---
+    DropShadow {
+        id: shadow
+        anchors.fill: bg    // shadow covers popup area
+        source: bg
+        radius: 12          // softness of shadow
+        samples: 24         // quality
+        horizontalOffset: 0
+        verticalOffset: 6   // pushes shadow downward a bit
+        color: "#00000080"  // 50% opacity black
     }
 
     anchor {
@@ -36,8 +50,8 @@ PopupWindow {
         id: bg
         anchors.fill: parent
         radius: 8
-        color: "#101010"
-        border.color: "#555"
+        color: T.Config.black
+        border.color: T.Config.grey
 
         HoverHandler {
             onHoveredChanged: {

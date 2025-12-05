@@ -55,9 +55,9 @@ Rectangle {
                 RoundedSwitch{
                     id: btSwitch
                     anchors.verticalCenter: parent.verticalCenter
-                    checked: S.Network.wifiEnabled
+                    checked: S.Bluetooth.enabled
                     onToggled: {
-                        //TODO:
+                        S.Bluetooth.toggle(btSwitch.checked)
                     }
                 }
 

@@ -6,8 +6,11 @@ import '../theme' as T
 import '../services' as S
 Rectangle {
     id: root
-    color: "transparent"
-    implicitWidth: inner.implicitWidth + 5
+    color:  popup.visible ? T.Config.bgDark : "transparent"
+    border.width: 1
+    border.color:  popup.visible ? T.Config.bg3 : "transparent"
+    radius: 20
+    implicitWidth: inner.implicitWidth + 20
     implicitHeight: inner.implicitHeight + 5
     property var popup
     required property string iconText
@@ -16,11 +19,11 @@ Rectangle {
 
     Row {
         id: inner
+        anchors.centerIn: parent
         height: parent.height
-        spacing: 5 
         Text {
             text: root.iconText
-            font.pixelSize: 20
+            font.pixelSize: 18
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.fg
 

@@ -10,7 +10,7 @@ Rectangle {
     implicitWidth: 40;
     implicitHeight: 40
     radius: 20
-    border.width: 2
+    border.width: 1
     border.color: headerMouseArea.containsMouse ? T.Config.fg : "transparent"
     color: headerMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
     anchors.verticalCenter: parent.verticalCenter

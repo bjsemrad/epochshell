@@ -13,8 +13,7 @@ import QtQuick.Controls
 Rectangle {
     id: root
     width: parent.width
-    height: 60
-    radius: 40
+    height: content.implicitHeight
     color: "transparent"
 
     Rectangle {
@@ -24,6 +23,7 @@ Rectangle {
         color: "transparent"
 
         Column {
+            id: content
             spacing: 20
             width: parent.width*.55
             anchors.verticalCenter: parent.verticalCenter
@@ -38,7 +38,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: S.BatteryService.percentage + "%"
+                    text: Math.round(S.BatteryService.percentage) + "%"
                     color: T.Config.fg
                     font.bold: true
                     font.pointSize: 13

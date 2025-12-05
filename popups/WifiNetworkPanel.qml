@@ -40,21 +40,17 @@ HoverPopupWindow {
     }
 
 
-    Row {
-        id: networkContent
+    Column {
+        width: T.Config.networkPopupWidth
         spacing: 10
-        Column {
-            width: T.Config.networkPopupWidth
-            spacing: 10
-            WifiOnOff {}
-            ComponentSplitter{}
-            WifiConnectedNetwork{}
-            ComponentSplitter{}
-            WifiSavedNetworks{}
-            ComponentSplitter{}
-            WifiAvailableNetworks{}
-            ComponentSpacer{}
-        }
+        WifiOnOff {}
+        ComponentSplitter{}
+        WifiConnectedNetwork{}
+        ComponentSplitter{}
+        WifiSavedNetworks{}
+        ComponentSplitter{}
+        WifiAvailableNetworks{}
+        ComponentSpacer{}
     }
 }
 

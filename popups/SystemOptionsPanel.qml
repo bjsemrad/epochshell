@@ -13,17 +13,13 @@ HoverPopupWindow {
     id: systemOptionsPopup
     trigger: trigger
 
-    Row {
-        id: systemContent
+      Column {
+        width: T.Config.systemPopupWidth
         spacing: 10
-        Column {
-            width: T.Config.systemPopupWidth
-            spacing: 10
-            SystemOptionsHeader{}
-            ComponentSplitter{}
-            SystemActions{}
-            ComponentSpacer{}
-        }
+        SystemOptionsHeader{}
+        ComponentSplitter{}
+        SystemActions{}
+        ComponentSpacer{}
     }
 
     onVisibleChanged: {

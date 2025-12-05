@@ -28,19 +28,15 @@ HoverPopupWindow {
         S.PopupManager.register(tailscalePopup)
     }
 
-    Row {
-        id: tailscaleContent
+    Column {
+        width: T.Config.tailscalePopupWidth
         spacing: 10
-        Column {
-            width: T.Config.tailscalePopupWidth
-            spacing: 10
-            TailscaleOnOff {}
-            ComponentSplitter{}
-            TailscaleConnectedNetwork{}
-            ComponentSplitter{}
-            TailscalePeers{}
-            ComponentSpacer{}
-        }
+        TailscaleOnOff {}
+        ComponentSplitter{}
+        TailscaleConnectedNetwork{}
+        ComponentSplitter{}
+        TailscalePeers{}
+        ComponentSpacer{}
     }
 }
 

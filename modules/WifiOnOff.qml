@@ -69,6 +69,7 @@ Rectangle {
                         S.Network.editNetworks()
                     }
                 }
+
             }
         }
      }

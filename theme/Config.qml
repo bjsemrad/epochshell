@@ -26,7 +26,6 @@ Singleton {
     //
     property color fg:        "#a0a8b7"
     property color fgDark:    "#abb2bf"
-    // property color grey:      "#7a818e"
     property color grey: "#535965"
 
     //
@@ -76,13 +75,13 @@ Singleton {
     property int networkPopupWidth: 400
     property int tailscalePopupWidth: 550
     property int bluetoothPopupWidth: 400
-    property int audioPopupWidth: 300
+    property int audioPopupWidth: 320
     property int systemPopupWidth: 200
     property int batteryPopupWidth: 250
 
 
 
-    property int tailscalePeersFontSize: 13 
+    property int tailscalePeersFontSize: 14 
 
     property int selectedBorderWidth: 1
 

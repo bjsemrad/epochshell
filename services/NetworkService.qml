@@ -1,8 +1,10 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
-Item {
+Singleton {
+
     id: net
 
     property var networkConnections: {} // map of device,  { name, type, strength, ipv4 }

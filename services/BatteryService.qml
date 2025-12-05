@@ -1,9 +1,10 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
 
-Item {
+Singleton {
     id: batteryService
 
     property real percentage: 0
@@ -56,7 +57,6 @@ Item {
 
     Component.onCompleted: {
         if (UPower.displayDevice) {
-        console.log("here2")
             percentage = computePercentage(UPower.displayDevice.percentage)
             charging   = (UPower.displayDevice.state === UPowerDeviceState.Charging)
         }

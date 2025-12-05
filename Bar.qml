@@ -65,7 +65,7 @@ Scope {
 
       RowLayout {
         id: rightSide
-        spacing: 10
+        spacing: 0
         Layout.alignment: Qt.AlignVCenter
 
         anchors {

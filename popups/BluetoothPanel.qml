@@ -24,19 +24,16 @@ HoverPopupWindow {
     }
 
 
-    Row {
-        id: bluetoothContent
+    Column {
+        width: T.Config.bluetoothPopupWidth
         spacing: 10
-        Column {
-            width: T.Config.bluetoothPopupWidth
-            spacing: 10
-            BluetoothOnOff {}
-            ComponentSplitter{}
-            // WifiConnectedNetwork{}
-            ComponentSplitter{}
-            // WifiAvailableNetworks{}
-            ComponentSpacer{}
-        }
+        BluetoothOnOff {}
+        ComponentSplitter{}
+        BluetoothPairedDevices{}
+        // WifiConnectedNetwork{}
+        ComponentSplitter{}
+        // WifiAvailableNetworks{}
+        ComponentSpacer{}
     }
 }
 

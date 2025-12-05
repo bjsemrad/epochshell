@@ -43,6 +43,7 @@ Rectangle {
 
         Column {
             height:parent.height
+            anchors.left: iconTile.right
             width: parent.width
             spacing: 10
 

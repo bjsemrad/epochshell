@@ -19,7 +19,7 @@ HoverPopupWindow {
 
     Timer {
         id: refreshTimer
-        interval: 5000  
+        interval: 10000  
         repeat: true
         running: networkPopup.visible
 
@@ -41,11 +41,15 @@ HoverPopupWindow {
 
 
     Column {
-        width: T.Config.networkPopupWidth
+        width: T.Config.tailscalePopupWidth
         spacing: 10
-        EthernetHeader {}
+        WifiOnOff {}
         ComponentSplitter{}
-        EthernetConnectedNetwork{}
+        WifiConnectedNetwork{}
+        ComponentSplitter{}
+        WifiSavedNetworks{}
+        ComponentSplitter{}
+        WifiAvailableNetworks{}
         ComponentSpacer{}
     }
 }

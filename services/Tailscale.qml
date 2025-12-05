@@ -1,9 +1,10 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../theme" as T
 
-Item {
+Singleton {
     id: tail
 
     property bool connected: false

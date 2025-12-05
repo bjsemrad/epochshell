@@ -7,7 +7,7 @@ import '../services' as S
 Rectangle {
     id: root
     color: "transparent"
-    implicitWidth: inner.implicitWidth + 5
+    implicitWidth: inner.implicitWidth + 20
     implicitHeight: inner.implicitHeight + 5
     required property string iconText
     required property bool mouseEnabled
@@ -37,11 +37,12 @@ Rectangle {
 
     Row {
         id: inner
+        anchors.centerIn: parent
         height: parent.height
         spacing: 5 
         Text {
             text: root.iconText
-            font.pixelSize: 20
+            font.pixelSize: 18
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.fg
         }

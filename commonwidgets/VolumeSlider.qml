@@ -84,9 +84,12 @@ Rectangle {
                 cursorShape: volume.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
             }
 
-            onValueChanged: if (audioInterface) {
-                audioInterface.audio.volume = value / 100      // audio follows UI
+            function onValueChanged(){
+                if (audioInterface) {
+                    audioInterface.audio.volume = value / 100      // audio follows UI
+                }
             }
+
             background: Rectangle {
                 anchors.fill: parent
                 radius: height / 2
@@ -94,11 +97,17 @@ Rectangle {
             }
 
             handle: Rectangle {
-                width: 10
-                height: 10
-                radius: 6
-                color: T.Config.blue
+                width: 30
+                height: 30
+                radius: 15
+                color: T.Config.bg2
                 anchors.verticalCenter: parent.verticalCenter
+                x: volume.visualPosition * (volume.width - width)
+                Text {
+                    text: Math.round(audioInterface.audio.volume * 100)
+                    color: T.Config.fg
+                    anchors.centerIn: parent
+                }
             }
 
             contentItem: Rectangle {
@@ -106,7 +115,7 @@ Rectangle {
                     left: parent.left
                     verticalCenter: parent.verticalCenter
                 }
-                width: volume.position * volume.width
+                width: volume.visualPosition * volume.width
                 height: 10
                 radius: height / 2
                 color: T.Config.blue

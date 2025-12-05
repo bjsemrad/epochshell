@@ -12,24 +12,19 @@ import "../services" as S
 HoverPopupWindow {
     id: audioPopup
     trigger: trigger
-
-    Row {
-        id: audioContent
+    Column {
+        width: T.Config.audioPopupWidth
         spacing: 10
-        Column {
-            width: T.Config.audioPopupWidth
-            spacing: 10
-            AudioHeader{}
-            ComponentSplitter{}
-            AudioVolumeRow {}
-            ComponentSplitter{}
-            AvailableAudioOutputs{}
-            ComponentSplitter{}
-            MicVolumeRow{}
-            ComponentSplitter{}
-            AvailableAudioInputs{}
-            ComponentSpacer{}
-        }
+        AudioHeader{}
+        ComponentSplitter{}
+        AudioVolumeRow {}
+        ComponentSplitter{}
+        AvailableAudioOutputs{}
+        ComponentSplitter{}
+        MicVolumeRow{}
+        ComponentSplitter{}
+        AvailableAudioInputs{}
+        ComponentSpacer{}
     }
 
     onVisibleChanged: {

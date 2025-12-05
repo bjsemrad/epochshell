@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
-
-QtObject {
+import Quickshell
+Singleton {
     property var openPopups: []
 
     function register(popup) {

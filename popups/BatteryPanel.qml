@@ -13,15 +13,11 @@ HoverPopupWindow {
     id: batteryPopup
     trigger: trigger
 
-    Row {
-        id: batteryContent
+    Column {
+        width: T.Config.batteryPopupWidth
         spacing: 10
-        Column {
-            width: T.Config.batteryPopupWidth
-            spacing: 10
-            BatteryLevel{}
-            ComponentSpacer{}
-        }
+        BatteryLevel{}
+        ComponentSpacer{}
     }
 
     onVisibleChanged: {
