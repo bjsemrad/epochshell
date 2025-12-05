@@ -34,14 +34,14 @@ Rectangle {
                     text: S.BatteryService.batteryIcon()
                     color: T.Config.fg
                     font.bold: true
-                    font.pointSize: 13
+                    font.pointSize: 12
                 }
 
                 Text {
                     text: Math.round(S.BatteryService.percentage) + "%"
                     color: T.Config.fg
                     font.bold: true
-                    font.pointSize: 13
+                    font.pointSize: 12
                 }
             }
 
