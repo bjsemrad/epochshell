@@ -6,6 +6,6 @@ import Quickshell.Services.SystemTray
 BarIconPopup {
     id: root
     mouseEnabled: true
-    hoverEnabled: false
+    hoverEnabled: true
     iconText:  "󱊖"
 }

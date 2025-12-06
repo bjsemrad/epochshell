@@ -112,6 +112,7 @@ Scope {
           SystemTray{
             id: sysTray
             popup: systemTrayPanel
+            visible: S.SystemTray.hasTrayItems()
           },
           SystemOptions{
             id: systemOptions

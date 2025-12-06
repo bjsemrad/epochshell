@@ -15,4 +15,8 @@ Singleton {
             return !hiddenTrayIds.includes(itemId.toLowerCase());
         });
     }
+
+    function hasTrayItems() {
+        return trayItems.length
+    }
 }
