@@ -2,13 +2,13 @@ import QtQuick
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Io
-import '../theme' as T
-import '../services' as S
+import qs.theme as T
+import qs.services as S
 Rectangle {
     id: root
-    color:  popup.visible ? T.Config.bgDark : "transparent"
+    color:  popup && popup.visible ? T.Config.bgDark : "transparent"
     border.width: 1
-    border.color:  popup.visible ? T.Config.bg3 : "transparent"
+    border.color:  popup && popup.visible ? T.Config.bg3 : "transparent"
     radius: 20
     implicitWidth: inner.implicitWidth + 20
     implicitHeight: inner.implicitHeight + 5

@@ -6,33 +6,30 @@ import QtQuick.Layouts
 import Quickshell.Widgets
 import qs.commonwidgets
 import qs.modules
-import qs.modules.bluetooth
+import qs.modules.systemtray
 import qs.theme as T
 import qs.services as S
 
 HoverPopupWindow {
-    id: bluetoothPopup
+    id: systemTrayPopup
     trigger: trigger
 
     onVisibleChanged: {
         if (visible) {
-            S.PopupManager.closeOthers(bluetoothPopup)
+            S.PopupManager.closeOthers(systemTrayPopup)
         }
     }
 
     Component.onCompleted: {
-        S.PopupManager.register(bluetoothPopup)
+        S.PopupManager.register(systemTrayPopup)
     }
 
-
     Column {
-        width: T.Config.bluetoothPopupWidth
+        width: trayContainer.width
         spacing: 10
-        BluetoothOnOff {}
-        ComponentSplitter{}
-        BluetoothPairedDevices{}
-        ComponentSplitter{}
-        BluetoothAvailableDevices{}
+        SystemTraySet{
+            id: trayContainer
+        }
         ComponentSpacer{}
     }
 }

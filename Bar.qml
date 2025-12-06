@@ -13,6 +13,7 @@ import qs.modules.bluetooth
 import qs.modules.ethernet
 import qs.modules.wifi
 import qs.modules.tailscale
+import qs.modules.systemtray
 import qs.services as S
 
 Scope {
@@ -108,7 +109,10 @@ Scope {
           },
           Clipboard{},
           Colorpicker{},
-          // TrayWidget{}, 
+          SystemTray{
+            id: sysTray
+            popup: systemTrayPanel
+          },
           SystemOptions{
             id: systemOptions
             popup: systemOptionsPanel
@@ -148,6 +152,10 @@ Scope {
       SystemOptionsPanel {
         id: systemOptionsPanel
         trigger: systemOptions
+      }
+      SystemTrayPanel {
+        id: systemTrayPanel
+        trigger: sysTray
       }
     }
   }

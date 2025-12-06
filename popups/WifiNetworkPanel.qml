@@ -1,5 +1,5 @@
 import Quickshell
-import Quickshell.Wayland        // for WlrLayershell + WlrLayer
+import Quickshell.Wayland
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts

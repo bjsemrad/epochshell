@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Io
-import '../theme' as T
-import '../services' as S
+import qs.theme as T
+import qs.services as S
 Rectangle {
     id: root
     color: "transparent"

@@ -16,9 +16,10 @@ PopupWindow {
     default property alias content: container.data
 
     property bool _popupHover: false
+    property bool stopHide: false
 
     function _updateHover() {
-        if (!_popupHover){
+        if (!_popupHover && !stopHide){
             root.visible = false
         }
     }

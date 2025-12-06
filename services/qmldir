@@ -4,6 +4,6 @@ singleton Tailscale 1.0 Tailscale.qml
 singleton Bluetooth 1.0 BluetoothService.qml
 singleton AudioService 1.0 AudioService.qml
 singleton BatteryService 1.0 BatteryService.qml
-
+singleton SystemTray 1.0 SystemTray.qml
 
 

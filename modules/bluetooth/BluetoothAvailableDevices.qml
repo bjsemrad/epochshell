@@ -54,7 +54,7 @@ Rectangle {
 
                     Rectangle {
                         width: 100
-                        height: 20
+                        height: 25
                         radius: 10
                         color: S.Bluetooth.discovering ? T.Config.green : T.Config.bg2
 
@@ -63,7 +63,7 @@ Rectangle {
                             anchors.centerIn: parent
                             anchors.verticalCenter: parent.verticalCenter
                             color: S.Bluetooth.discovering ? T.Config.black : T.Config.fg
-                            font.bold: true
+                            font.pixelSize: 13
                             text: S.Bluetooth.discovering ? "Stop Scan" : "Start Scan"
                         }
 
@@ -98,7 +98,7 @@ Rectangle {
         Rectangle {
             id: listContainer
             radius: 6
-            color: "#181818"
+            color: T.Config.bg
             clip: true
             border.width: 2
             border.color: T.Config.bg2

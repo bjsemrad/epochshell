@@ -15,7 +15,7 @@ Rectangle {
     color: "transparent"
 
     property bool expanded: false
-    implicitHeight: header.height + listContainer.height
+    implicitHeight: header.height + listContainer.height + 10
 
 
     Connections {
@@ -47,9 +47,8 @@ Rectangle {
 
                 Text {
                     text: expanded ? "▲" : "▼"
-                    color: "#aaaaaa"
+                    color: T.Config.fg 
                     font.pixelSize: 12
-                    // anchors.left: avText.left + 20 
                 }
 
                 Spinner {
@@ -77,7 +76,7 @@ Rectangle {
         Rectangle {
             id: listContainer
             radius: 6
-            color: "#181818"
+            color: T.Config.bg
             clip: true
             border.width: 2
             border.color: T.Config.bg2

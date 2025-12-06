@@ -13,7 +13,7 @@ import QtQuick.Controls
 Rectangle {
     id: root
     width: parent.width
-    height: content.implicitHeight
+    height: content.implicitHeight + 10
     color: "transparent"
 
     Rectangle {
