@@ -10,18 +10,22 @@ Rectangle {
     border.width: 1
     border.color:  popup && popup.visible ? T.Config.bg3 : "transparent"
     radius: 20
-    implicitWidth: inner.implicitWidth + 20
+    implicitWidth: inner.implicitWidth + 18
     implicitHeight: inner.implicitHeight + 5
+
     property var popup
     required property string iconText
     required property bool mouseEnabled
     required property bool hoverEnabled
 
-    Row {
+    Rectangle {
         id: inner
+        implicitWidth: iconText.implicitWidth
+        implicitHeight: iconText.implicitHeight
+        color: "transparent"
         anchors.centerIn: parent
-        height: parent.height
         Text {
+            id: iconText
             text: root.iconText
             font.pixelSize: 18
             anchors.verticalCenter: parent.verticalCenter

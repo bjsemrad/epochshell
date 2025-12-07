@@ -25,6 +25,9 @@ Rectangle {
             font.pointSize: 11
             anchors.left: parent.left
             anchors.leftMargin: 5
+            width: parent.width
+            elide: Text.ElideRight   // adds "…" at the end
+            clip: true               // ensure nothing overflows
         }
 
         MicVolumeSlider{}

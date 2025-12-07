@@ -6,8 +6,10 @@ import Quickshell.Io
 
 Singleton {
   id: root
+
+  property color accent: blue
   /* Main palette */
-  property color bg: "#000000"
+  property color bg: "#000000"//"#111317"// "#000000"
   property color inactive:  "#758799"
   property color active:  fg
   property color activeSelection: Qt.rgba(Qt.color(fg).r,
@@ -77,7 +79,7 @@ Singleton {
 
 
     property int networkPopupWidth: 400
-    property int tailscalePopupWidth: 550
+    property int tailscalePopupWidth: 575
     property int bluetoothPopupWidth: 400
     property int audioPopupWidth: 400
     property int systemPopupWidth: 200
@@ -88,5 +90,6 @@ Singleton {
     property int tailscalePeersFontSize: 14 
 
     property int selectedBorderWidth: 1
+    property int panelBottomMargin: 5
 
 }

@@ -9,63 +9,15 @@ import qs.theme as T
 import qs.services as S
 import qs.commonwidgets
 
-Rectangle {
-    id: root
-    width: parent.width
-    height: 30
-    radius: 40
-    color: "transparent"
+SettingsToggleHeader {
+    headerText: "Tailscale"
+    checkedValue: S.Tailscale.connected
 
-    Rectangle {
-        anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
-        color: "transparent"
+    function handleToggled(checked){
+        S.Tailscale.toggle(checked)
+    }
 
-        Column {
-            spacing: 20
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width*.85
-            Text {
-                text: "Tailscale"
-                color: T.Config.fg
-                font.bold: true
-                font.pointSize: 13
-            }
-        }
-
-        Column {
-            width: parent.width*.15
-            height: parent.height
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            spacing: 8
-            Row {
-                spacing: 10
-                anchors.right: parent.right
-                anchors.left: parent.left
-                width: parent.width
-                height: parent.height
-
-
-                RoundedSwitch{
-                    id: tailscaleSwitch
-                    anchors.verticalCenter: parent.verticalCenter
-                    checked: S.Tailscale.connected
-                    onToggled: {
-                        S.Tailscale.toggle(tailscaleSwitch.checked)
-                    }
-                }
-
-
-                PanelHeaderIcon {
-                    id: tailscaleSettings
-                    iconText: ""
-                    function onClick(){
-                        S.Tailscale.trayscale()
-                    }
-                }
-            }
-        }
-     }
+    function settingsClick(){
+        S.Tailscale.trayscale()
+    }
 }

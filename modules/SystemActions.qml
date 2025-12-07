@@ -19,11 +19,11 @@ Rectangle {
     property bool expanded: false
 
 
-    Column {
+    Row {
         id:contents
         anchors.margins: 4
         anchors.fill: parent
-        spacing: 6
+        spacing: 10
 
         Process {
             id: lock

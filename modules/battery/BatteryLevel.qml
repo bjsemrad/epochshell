@@ -13,13 +13,12 @@ import QtQuick.Controls
 Rectangle {
     id: root
     width: parent.width
-    height: content.implicitHeight + 10
+    height: container.implicitHeight
     color: "transparent"
 
     Rectangle {
+        id: container
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
         color: "transparent"
 
         Column {

@@ -24,16 +24,22 @@ HoverPopupWindow {
         S.PopupManager.register(bluetoothPopup)
     }
 
-
-    Column {
+    Row {
         width: T.Config.bluetoothPopupWidth
-        spacing: 10
-        BluetoothOnOff {}
-        ComponentSplitter{}
-        BluetoothPairedDevices{}
-        ComponentSplitter{}
-        BluetoothAvailableDevices{}
-        ComponentSpacer{}
+        height: inner.implicitHeight
+        Column {
+            id: inner
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 10
+            BluetoothOnOff {}
+            ComponentSplitter{}
+            BluetoothPairedDevices{}
+            ComponentSplitter{}
+            BluetoothAvailableDevices{}
+            ComponentSpacer{}
+        }
     }
 }
 

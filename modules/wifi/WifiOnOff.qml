@@ -19,8 +19,6 @@ Rectangle {
     Rectangle {
         anchors.fill: parent
         width: parent.width
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
         color: "transparent"
 
         Column {

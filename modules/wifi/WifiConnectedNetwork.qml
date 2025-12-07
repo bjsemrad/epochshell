@@ -26,7 +26,6 @@ Rectangle {
         width: 40
         height: 40
         anchors.left: parent.left
-        anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter
         radius: 20
         color: T.Config.bg0 

@@ -118,6 +118,10 @@ Scope {
             id: systemOptions
             popup: systemOptionsPanel
           },
+          SystemOptions{
+            id: systemOverview
+            popup: systemPanel
+          },
           BarFill{} ] 
       }
 
@@ -157,6 +161,10 @@ Scope {
       SystemTrayPanel {
         id: systemTrayPanel
         trigger: sysTray
+      }
+      SystemPanel {
+        id: systemPanel
+        trigger: systemOverview
       }
     }
   }

@@ -9,12 +9,14 @@ Item {
     property bool checked: false
     signal toggled()
 
-    // Background track
     Rectangle {
         id: track
         anchors.fill: parent
         radius: height / 2
-        color: checked ? T.Config.blue : T.Config.bg3
+        border.width: 1
+        border.color: checked ? T.Config.accent : T.Config.bg3
+
+        color: checked ? T.Config.accent : T.Config.bg0
         Behavior on color { ColorAnimation { duration: 160 } }
     }
 
@@ -26,7 +28,15 @@ Item {
         radius: 10
         y: 2
         x: checked ? (root.width - width - 2) : 2
-        color: T.Config.bg0
+        color: checked ? T.Config.bg0 : T.Config.accent
+        
+        Text {
+            text: ""
+            anchors.centerIn: parent
+            color: T.Config.accent
+            font.pixelSize: 14
+            font.bold: true
+        }
 
         Behavior on x {
             NumberAnimation {

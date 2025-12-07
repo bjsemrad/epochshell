@@ -15,7 +15,7 @@ Rectangle {
     color: "transparent"
 
     property bool expanded: false
-    implicitHeight: header.height + listContainer.height + 10
+    implicitHeight: col.implicitHeight
 
 
     Connections {
@@ -29,7 +29,7 @@ Rectangle {
     }
 
     Column {
-        anchors.margins: 4
+        id: col
         anchors.fill: parent
         spacing: 15
         Rectangle {

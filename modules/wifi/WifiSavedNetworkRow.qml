@@ -21,7 +21,6 @@ Rectangle {
     Row {
         spacing: 10
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 10
         anchors.right: parent.right
         anchors.left: parent.left
         width: parent.width

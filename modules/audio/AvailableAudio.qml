@@ -29,7 +29,6 @@ Rectangle {
     }
 
     Column {
-        anchors.margins: 4
         anchors.fill: parent
         spacing: 6
         Rectangle {
@@ -94,6 +93,8 @@ Rectangle {
                                 text: modelData.description
                                 color: T.Config.fg
                                 font.pixelSize: 13
+                                width: parent.width
+                                clip: true
                                 elide: Text.ElideRight
                                 anchors.verticalCenter: parent.verticalCenter
                             }

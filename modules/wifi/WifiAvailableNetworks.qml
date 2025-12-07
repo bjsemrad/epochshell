@@ -26,7 +26,6 @@ Rectangle {
     }
 
     Column {
-        anchors.margins: 4
         anchors.fill: parent
         spacing: 6
         Rectangle {

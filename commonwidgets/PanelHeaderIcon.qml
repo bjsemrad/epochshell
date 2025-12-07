@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
@@ -13,7 +14,8 @@ Rectangle {
     border.width: 1
     border.color: headerMouseArea.containsMouse ? T.Config.fg : "transparent"
     color: headerMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-    anchors.verticalCenter: parent.verticalCenter
+    Layout.alignment: Qt.AlignVCenter
+    // anchors.verticalCenter: parent.verticalCenter
 
     required property string iconText
     function onClick(){

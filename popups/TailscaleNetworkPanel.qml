@@ -13,7 +13,8 @@ import qs.services as S
 HoverPopupWindow {
     id: tailscalePopup
     trigger: trigger
-    
+    popupWidth: T.Config.tailscalePopupWidth
+
     function refresh() {
         S.Tailscale.refresh()
     }
@@ -29,15 +30,26 @@ HoverPopupWindow {
         S.PopupManager.register(tailscalePopup)
     }
 
-    Column {
-        width: T.Config.tailscalePopupWidth
-        spacing: 10
-        TailscaleOnOff {}
-        ComponentSplitter{}
-        TailscaleConnectedNetwork{}
-        ComponentSplitter{}
-        TailscalePeers{}
-        ComponentSpacer{}
-    }
+       // width: T.Config.tailscalePopupWidth
+    // RowLayout {
+         // Layout.fillWidth: true
+
+  //      height: inner.implicitHeight
+        // ColumnLayout {
+            // id: inner
+            // Layout.fillWidth: true
+            // Layout.leftMargin: 10
+            // Layout.rightMargin: 10
+            // spacing: 10
+            // children: [
+                TailscaleOnOff {}
+                ComponentSplitter{}
+                TailscaleConnectedNetwork{}
+                ComponentSplitter{}
+                TailscalePeers{}
+                ComponentSpacer{}
+          //  ]
+        //}
+    // }
 }
 

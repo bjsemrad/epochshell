@@ -25,12 +25,11 @@ HoverPopupWindow {
     }
 
     Column {
-        width: trayContainer.width
+        width: trayContainer.width + 10
         spacing: 10
         SystemTraySet{
             id: trayContainer
         }
-        ComponentSpacer{}
     }
 }
 

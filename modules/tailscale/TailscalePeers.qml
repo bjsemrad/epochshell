@@ -8,14 +8,10 @@ import qs.services as S
 import qs.theme as T
 import qs.commonwidgets
 
-Rectangle {
+Item {
     id: peersSection
-    width: parent.width
-    anchors.right: parent.right
-    anchors.left: parent.left
-    color: "transparent"
-
-    implicitHeight: header.height + listContainer.height
+    Layout.fillWidth: true
+    Layout.preferredHeight: contents.implicitHeight
 
     property real colHostWidth: 0
     property real colIpWidth:   0
@@ -45,74 +41,75 @@ Rectangle {
         return w
     }
 
-    Column {
-        anchors.margins: 4
+    ColumnLayout {
+        id: contents
         anchors.fill: parent
-        spacing: 6
         Rectangle {
             id: header
-            implicitHeight: 20
-            width: parent.width
+            Layout.fillWidth: true
+            Layout.preferredHeight: 20
             color: "transparent"
-            Row {
-                width: parent.width
-                spacing: 10
-                Text {
-                    id: avText
-                    text: "Peers"
-                    color: T.Config.fg
-                    font.pixelSize: 13
-                    Layout.leftMargin: 4
-                }
+            Text {
+                id: avText
+                text: "Peers"
+                color: T.Config.fg
+                font.pixelSize: 13
             }
         }
 
 
         Rectangle {
             id: listContainer
-            radius: 6
             color: "transparent"
             clip: true
-            width: parent.width
-            implicitHeight: Math.max(column.implicitHeight, 300) + 20
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredHeight: Math.max(column.implicitHeight, 300)
 
             Column {
                 id: column
                 anchors.fill: parent
-                anchors.margins: 4
                 spacing: 10
 
                 Repeater {
                     model: S.Tailscale.peers
 
                     delegate: Rectangle {
-                        width: parent.width
-                        implicitHeight: 30
+                        implicitWidth: parent.width
+                        // anchors.fill: parent
+                        height: 30
                         radius: 6
                         anchors.margins: 10
                         color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
                         Row {
                             anchors.fill: parent
-                            width: parent.width
-                            height: 30
                             anchors.margins: 10
                             spacing: 8
-                            Text {
-                                text:  {
-                                    if (modelData.connected) {
-                                        return "󰱓"
-                                    }
-                                    return  "󰅛"
-                                }
-                                font.pixelSize: 18
+                            Rectangle {
+                                width: icon.implicitWidth
+                                height: 22
                                 anchors.verticalCenter: parent.verticalCenter
-                                color: modelData.connected ? T.Config.green : T.Config.red
+                                color: "transparent"
+                                Text {
+                                    id: icon
+                                    text:  {
+                                        if (modelData.connected) {
+                                            return "󰱓"
+                                        }
+                                        return  "󰅛"
+                                    }
+                                    font.pixelSize: 18
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    color: modelData.connected ? T.Config.green : T.Config.red
+                                }
                             }
 
                             Rectangle {
-                                width: S.Tailscale.colHostWidth; height: 22; color: "transparent"
+                                width: S.Tailscale.colHostWidth 
+                                height: 22; 
                                 anchors.verticalCenter: parent.verticalCenter
+                                color: "transparent"
                                 Text {
                                     text: modelData.hostName
                                     color: T.Config.fg

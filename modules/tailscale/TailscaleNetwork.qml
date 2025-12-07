@@ -6,6 +6,6 @@ BarIconPopup {
     mouseEnabled: true
     hoverEnabled: false
     iconText:  {
-        return "󰒄"
+         return S.Tailscale.connected ? "󰒄" : "󰅛"
     }
 }

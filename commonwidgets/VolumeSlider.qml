@@ -5,14 +5,15 @@ import Quickshell.Widgets
 import Quickshell.Services.Pipewire
 import qs.theme as T
 
-Rectangle {
+Row {
     required property var audioInterface
     required property var iconText
     width: parent.width
     height: 30
-    radius: 40
+    spacing: 10
+   // radius: 40
 
-    color: "transparent"
+    // color: "transparent"
     antialiasing: true
     Rectangle {
         id: audioMuteUnmute
@@ -72,7 +73,8 @@ Rectangle {
         Component.onCompleted: updateSlider()
 
         Slider {
-            anchors.centerIn: parent
+            anchors.verticalCenter: parent.verticalCenter
+            // anchors.centerIn: parent
             id: volume
             width: 200
             height: 20
@@ -85,7 +87,7 @@ Rectangle {
                 cursorShape: volume.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
             }
 
-            function onValueChanged(){
+            onValueChanged: {
                 if (audioInterface) {
                     audioInterface.audio.volume = value / 100      // audio follows UI
                 }
@@ -102,6 +104,7 @@ Rectangle {
                 height: 30
                 radius: 15
                 color: T.Config.bg2
+                border.width: 1
                 anchors.verticalCenter: parent.verticalCenter
                 x: volume.visualPosition * (volume.width - width)
                 Text {

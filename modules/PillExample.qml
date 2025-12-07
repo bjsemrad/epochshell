@@ -76,37 +76,37 @@ Rectangle {
         // anchors.rightMargin: Theme.spacingM
         spacing: 10
 
-        Rectangle {
-            id: iconTile
-            z: 1
-            width: _tileSize
-            height: _tileSize
-             anchors.left: parent.left
-            anchors.leftMargin: 10
-            anchors.verticalCenter: parent.verticalCenter
-            radius: _tileRadius
-            color: T.Config.bg0 //isActive ? _tileBgActive : _tileBgInactive
-            border.color: isActive ? _tileRingActive : "transparent"
-            border.width: isActive ? 1 : 0
-            antialiasing: true
+        // Rectangle {
+        //     id: iconTile
+        //     z: 1
+        //     width: _tileSize
+        //     height: _tileSize
+        //      anchors.left: parent.left
+        //     anchors.leftMargin: 10
+        //     anchors.verticalCenter: parent.verticalCenter
+        //     radius: _tileRadius
+        //     color: T.Config.bg0 //isActive ? _tileBgActive : _tileBgInactive
+        //     border.color: isActive ? _tileRingActive : "transparent"
+        //     border.width: isActive ? 1 : 0
+        //     antialiasing: true
 
-            Rectangle {
-                anchors.fill: parent
-                radius: _tileRadius
-                opacity: tileMouse.pressed ? 0.3 : (tileMouse.containsMouse ? 0.2 : 0.0)
-                visible: opacity > 0
-                antialiasing: true
-                Behavior on opacity { NumberAnimation { duration: Theme.shortDuration } }
-            }
-
-              IconImage {
-                    source:  Quickshell.iconPath("bluetooth-active-symbolic")
-                    implicitWidth: 18
-                    implicitHeight: 18
-                    anchors.centerIn: parent
-
-                }
-
+            // Rectangle {
+            //     anchors.fill: parent
+            //     radius: _tileRadius
+            //     opacity: tileMouse.pressed ? 0.3 : (tileMouse.containsMouse ? 0.2 : 0.0)
+            //     visible: opacity > 0
+            //     antialiasing: true
+            //     Behavior on opacity { NumberAnimation { duration: Theme.shortDuration } }
+            // }
+            //
+            //   IconImage {
+            //         source:  Quickshell.iconPath("bluetooth-active-symbolic")
+            //         implicitWidth: 18
+            //         implicitHeight: 18
+            //         anchors.centerIn: parent
+            //
+            //     }
+            //
 
             MouseArea {
                 id: tileMouse
@@ -115,7 +115,7 @@ Rectangle {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.toggled()
             }
-        }
+        // }
 
         Item {
             id: body
@@ -128,7 +128,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 2
 
-                StyledText {
+                Text {
                     width: parent.width
                     text: root.primaryText
                     color: _labelPrimary
@@ -137,7 +137,7 @@ Rectangle {
                     elide: Text.ElideRight
                     wrapMode: Text.NoWrap
                 }
-                StyledText {
+                Text {
                     width: parent.width
                     text: root.secondaryText
                     color: _labelSecondary

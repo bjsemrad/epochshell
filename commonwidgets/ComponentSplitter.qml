@@ -2,8 +2,10 @@ import Quickshell
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import qs.theme as T
 Rectangle {
-    width: parent.width
+    Layout.fillWidth: true
+    Layout.topMargin: 5
     height: 1
-    color: "#2a2a2e"   // subtle dark gray like macOS
+    color: T.Config.bg1
 }

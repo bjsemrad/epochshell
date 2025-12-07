@@ -41,13 +41,23 @@ HoverPopupWindow {
     }
 
 
-    Column {
+    
+    RowLayout {
         width: T.Config.networkPopupWidth
-        spacing: 10
-        EthernetHeader {}
-        ComponentSplitter{}
-        EthernetConnectedNetwork{}
-        ComponentSpacer{}
+        height: inner.implicitHeight
+        ColumnLayout {
+            id: inner
+            Layout.fillWidth: true
+            Layout.leftMargin: 10
+            Layout.rightMargin: 10
+            spacing: 10
+            children: [ 
+                EthernetHeader {},
+                ComponentSplitter{},
+                EthernetConnectedNetwork{},
+                ComponentSpacer{},
+            ]
+        }
     }
 }
 

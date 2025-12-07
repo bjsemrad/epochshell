@@ -11,7 +11,7 @@ import qs.services as S
 
 Rectangle {
     id: trayContainer
-    width: iconRow.implicitWidth+10
+    width: iconRow.implicitWidth+20
     height: iconRow.implicitHeight
     color: "transparent"
     Row {
@@ -36,7 +36,6 @@ Rectangle {
                             if (split.length !== 2) {
                                 return icon;
                             }
-
                             const name = split[0];
                             const path = split[1];
                             let fileName = name.substring(name.lastIndexOf("/") + 1);
@@ -50,16 +49,16 @@ Rectangle {
                     return "";
                 }
 
-                width: 24
+                width: 30
                 height: 20
 
                 Rectangle {
                     id: visualContent
-                    width: 24
-                    height: 24
+                    width: 30
+                    height: 30
                     anchors.centerIn: parent
-                    radius: 6
-                    color: trayItemArea.containsMouse ? "red" : "transparent"
+                    radius: 15
+                    color: trayItemArea.containsMouse ? T.Config.activeSelection : "transparent"
 
                     IconImage {
                         id: iconImg
