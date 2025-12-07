@@ -12,15 +12,12 @@ import qs.services as S
 HoverPopupWindow {
     id: systemOptionsPopup
     trigger: trigger
+    popupWidth: T.Config.systemPopupWidth
 
-      Column {
-        width: T.Config.systemPopupWidth
-        spacing: 10
-        SystemOptionsHeader{}
-        ComponentSplitter{}
-        SystemActions{}
-        ComponentSpacer{}
-    }
+    SystemOptionsHeader{}
+    ComponentSplitter{}
+    SystemActions{}
+    ComponentSpacer{}
 
     onVisibleChanged: {
         if (visible){

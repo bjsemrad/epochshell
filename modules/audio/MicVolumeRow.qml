@@ -7,13 +7,12 @@ import Quickshell.Io
 import Quickshell.Widgets
 import Quickshell.Services.Pipewire
 import qs.theme as T
-Rectangle {
-    width: parent.width
-    implicitHeight: column.implicitHeight + 8
-    color: "transparent"
 
+Item {
+    Layout.fillWidth: true
+    Layout.preferredHeight: column.implicitHeight
 
-    Column {
+    ColumnLayout {
         id: column
         anchors.fill: parent
         width: parent.width
@@ -23,11 +22,10 @@ Rectangle {
             color: T.Config.fg
             font.bold: true
             font.pointSize: 11
-            anchors.left: parent.left
-            anchors.leftMargin: 5
-            width: parent.width
-            elide: Text.ElideRight   // adds "…" at the end
-            clip: true               // ensure nothing overflows
+            Layout.alignment: Qt.AlignLeft
+            Layout.fillWidth: true
+            elide: Text.ElideRight
+            clip: true
         }
 
         MicVolumeSlider{}

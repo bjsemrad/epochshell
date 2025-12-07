@@ -13,13 +13,10 @@ import qs.services as S
 HoverPopupWindow {
     id: batteryPopup
     trigger: trigger
+    popupWidth:  T.Config.batteryPopupWidth
 
-    Column {
-        width: T.Config.batteryPopupWidth
-        spacing: 10
-        BatteryLevel{}
-        ComponentSpacer{}
-    }
+    BatteryLevel{}
+    ComponentSpacer{}
 
     onVisibleChanged: {
         if (visible){

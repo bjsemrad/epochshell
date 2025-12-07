@@ -13,7 +13,7 @@ import qs.services as S
 HoverPopupWindow {
     id: networkPopup
     trigger: trigger
-    
+    popupWidth:  T.Config.networkPopupWidth
     function refresh() {
         S.Network.refresh()
     }
@@ -41,17 +41,13 @@ HoverPopupWindow {
     }
 
 
-    Column {
-        width: T.Config.networkPopupWidth
-        spacing: 10
-        WifiOnOff {}
-        ComponentSplitter{}
-        WifiConnectedNetwork{}
-        ComponentSplitter{}
-        WifiSavedNetworks{}
-        ComponentSplitter{}
-        WifiAvailableNetworks{}
-        ComponentSpacer{}
-    }
+    WifiOnOff {}
+    ComponentSplitter{}
+    WifiConnectedNetwork{}
+    ComponentSplitter{}
+    WifiSavedNetworks{}
+    ComponentSplitter{}
+    WifiAvailableNetworks{}
+    ComponentSpacer{}
 }
 

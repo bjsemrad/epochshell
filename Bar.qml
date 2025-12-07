@@ -82,17 +82,14 @@ Scope {
           BarFill{},
           WifiNetwork{
             id:wifiNet
-            visible: S.Network.wifiDevice && !S.Network.ethernetConnected
             popup: wifiNetworkPanel
           },
           EthernetNetwork{
             id:ethNet
-            visible: S.Network.ethernetDevice && !S.Network.wifiConnected
             popup: ethernetNetworkPanel
           },
           TailscaleNetwork {
             id:tailNet
-            visible: S.Network.tailscaleConnected
             popup: tailscaleNetworkPanel
           },
           Bluetooth{
@@ -112,7 +109,6 @@ Scope {
           SystemTray{
             id: sysTray
             popup: systemTrayPanel
-            visible: S.SystemTray.hasTrayItems()
           },
           SystemOptions{
             id: systemOptions

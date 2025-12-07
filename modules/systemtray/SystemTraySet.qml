@@ -9,12 +9,12 @@ import qs.modules
 import qs.theme as T
 import qs.services as S
 
-Rectangle {
+Item {
     id: trayContainer
-    width: iconRow.implicitWidth+20
-    height: iconRow.implicitHeight
-    color: "transparent"
-    Row {
+    Layout.fillWidth: true
+    Layout.preferredHeight: iconRow.implicitHeight
+
+    RowLayout {
         id: iconRow
         anchors.centerIn: parent
         spacing: 10
@@ -49,14 +49,14 @@ Rectangle {
                     return "";
                 }
 
-                width: 30
-                height: 20
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 20
 
                 Rectangle {
                     id: visualContent
                     width: 30
                     height: 30
-                    anchors.centerIn: parent
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     radius: 15
                     color: trayItemArea.containsMouse ? T.Config.activeSelection : "transparent"
 

@@ -13,6 +13,7 @@ import qs.services as S
 HoverPopupWindow {
     id: bluetoothPopup
     trigger: trigger
+    popupWidth:  T.Config.bluetoothPopupWidth
 
     onVisibleChanged: {
         if (visible) {
@@ -24,22 +25,11 @@ HoverPopupWindow {
         S.PopupManager.register(bluetoothPopup)
     }
 
-    Row {
-        width: T.Config.bluetoothPopupWidth
-        height: inner.implicitHeight
-        Column {
-            id: inner
-            anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            spacing: 10
-            BluetoothOnOff {}
-            ComponentSplitter{}
-            BluetoothPairedDevices{}
-            ComponentSplitter{}
-            BluetoothAvailableDevices{}
-            ComponentSpacer{}
-        }
-    }
+    BluetoothOnOff {}
+    ComponentSplitter{}
+    BluetoothPairedDevices{}
+    ComponentSplitter{}
+    BluetoothAvailableDevices{}
+    ComponentSpacer{}
 }
 

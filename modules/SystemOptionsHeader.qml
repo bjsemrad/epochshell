@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
@@ -7,72 +8,110 @@ import qs.theme as T
 import qs.services as S
 import qs.commonwidgets
 
-import QtQuick
-import QtQuick.Controls
-
-Rectangle {
+Item {
     id: root
-    width: parent.width
-    height: 30
-    radius: 40
-    color: "transparent"
+    Layout.fillWidth: true
+    Layout.preferredHeight: 30
 
     Rectangle {
-        anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        height: 30
         color: "transparent"
 
-        Column {
-            spacing: 20
-            width: parent.width*.55
+        Text {
             anchors.verticalCenter: parent.verticalCenter
-            Text {
-                text: "System"
-                color: T.Config.fg
-                font.bold: true
-                font.pointSize: 13
+            text: "System"
+            color: T.Config.fg
+            font.bold: true
+            font.pointSize: 13
+        }
+    }
+
+    RowLayout {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 10
+        Process {
+            id: missionCenter
+            command: ["flatpak", "run", "io.missioncenter.MissionCenter"]
+        }
+
+        PanelHeaderIcon {
+            id: systemMonitorSettings
+            iconText: "󰄧"
+            function onClick(){
+                missionCenter.running = true
             }
         }
 
-        Column {
-            width: parent.width*.45
-            height: parent.height
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            Row {
-                spacing: 5
-                anchors.right: parent.right
-                anchors.left: parent.left
-                width: parent.width
-                height: parent.height
+        Process {
+            id: firmware
+            command: ["gnome-firmware"]
+        }
 
-                Process {
-                    id: missionCenter
-                    command: ["flatpak", "run", "io.missioncenter.MissionCenter"]
-                }
-
-                PanelHeaderIcon {
-                    id: systemMonitorSettings
-                    iconText: "󰄧"
-                    function onClick(){
-                        missionCenter.running = true
-                    }
-                }
-
-                Process {
-                    id: firmware
-                    command: ["gnome-firmware"]
-                }
-
-                PanelHeaderIcon {
-                    id: firmwareSettings
-                    iconText: ""
-                    function onClick(){
-                        firmware.running = true
-                    }
-                }
+        PanelHeaderIcon {
+            id: firmwareSettings
+            iconText: ""
+            function onClick(){
+                firmware.running = true
             }
         }
-     }
+    }
+
+    // Rectangle {
+    //     anchors.fill: parent
+    //     anchors.leftMargin: 10
+    //     anchors.rightMargin: 10
+    //     color: "transparent"
+    //
+    //     Text {
+    //         text: "System"
+    //         color: T.Config.fg
+    //         font.bold: true
+    //         font.pointSize: 13
+    //         anchors.verticalCenter: parent.verticalCenter
+    //         anchors.left: parent.left
+    //     }
+    //
+    //     Column {
+    //         width: parent.width*.45
+    //         height: parent.height
+    //         anchors.right: parent.right
+    //         anchors.rightMargin: 10
+    //         Row {
+    //             spacing: 5
+    //             anchors.right: parent.right
+    //             anchors.left: parent.left
+    //             width: parent.width
+    //             height: parent.height
+    //
+    //             Process {
+    //                 id: missionCenter
+    //                 command: ["flatpak", "run", "io.missioncenter.MissionCenter"]
+    //             }
+    //
+    //             PanelHeaderIcon {
+    //                 id: systemMonitorSettings
+    //                 iconText: "󰄧"
+    //                 function onClick(){
+    //                     missionCenter.running = true
+    //                 }
+    //             }
+    //
+    //             Process {
+    //                 id: firmware
+    //                 command: ["gnome-firmware"]
+    //             }
+    //
+    //             PanelHeaderIcon {
+    //                 id: firmwareSettings
+    //                 iconText: ""
+    //                 function onClick(){
+    //                     firmware.running = true
+    //                 }
+    //             }
+    //         }
+    //     }
+    //  }
 }

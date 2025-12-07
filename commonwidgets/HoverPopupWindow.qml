@@ -13,7 +13,7 @@ PopupWindow {
     default property alias content: contentLayout.data
     readonly property int padding: 10
     property real popupWidth: 100
-    implicitWidth:  popupWidth //contentLayout.implicitWidth  + padding * 2
+    implicitWidth:  popupWidth
     implicitHeight: contentLayout.implicitHeight + padding * 2
 
     property Item trigger: null
@@ -32,18 +32,6 @@ PopupWindow {
             popup.visible = false
         }
     }
-
-    //  // --- SHADOW ---
-    // DropShadow {
-    //     id: shadow
-    //     anchors.fill: contentSection   // shadow covers popup area
-    //     source: contentSection
-    //     radius: 12          // softness of shadow
-    //     samples: 24         // quality
-    //     horizontalOffset: 0
-    //     verticalOffset: 6   // pushes shadow downward a bit
-    //     color: "#00000080"  // 50% opacity black
-    // }
 
     anchor {
         item: trigger
@@ -72,14 +60,6 @@ PopupWindow {
             anchors.fill: parent
             anchors.margins: padding * 2
             spacing: 8
-            // children get added here via `content` alias
         }
-
-        // Item {
-        //     id: container
-        //     anchors.fill: parent
-        //     anchors.margins: 10
-        // }
-
     }
 }

@@ -8,14 +8,10 @@ import qs.theme as T
 import qs.commonwidgets
 import qs.services as S
 
-Rectangle {
+Item {
     id: audioSection
-    width: parent.width
-    anchors.right: parent.right
-    anchors.left: parent.left
-    color: "transparent"
-
-    implicitHeight: header.height + listContainer.height
+    Layout.fillWidth: true
+    Layout.preferredHeight: header.height + listContainer.height
 
     required property string type
     required property PwNode defaultAudioNode
@@ -28,15 +24,15 @@ Rectangle {
         S.AudioService.setDefault(nodeId)
     }
 
-    Column {
+    ColumnLayout {
         anchors.fill: parent
         spacing: 6
         Rectangle {
             id: header
-            implicitHeight: 20
-            width: parent.width
+            Layout.fillWidth: true
+            Layout.preferredHeight: 20
             color: "transparent"
-            Row {
+            RowLayout {
                 width: parent.width
                 spacing: 10
                 Text {
@@ -44,7 +40,6 @@ Rectangle {
                     text: "Available " + type
                     color: T.Config.fg
                     font.pixelSize: 13
-                    Layout.leftMargin: 4
                 }
             }
         }
@@ -55,37 +50,35 @@ Rectangle {
             radius: 6
             color: "transparent"
             clip: true
-            width: parent.width
-            implicitHeight: column.implicitHeight + 20
+            Layout.fillWidth: true
+            Layout.preferredHeight: column.implicitHeight + 20
 
-            Column {
+            ColumnLayout {
                 id: column
                 anchors.fill: parent
-                anchors.margins: 4
                 spacing: 10
 
                 Repeater {
                     model: Pipewire.nodes
 
                     delegate: Rectangle {
-                        width: parent.width
-                        implicitHeight: 30
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 30
                         radius: 6
-                        anchors.margins: 10
                         visible: isAudioType(modelData) && modelData.description
                         color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
-                        Row {
-                            anchors.fill: parent
-                            width: parent.width
-                            anchors.margins: 10
+                        RowLayout {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
                             spacing: 8
-
-
                             Text {
                                 text:  ""
                                 font.pixelSize: 18
-                                anchors.verticalCenter: parent.verticalCenter
+                                Layout.alignment: Qt.AlignVCenter
                                 color: modelData.id === defaultAudioNode?.id ? T.Config.blue : T.Config.fg
                             }
 
@@ -93,10 +86,10 @@ Rectangle {
                                 text: modelData.description
                                 color: T.Config.fg
                                 font.pixelSize: 13
-                                width: parent.width
+                                Layout.fillWidth: true
                                 clip: true
                                 elide: Text.ElideRight
-                                anchors.verticalCenter: parent.verticalCenter
+                                Layout.alignment: Qt.AlignVCenter
                             }
                         }
 

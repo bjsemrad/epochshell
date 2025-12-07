@@ -12,36 +12,28 @@ import qs.services as S
 HoverPopupWindow {
     id: audioPopup
     trigger: trigger
+    popupWidth: Math.max(T.Config.audioPopupWidth, header.implicitWidth, vol.implicitWidth, output.implicitWidth, mic.implicitWidth, input.implicitWidth)
 
-    RowLayout {
-        width: Math.max(T.Config.audioPopupWidth, header.implicitWidth, vol.implicitWidth, output.implicitWidth, mic.implicitWidth, input.implicitWidth)
-        height: inner.implicitHeight
-        ColumnLayout {
-            id: inner
-            Layout.leftMargin: 10
-            Layout.rightMargin: 10
-            AudioHeader{
-                id: header
-            }
-            ComponentSplitter{}
-            AudioVolumeRow {
-                id: vol
-            }
-            ComponentSplitter{}
-            AvailableAudioOutputs{
-                id: output
-            }
-            ComponentSplitter{}
-            MicVolumeRow{
-                id: mic
-            }
-            ComponentSplitter{}
-            AvailableAudioInputs{
-                id: input
-            }
-            ComponentSpacer{}
-        }
+    AudioHeader{
+        id: header
     }
+    ComponentSplitter{}
+    AudioVolumeRow {
+        id: vol
+    }
+    ComponentSplitter{}
+    AvailableAudioOutputs{
+        id: output
+    }
+    ComponentSplitter{}
+    MicVolumeRow{
+        id: mic
+    }
+    ComponentSplitter{}
+    AvailableAudioInputs{
+        id: input
+    }
+    ComponentSpacer{}
 
     onVisibleChanged: {
         if (visible){

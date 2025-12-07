@@ -13,6 +13,7 @@ import qs.services as S
 HoverPopupWindow {
     id: systemTrayPopup
     trigger: trigger
+    popupWidth: T.Config.systemTrayPopupWidth
 
     onVisibleChanged: {
         if (visible) {
@@ -24,12 +25,9 @@ HoverPopupWindow {
         S.PopupManager.register(systemTrayPopup)
     }
 
-    Column {
-        width: trayContainer.width + 10
-        spacing: 10
-        SystemTraySet{
-            id: trayContainer
-        }
+    SystemTraySet{
+        id: trayContainer
     }
+    ComponentSpacer{}
 }
 

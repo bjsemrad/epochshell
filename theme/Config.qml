@@ -9,7 +9,7 @@ Singleton {
 
   property color accent: blue
   /* Main palette */
-  property color bg: "#000000"//"#111317"// "#000000"
+  property color bg: "#111317"// "#000000"
   property color inactive:  "#758799"
   property color active:  fg
   property color activeSelection: Qt.rgba(Qt.color(fg).r,
@@ -81,8 +81,9 @@ Singleton {
     property int networkPopupWidth: 400
     property int tailscalePopupWidth: 575
     property int bluetoothPopupWidth: 400
-    property int audioPopupWidth: 400
-    property int systemPopupWidth: 200
+    property int audioPopupWidth: 500
+    property int systemTrayPopupWidth: 300
+    property int systemPopupWidth: 300
     property int batteryPopupWidth: 250
 
 

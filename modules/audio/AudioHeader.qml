@@ -9,53 +9,13 @@ import qs.theme as T
 import qs.commonwidgets
 import qs.services as S
 
-import QtQuick
-import QtQuick.Controls
 
-Rectangle {
-    id: root
-    width: parent.width
-    height: 30
-    radius: 40
-    color: "transparent"
+SettingsToggleHeader {
+    headerText: "Sound"
+    enableToggle: false
+    checkedValue: false
 
-    Rectangle {
-        anchors.fill: parent
-        color: "transparent"
-
-        Column {
-            spacing: 20
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width*.90
-            Text {
-                text: "Sound"
-                color: T.Config.fg
-                font.bold: true
-                font.pointSize: 13
-            }
-        }
-
-        Column {
-            width: parent.width*.10
-            height: parent.height
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            Row {
-                spacing: 10
-                anchors.right: parent.right
-                anchors.left: parent.left
-                width: parent.width
-                height: parent.height
-
-
-                PanelHeaderIcon {
-                    id: audioSettings
-                    iconText: ""
-                    function onClick(){
-                        S.AudioService.openSettings()
-                    }
-                }
-            }
-        }
-     }
+    function settingsClick(){
+        S.AudioService.openSettings()
+    }
 }

@@ -8,17 +8,15 @@ import qs.services as S
 import qs.theme as T
 import qs.commonwidgets
 
-Rectangle {
-    id: root
-    width: parent.width
-    radius: 8
-    color: "transparent"
-    implicitHeight: column.implicitHeight + 8
+Item {
+    id: pairedDevices
+    Layout.fillWidth: true
+    Layout.preferredHeight: column.implicitHeight
 
     property string pendingSsid: ""
     property int pendingIndex: -1
 
-    Column {
+    ColumnLayout {
         id: column
         anchors.fill: parent
         spacing: 10

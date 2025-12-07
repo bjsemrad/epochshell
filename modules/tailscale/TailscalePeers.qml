@@ -12,34 +12,7 @@ Item {
     id: peersSection
     Layout.fillWidth: true
     Layout.preferredHeight: contents.implicitHeight
-
-    property real colHostWidth: 0
-    property real colIpWidth:   0
-    property real colDnsWidth: 0
-
-    function measureWidth() {
-        var maxH=0, maxI=0, maxS=0
-
-        for (let p of S.Tailscale.peers) {
-            maxH = Math.max(maxH, textMetrics(p.hostName))
-            maxI = Math.max(maxI, textMetrics(p.ip))
-            maxD = Math.max(maxD, textMetrics(p.dnsName))
-        }
-
-        colHostWidth = maxH + 10
-        colIpWidth   = maxI + 10
-        colDnsWidth = maxD + 10
-    }
-
-    function textMetrics(str) {
-        var m = Qt.createQmlObject(
-            'import QtQuick; Text { text:"' + str + '" }',
-            table
-        )
-        var w = m.implicitWidth
-        m.destroy()
-        return w
-    }
+    Layout.bottomMargin: 10
 
     ColumnLayout {
         id: contents
@@ -66,7 +39,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             Layout.preferredHeight: Math.max(column.implicitHeight, 300)
 
-            Column {
+            ColumnLayout {
                 id: column
                 anchors.fill: parent
                 spacing: 10
@@ -106,7 +79,7 @@ Item {
                             }
 
                             Rectangle {
-                                width: S.Tailscale.colHostWidth 
+                                width: S.Tailscale.colHostWidth
                                 height: 22; 
                                 anchors.verticalCenter: parent.verticalCenter
                                 color: "transparent"

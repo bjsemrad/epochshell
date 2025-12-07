@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import QtQuick.Controls
@@ -7,28 +8,25 @@ import qs.theme as T
 import qs.services as S
 import qs.commonwidgets
 
-import QtQuick
-import QtQuick.Controls
-
-Rectangle {
-    id: root
-    width: parent.width
-    height: container.implicitHeight
-    color: "transparent"
+Item {
+    Layout.fillWidth: true
+    Layout.preferredHeight: container.implicitHeight
+    Layout.bottomMargin: 10
 
     Rectangle {
         id: container
         anchors.fill: parent
+        implicitHeight: content.implicitHeight
         color: "transparent"
 
-        Column {
+        ColumnLayout {
             id: content
             spacing: 20
             width: parent.width*.55
             anchors.verticalCenter: parent.verticalCenter
-            Row {
+            RowLayout {
                 spacing: 10
-                width: parent.width
+                Layout.fillWidth: true
                 Text {
                     text: S.BatteryService.batteryIcon()
                     color: T.Config.fg
@@ -44,9 +42,8 @@ Rectangle {
                 }
             }
 
-             Row {
-                spacing: 10
-                width: parent.width
+             RowLayout {
+                Layout.fillWidth: true
                 Text {
                     text: S.BatteryService.stateText()
                     color: T.Config.fg
@@ -58,4 +55,4 @@ Rectangle {
 
         }
     }
-  }
+}

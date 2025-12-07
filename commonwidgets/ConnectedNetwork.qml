@@ -47,8 +47,6 @@ Item {
         }
 
         ColumnLayout {
-            // Layout.fillHeight: true
-            // Layout.fillWidth: true
             spacing: 10
 
             Rectangle {

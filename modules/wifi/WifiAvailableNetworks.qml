@@ -7,16 +7,12 @@ import qs.theme as T
 import qs.services as S
 import qs.commonwidgets
 
-Rectangle {
+Item {
     id: networksSection
-    width: parent.width
-    anchors.right: parent.right
-    anchors.left: parent.left
-    color: "transparent"
+    Layout.fillWidth: true
+    Layout.preferredHeight: header.height + listContainer.height
 
     property bool expanded: false
-    implicitHeight: header.height + listContainer.height + 10
-
 
     Connections {
         target: wifiNetworkPanel
@@ -25,15 +21,15 @@ Rectangle {
         }
     }
 
-    Column {
+    ColumnLayout {
         anchors.fill: parent
         spacing: 6
         Rectangle {
             id: header
-            implicitHeight: 20
-            width: parent.width
+            Layout.preferredHeight: 20
+            Layout.fillWidth: true
             color: "transparent"
-            Row {
+            RowLayout {
                 width: parent.width
                 spacing: 10
                 Text {
@@ -79,8 +75,8 @@ Rectangle {
             clip: true
             border.width: 2
             border.color: T.Config.bg2
-            width: parent.width
-            implicitHeight: networksSection.expanded
+            Layout.fillWidth: true
+            Layout.preferredHeight: networksSection.expanded
                     ? Math.min(networkList.contentHeight, 300)
                     : 0
 
@@ -105,7 +101,7 @@ Rectangle {
                     anchors.margins: 10
                     color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
-                    Row {
+                    RowLayout {
                         anchors.fill: parent
                         width: parent.width
                         anchors.margins: 10
@@ -122,7 +118,7 @@ Rectangle {
                                 return "󰤟"
                             }
                             font.pixelSize: 18
-                            anchors.verticalCenter: parent.verticalCenter
+                            Layout.alignment: Qt.AlignVCenter
                             color: T.Config.fg
                         }
  
@@ -131,7 +127,7 @@ Rectangle {
                             color: T.Config.fg
                             font.pixelSize: 13
                             elide: Text.ElideRight
-                            anchors.verticalCenter: parent.verticalCenter
+                            Layout.alignment: Qt.AlignVCenter
                         }
                     }
 

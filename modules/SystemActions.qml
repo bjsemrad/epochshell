@@ -8,18 +8,14 @@ import qs.services as S
 import qs.theme as T
 import qs.commonwidgets
 
-Rectangle {
+Item {
     id: systemOptionsSection
-    width: parent.width
-    implicitHeight: contents.implicitHeight
-    anchors.right: parent.right
-    anchors.left: parent.left
-    color: "transparent"
+    Layout.fillWidth: true
+    Layout.preferredHeight: contents.implicitHeight
 
     property bool expanded: false
 
-
-    Row {
+    ColumnLayout {
         id:contents
         anchors.margins: 4
         anchors.fill: parent

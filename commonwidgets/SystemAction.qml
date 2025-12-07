@@ -7,8 +7,8 @@ import qs.theme as T
 
 Rectangle {
     id: contents
-    implicitHeight: 40
-    width: parent.width
+    Layout.fillWidth: true
+    Layout.preferredHeight: 40
     radius: 10
     color: "transparent"
     required property string icon
@@ -25,7 +25,7 @@ Rectangle {
         color: actionMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
 
-        Row {
+        RowLayout {
             anchors.leftMargin: 30
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
@@ -35,7 +35,7 @@ Rectangle {
                 id: actionIcon
                 text: icon
                 font.pixelSize: 18
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 color: T.Config.fg
             }
 
@@ -43,12 +43,12 @@ Rectangle {
                 id: actionText
                 text: description
                 font.pixelSize: 18
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 color: T.Config.fg
             }
         }
-
-         MouseArea {
+        
+        MouseArea {
             id: actionMouseArea
             anchors.fill: parent
             hoverEnabled: true

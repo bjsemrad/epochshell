@@ -8,17 +8,15 @@ import qs.theme as T
 import qs.services as S
 import qs.commonwidgets
 
-Rectangle {
+Item {
     id: root
-    width: parent.width
-    radius: 8
-    color: "transparent"
-    implicitHeight: column.implicitHeight + 8
+    Layout.fillWidth: true
+    Layout.preferredHeight: column.implicitHeight
 
     property string pendingSsid: ""
     property int pendingIndex: -1
 
-    Column {
+    ColumnLayout {
         id: column
         anchors.fill: parent
         spacing: 10
@@ -27,7 +25,6 @@ Rectangle {
             text: "Saved Networks"
             color: T.Config.fg
             font.pixelSize: 13
-            Layout.leftMargin: 4
         }
 
         Repeater {

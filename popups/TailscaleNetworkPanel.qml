@@ -30,26 +30,11 @@ HoverPopupWindow {
         S.PopupManager.register(tailscalePopup)
     }
 
-       // width: T.Config.tailscalePopupWidth
-    // RowLayout {
-         // Layout.fillWidth: true
-
-  //      height: inner.implicitHeight
-        // ColumnLayout {
-            // id: inner
-            // Layout.fillWidth: true
-            // Layout.leftMargin: 10
-            // Layout.rightMargin: 10
-            // spacing: 10
-            // children: [
-                TailscaleOnOff {}
-                ComponentSplitter{}
-                TailscaleConnectedNetwork{}
-                ComponentSplitter{}
-                TailscalePeers{}
-                ComponentSpacer{}
-          //  ]
-        //}
-    // }
+    TailscaleOnOff {}
+    ComponentSplitter{}
+    TailscaleConnectedNetwork{}
+    ComponentSplitter{}
+    TailscalePeers{}
+    ComponentSpacer{}
 }
 

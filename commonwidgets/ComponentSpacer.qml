@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 Rectangle {
-    width: parent.width
-    height: 5
+    Layout.fillWidth: true
+    Layout.bottomMargin: 10
     color: "transparent"
 }

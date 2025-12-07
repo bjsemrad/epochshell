@@ -1,29 +1,28 @@
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.Pipewire
 import qs.theme as T
 
-Row {
+RowLayout {
     required property var audioInterface
     required property var iconText
-    width: parent.width
-    height: 30
+    Layout.fillWidth: true
+    Layout.preferredHeight: 30
     spacing: 10
-   // radius: 40
-
-    // color: "transparent"
     antialiasing: true
+
     Rectangle {
         id: audioMuteUnmute
-        implicitWidth: 40
-        implicitHeight: 40
+        Layout.preferredWidth: 40
+        Layout.preferredHeight: 40
         radius: 20
         border.width: 2
         border.color: audioMouseArea.containsMouse ? T.Config.fg : "transparent"
         color: audioMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-        anchors.verticalCenter: parent.verticalCenter
+        Layout.alignment: Qt.AlignVCenter
         Text {
             anchors.verticalCenter: parent.verticalCenter
             anchors.centerIn: parent
@@ -46,84 +45,83 @@ Row {
     }
  
 
-	PwObjectTracker {
-		objects: [ audioInterface ]
-	}
+    PwObjectTracker {
+            objects: [ audioInterface ]
+    }
 
-    	Connections {
-            target: audioInterface ? audioInterface.audio : null
-            function updateSlider() {
-                volume.value = audioInterface.audio.volume * 100
-            }
-
-            function onVolumeChanged() {
-                updateSlider()
-            }
-
-
-            function onMutedChanged() {
-                updateSlider()
-            }
-        }
-
+    Connections {
+        target: audioInterface ? audioInterface.audio : null
         function updateSlider() {
             volume.value = audioInterface.audio.volume * 100
         }
 
-        Component.onCompleted: updateSlider()
+        function onVolumeChanged() {
+            updateSlider()
+        }
 
-        Slider {
-            anchors.verticalCenter: parent.verticalCenter
-            // anchors.centerIn: parent
-            id: volume
-            width: 200
-            height: 20
-            from: 0; to: 100
-            value: 25
 
-             MouseArea {
-                anchors.fill: parent
-                onPressed: (mouse) => mouse.accepted = false
-                cursorShape: volume.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
-            }
+        function onMutedChanged() {
+            updateSlider()
+        }
+    }
 
-            onValueChanged: {
-                if (audioInterface) {
-                    audioInterface.audio.volume = value / 100      // audio follows UI
-                }
-            }
+    function updateSlider() {
+        volume.value = audioInterface.audio.volume * 100
+    }
 
-            background: Rectangle {
-                anchors.fill: parent
-                radius: height / 2
-                color: T.Config.bg0
-            }
+    Component.onCompleted: updateSlider()
 
-            handle: Rectangle {
-                width: 30
-                height: 30
-                radius: 15
-                color: T.Config.bg2
-                border.width: 1
-                anchors.verticalCenter: parent.verticalCenter
-                x: volume.visualPosition * (volume.width - width)
-                Text {
-                    text: Math.round(audioInterface.audio.volume * 100)
-                    color: T.Config.fg
-                    anchors.centerIn: parent
-                }
-            }
+    Slider {
+        Layout.alignment: Qt.AlignVCenter
+        id: volume
+        width: 200
+        height: 20
+        from: 0; to: 100
+        value: 25
 
-            contentItem: Rectangle {
-                anchors {
-                    left: parent.left
-                    verticalCenter: parent.verticalCenter
-                }
-                width: volume.visualPosition * volume.width
-                height: 10
-                radius: height / 2
-                color: T.Config.blue
+         MouseArea {
+            anchors.fill: parent
+            onPressed: (mouse) => mouse.accepted = false
+            cursorShape: volume.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
+        }
+
+        onValueChanged: {
+            if (audioInterface) {
+                audioInterface.audio.volume = value / 100
             }
         }
+
+        background: Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: T.Config.bg0
+        }
+
+        handle: Rectangle {
+            width: 30
+            height: 30
+            radius: 15
+            color: T.Config.bg2
+            border.width: 1
+            anchors.verticalCenter: parent.verticalCenter
+            x: volume.visualPosition * (volume.width - width)
+            Text {
+                text: Math.round(audioInterface.audio.volume * 100)
+                color: T.Config.fg
+                anchors.centerIn: parent
+            }
+        }
+
+        contentItem: Rectangle {
+            anchors {
+                left: parent.left
+                verticalCenter: parent.verticalCenter
+            }
+            width: volume.visualPosition * volume.width
+            height: 10
+            radius: height / 2
+            color: T.Config.blue
+        }
+    }
 }
 

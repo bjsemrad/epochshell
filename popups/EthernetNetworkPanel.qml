@@ -13,7 +13,8 @@ import qs.services as S
 HoverPopupWindow {
     id: networkPopup
     trigger: trigger
-    
+    popupWidth: T.Config.networkPopupWidth
+
     function refresh() {
         S.Network.refresh()
     }
@@ -40,24 +41,9 @@ HoverPopupWindow {
         S.PopupManager.register(networkPopup)
     }
 
-
-    
-    RowLayout {
-        width: T.Config.networkPopupWidth
-        height: inner.implicitHeight
-        ColumnLayout {
-            id: inner
-            Layout.fillWidth: true
-            Layout.leftMargin: 10
-            Layout.rightMargin: 10
-            spacing: 10
-            children: [ 
-                EthernetHeader {},
-                ComponentSplitter{},
-                EthernetConnectedNetwork{},
-                ComponentSpacer{},
-            ]
-        }
-    }
+    EthernetHeader {}
+    ComponentSplitter{}
+    EthernetConnectedNetwork{}
+    ComponentSpacer{}
 }
 

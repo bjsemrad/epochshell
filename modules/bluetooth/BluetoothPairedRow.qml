@@ -10,16 +10,12 @@ import qs.commonwidgets
 
 Rectangle {
     id: root
-    width: parent.width
-    anchors.right: parent.right
-    anchors.left: parent.left
-    radius: 6
-    height: 30
-    color: "transparent"
+    Layout.fillWidth: true
+    Layout.preferredHeight: 30
 
     property BluetoothDevice device
 
-    Row {
+    RowLayout {
         spacing: 10
         anchors.verticalCenter: parent.verticalCenter
         anchors.leftMargin: 10
@@ -31,9 +27,9 @@ Rectangle {
         Rectangle {
             radius: 6
             color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-            implicitWidth: parent.width
-            implicitHeight: parent.height
-             Row {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            RowLayout {
                     spacing: 10
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.leftMargin: 10
@@ -45,13 +41,13 @@ Rectangle {
                     Text {
                         text: S.Bluetooth.getDeviceIcon(device)
                         font.pixelSize: 18
-                        anchors.verticalCenter: parent.verticalCenter
+                        Layout.alignment: Qt.AlignVCenter
                         color: device.state === BluetoothDeviceState.Connected ? T.Config.green : T.Config.fg
                     }
 
                     Text {
                         text: device.name
-                        anchors.verticalCenter: parent.verticalCenter
+                        Layout.alignment: Qt.AlignVCenter
                         color: T.Config.fg
                         font.pixelSize: 13
                     }
@@ -60,20 +56,20 @@ Rectangle {
                         id: bluetoothSpinner
                         running: device.state === BluetoothDeviceState.Connecting
                     }
-                }
-                MouseArea {
-                    id: mouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if(device.state === BluetoothDeviceState.Connected){
-                            device.disconnect()
-                        }else{
-                            device.connect()
-                        }
+            }
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if(device.state === BluetoothDeviceState.Connected){
+                        device.disconnect()
+                    }else{
+                        device.connect()
                     }
                 }
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import Quickshell.Services.SystemTray
 
 BarIconPopup {
     id: root
+    visible: S.SystemTray.hasTrayItems()
     mouseEnabled: true
     hoverEnabled: true
     iconText:  "󱊖"

@@ -7,16 +7,12 @@ import qs.services as S
 import qs.theme as T
 import qs.commonwidgets
 
-Rectangle {
+Item {
     id: bluetoothSection
-    width: parent.width
-    anchors.right: parent.right
-    anchors.left: parent.left
-    color: "transparent"
+    Layout.fillWidth: true
+    Layout.preferredHeight: col.implicitHeight
 
     property bool expanded: false
-    implicitHeight: col.implicitHeight
-
 
     Connections {
         target:  bluetoothPanel
@@ -28,51 +24,50 @@ Rectangle {
         }
     }
 
-    Column {
+    ColumnLayout {
         id: col
         anchors.fill: parent
         spacing: 15
         Rectangle {
             id: header
-            implicitHeight: 20
-            width: parent.width
+            Layout.preferredHeight: 20
+            Layout.fillWidth: true
             color: "transparent"
-            Row {
+            RowLayout {
                 width: parent.width
                 spacing: 10
                 Text {
                     id: avText
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
                     text: "Available Devices"
                     color: T.Config.fg
                     font.pixelSize: 13
                     Layout.leftMargin: 4
                 }
 
-                Row {
+                RowLayout {
                    spacing: 10
 
-                    Rectangle {
-                        width: 100
-                        height: 25
+                   Rectangle {
+                        Layout.preferredWidth: 100
+                        Layout.preferredHeight: 25
                         radius: 10
                         color: S.Bluetooth.discovering ? T.Config.green : T.Config.bg2
-
-
                         Text {
                             anchors.centerIn: parent
-                            anchors.verticalCenter: parent.verticalCenter
                             color: S.Bluetooth.discovering ? T.Config.black : T.Config.fg
                             font.pixelSize: 13
                             text: S.Bluetooth.discovering ? "Stop Scan" : "Start Scan"
                         }
 
                         MouseArea {
-                            anchors.fill: parent
-                             hoverEnabled: true
-                             cursorShape: Qt.PointingHandCursor
 
-                           onClicked: function() {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: function() {
                                 if (!S.Bluetooth.adapter) return;
                                 if (!S.Bluetooth.discovering) {
                                     S.Bluetooth.scanForDevices()
@@ -91,9 +86,7 @@ Rectangle {
                     }
                 }
             }
-
         }
-
 
         Rectangle {
             id: listContainer
@@ -102,8 +95,8 @@ Rectangle {
             clip: true
             border.width: 2
             border.color: T.Config.bg2
-            width: parent.width
-            implicitHeight: bluetoothSection.expanded
+            Layout.fillWidth: true
+            Layout.preferredHeight: bluetoothSection.expanded
                     ? Math.min(bluetoothList.contentHeight, 300)
                     : 0
 
@@ -128,7 +121,7 @@ Rectangle {
                     anchors.margins: 10
                     color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
-                    Row {
+                    RowLayout {
                         anchors.fill: parent
                         width: parent.width
                         anchors.margins: 10
@@ -138,13 +131,13 @@ Rectangle {
                         Text {
                             text: S.Bluetooth.getDeviceIcon(modelData)
                             font.pixelSize: 18
-                            anchors.verticalCenter: parent.verticalCenter
+                            Layout.alignment: Qt.AlignVCenter
                             color: T.Config.fg
                         }
 
                         Text {
                             text: modelData.name
-                            anchors.verticalCenter: parent.verticalCenter
+                            Layout.alignment: Qt.AlignVCenter
                             color: T.Config.fg
                             font.pixelSize: 13
                         }
