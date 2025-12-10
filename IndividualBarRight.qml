@@ -77,7 +77,7 @@ RowLayout {
         id: bluetoothPanel
         trigger: bluet
     }
-    ControlCenterPanel {
+    ControlCenterPanelAlt {
         id: systemPanel
         trigger: systemOptions
     }

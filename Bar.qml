@@ -17,80 +17,84 @@ import qs.modules.systemtray
 import qs.services as S
 
 Scope {
-  id: bar
-  property string time
+    id: bar
+    property string time
 
-  Variants {
-    model: Quickshell.screens
+    Variants {
+        model: Quickshell.screens
 
-    PanelWindow {
-      id: barWindow
-      required property var modelData
-      screen: modelData
-      WlrLayershell.layer: WlrLayer.Top
-      anchors {
-        top: true
-        left: true
-        right: true
-      }
-      color: T.Config.background
-      implicitHeight: 40
+        PanelWindow {
+            id: barWindow
+            required property var modelData
+            screen: modelData
+            WlrLayershell.layer: WlrLayer.Top
+            anchors {
+                top: true
+                left: true
+                right: true
+            }
+            color: T.Config.background
+            implicitHeight: T.Config.barHeight
 
-      RowLayout {
-        id: leftSide
-        spacing: 10
-        anchors {
-          top: parent.top
-          bottom: parent.bottom
-          left: parent.left
+            RowLayout {
+                id: leftSide
+                spacing: 10
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                    left: parent.left
+                }
+
+                children: [
+                    BarFill {},
+                    ApplicationLauncher {},
+                    Workspaces {}
+                ]
+            }
+
+            RowLayout {
+                id: centerSide
+                spacing: 10
+
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+                readonly property int available: parent.width
+
+                implicitWidth: available
+                children: [
+                    BarFill {},
+                    Clock {},
+                    BarFill {}
+                ]
+            }
+
+            RowLayout {
+                id: rightSide
+                spacing: 10
+                Layout.alignment: Qt.AlignVCenter
+
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                    right: parent.right
+                }
+
+                Loader {
+                    id: normalLoader
+                    active: T.Config.showIndividualIcons
+
+                    sourceComponent: IndividualBarRight {}
+                }
+
+                Loader {
+                    id: specialLoader
+                    active: T.Config.showIndividualIcons === false
+
+                    sourceComponent: GroupedBarRight {}
+                }
+            }
         }
-
-        children: [
-          BarFill{},
-          ApplicationLauncher{},
-          Workspaces{}
-        ]
-      }
-
-       RowLayout {
-         id: centerSide
-         spacing: 10
-
-         anchors {
-            top: parent.top
-            bottom: parent.bottom
-          }
-          readonly property int available: parent.width
-
-          implicitWidth: available
-          children: [BarFill{}, Clock{}, BarFill{}]
-      }
-
-      RowLayout {
-        id: rightSide
-        spacing: 10
-        Layout.alignment: Qt.AlignVCenter
-
-        anchors {
-          top: parent.top
-          bottom: parent.bottom
-          right: parent.right
-        }
-
-         Loader {
-            id: normalLoader
-            active: T.Config.showIndividualIcons
-
-            sourceComponent: IndividualBarRight {} 
-        }
-
-        Loader {
-          id: specialLoader
-          active: T.Config.showIndividualIcons === false
-
-          sourceComponent:  GroupedBarRight{}
-        }
-      }
     }
-  }
 }

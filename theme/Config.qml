@@ -62,4 +62,6 @@ Singleton {
     property int panelBottomMargin: 5
 
     property bool showIndividualIcons: true
+
+    property int barHeight: 40
 }

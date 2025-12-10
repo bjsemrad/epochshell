@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Widgets
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -14,7 +15,7 @@ PopupWindow {
     default property alias content: contentLayout.data
     readonly property int padding: 10
     property real popupWidth: 100
-    implicitWidth:  popupWidth
+    implicitWidth: popupWidth
     implicitHeight: contentLayout.implicitHeight + padding * 2
 
     property Item trigger: null
@@ -23,11 +24,10 @@ PopupWindow {
     property bool stopHide: false
 
     function _updateHover() {
-        if (!popupHover && !stopHide){
-            popup.visible = false
+        if (!popupHover && !stopHide) {
+            popup.visible = false;
         }
     }
-
 
     anchor {
         item: trigger
@@ -37,16 +37,15 @@ PopupWindow {
         rect.y: trigger.mapToGlobal(0, 0).y + trigger.height + 20
     }
 
-
     Item {
-        Window.onActiveChanged: { 
+        Window.onActiveChanged: {
             if (!Window.active) {
-                popup.visible = false
+                popup.visible = false;
             }
         }
         anchors.fill: parent
 
-        Rectangle {
+        ClippingRectangle {
             id: contentSection
             anchors.fill: parent
             anchors.bottomMargin: 10
@@ -64,11 +63,10 @@ PopupWindow {
                 }
             }
 
-
             HoverHandler {
                 onHoveredChanged: {
-                    popup.popupHover = hovered
-                    popup._updateHover()
+                    popup.popupHover = hovered;
+                    popup._updateHover();
                 }
             }
 

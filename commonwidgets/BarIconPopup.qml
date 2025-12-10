@@ -7,7 +7,7 @@ import qs.services as S
 
 Rectangle {
     id: root
-    color: popup && popup.visible ? T.Config.surfaceVariant : "transparent"
+    color: popup && popup.visible ? T.Config.surfaceContainerHighest : "transparent"
     border.width: 1
     border.color: popup && popup.visible ? T.Config.outline : "transparent"
     radius: 20
