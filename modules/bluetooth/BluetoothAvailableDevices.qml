@@ -16,11 +16,11 @@ Item {
     property bool expanded: false
 
     Connections {
-        target:  bluetoothPanel
+        target: bluetoothPanel
         function onVisibleChanged() {
             if (!bluetoothPanel.visible) {
-                bluetoothSection.expanded = false
-                S.Bluetooth.stopScan()
+                bluetoothSection.expanded = false;
+                S.Bluetooth.stopScan();
             }
         }
     }
@@ -36,21 +36,20 @@ Item {
                 id: avText
                 Layout.alignment: Qt.AlignVCenter
                 text: "Available Devices"
-                color: T.Config.fg
+                color: T.Config.surfaceText
                 font.pixelSize: 13
                 Layout.leftMargin: 4
             }
-
 
             Rectangle {
                 Layout.preferredWidth: 100
                 Layout.preferredHeight: 25
                 Layout.alignment: Qt.AlignLeft
                 radius: 10
-                color: S.Bluetooth.discovering ? T.Config.green : T.Config.bg2
+                color: S.Bluetooth.discovering ? T.Config.accent : T.Config.surfaceVariant
                 Text {
                     anchors.centerIn: parent
-                    color: S.Bluetooth.discovering ? T.Config.black : T.Config.fg
+                    color: S.Bluetooth.discovering ? T.Config.surface : T.Config.surfaceText
                     font.pixelSize: 13
                     text: S.Bluetooth.discovering ? "Stop Scan" : "Start Scan"
                 }
@@ -60,14 +59,14 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
-                    onClicked: function() {
-                        if (!S.Bluetooth.adapter) return;
+                    onClicked: function () {
+                        if (!S.Bluetooth.adapter)
+                            return;
                         if (!S.Bluetooth.discovering) {
-                            S.Bluetooth.scanForDevices()
-                            bluetoothSection.expanded = true
-
+                            S.Bluetooth.scanForDevices();
+                            bluetoothSection.expanded = true;
                         } else {
-                            S.Bluetooth.stopScan()
+                            S.Bluetooth.stopScan();
                         }
                     }
                 }
@@ -82,14 +81,12 @@ Item {
         Rectangle {
             id: listContainer
             radius: 6
-            color: T.Config.bg
+            color: T.Config.background
             clip: true
             border.width: 2
-            border.color: T.Config.bg2
+            border.color: T.Config.surfaceVariant
             Layout.fillWidth: true
-            Layout.preferredHeight: bluetoothSection.expanded
-                    ? Math.min(bluetoothList.contentHeight, 300)
-                    : 0
+            Layout.preferredHeight: bluetoothSection.expanded ? Math.min(bluetoothList.contentHeight, 300) : 0
 
             Behavior on height {
                 NumberAnimation {
@@ -101,7 +98,7 @@ Item {
             ListView {
                 id: bluetoothList
                 anchors.fill: parent
-                implicitHeight: Math.min(listContainer.implicitHeight,  100)
+                implicitHeight: Math.min(listContainer.implicitHeight, 100)
                 model: S.Bluetooth.devices
                 interactive: true
 
@@ -117,19 +114,18 @@ Item {
                         anchors.margins: 10
                         spacing: 10
 
-
                         Text {
                             text: S.Bluetooth.getDeviceIcon(modelData)
                             font.pixelSize: 18
                             Layout.alignment: Qt.AlignVCenter
                             Layout.leftMargin: 10
-                            color: T.Config.fg
+                            color: T.Config.surfaceText
                         }
 
                         Text {
                             text: modelData.name
                             Layout.alignment: Qt.AlignVCenter
-                            color: T.Config.fg
+                            color: T.Config.surfaceText
                             font.pixelSize: 13
                         }
                     }
@@ -141,8 +137,8 @@ Item {
                         enabled: !S.Bluetooth.discovering
                         cursorShape: !S.Bluetooth.discovering ? Qt.PointingHandCursor : Qt.ArrowCursor
                         onClicked: {
-                            modelData.trusted = true
-                            modelData.connect()
+                            modelData.trusted = true;
+                            modelData.connect();
                         }
                     }
                 }

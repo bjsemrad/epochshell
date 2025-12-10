@@ -33,7 +33,7 @@ Scope {
         left: true
         right: true
       }
-      color: T.Config.bg
+      color: T.Config.background
       implicitHeight: 40
 
       RowLayout {
@@ -68,7 +68,7 @@ Scope {
 
       RowLayout {
         id: rightSide
-        spacing: 0
+        spacing: 10
         Layout.alignment: Qt.AlignVCenter
 
         anchors {
@@ -77,89 +77,19 @@ Scope {
           right: parent.right
         }
 
-        children: [
-          BarFill{},
-          WifiNetwork{
-            id:wifiNet
-            popup: wifiNetworkPanel
-          },
-          EthernetNetwork{
-            id:ethNet
-            popup: ethernetNetworkPanel
-          },
-          TailscaleNetwork {
-            id:tailNet
-            popup: tailscaleNetworkPanel
-          },
-          Bluetooth{
-            id:bluet
-            popup: bluetoothPanel
-          },
-          Volume {
-            id: vol
-            popup: audioPanel
-          },
-          Battery{
-            id: battery
-            popup: batteryPanel
-          },
-          Clipboard{},
-          Colorpicker{},
-          SystemTray{
-            id: sysTray
-            popup: systemTrayPanel
-          },
-          SystemOptions{
-            id: systemOptions
-            popup: systemOptionsPanel
-          },
-          SystemOptions{
-            id: systemOverview
-            popup: systemPanel
-          },
-          BarFill{} ] 
-      }
+         Loader {
+            id: normalLoader
+            active: T.Config.showIndividualIcons
 
-      WifiNetworkPanel {
-        id: wifiNetworkPanel
-        trigger: wifiNet
-      }
+            sourceComponent: IndividualBarRight {} 
+        }
 
-      EthernetNetworkPanel {
-        id: ethernetNetworkPanel
-        trigger: ethNet
-      }
+        Loader {
+          id: specialLoader
+          active: T.Config.showIndividualIcons === false
 
-      TailscaleNetworkPanel {
-        id: tailscaleNetworkPanel
-        trigger: tailNet
-      }
-
-      AudioPanel {
-        id: audioPanel
-        trigger: vol
-      }
-
-      BatteryPanel {
-        id: batteryPanel
-        trigger: battery
-      }
-
-      BluetoothPanel {
-        id: bluetoothPanel
-        trigger: bluet
-      }
-      SystemOptionsPanel {
-        id: systemOptionsPanel
-        trigger: systemOptions
-      }
-      SystemTrayPanel {
-        id: systemTrayPanel
-        trigger: sysTray
-      }
-      SystemPanel {
-        id: systemPanel
-        trigger: systemOverview
+          sourceComponent:  GroupedBarRight{}
+        }
       }
     }
   }

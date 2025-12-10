@@ -14,16 +14,15 @@ Rectangle {
     required property string icon
     required property string description
     function onClick() {
-        console.log("Implementation Missing")
+        console.log("Implementation Missing");
     }
 
     Rectangle {
         id: actionArea
         implicitHeight: 40
-        width: parent.width 
+        width: parent.width
         radius: 10
         color: actionMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-
 
         RowLayout {
             anchors.leftMargin: 30
@@ -36,7 +35,7 @@ Rectangle {
                 text: icon
                 font.pixelSize: 18
                 Layout.alignment: Qt.AlignVCenter
-                color: T.Config.fg
+                color: T.Config.surfaceText
             }
 
             Text {
@@ -44,21 +43,18 @@ Rectangle {
                 text: description
                 font.pixelSize: 18
                 Layout.alignment: Qt.AlignVCenter
-                color: T.Config.fg
+                color: T.Config.surfaceText
             }
         }
-        
+
         MouseArea {
             id: actionMouseArea
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                onClick()
+                onClick();
             }
-
         }
     }
 }
-
-

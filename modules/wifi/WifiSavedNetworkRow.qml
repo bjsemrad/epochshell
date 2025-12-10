@@ -32,13 +32,13 @@ Rectangle {
                 font.pixelSize: 18
                 Layout.alignment: Qt.AlignVCenter
                 Layout.leftMargin: 10
-                color: T.Config.fg
+                color: T.Config.surfaceText
             }
 
             Text {
                 text: root.ssid
                 Layout.alignment: Qt.AlignVCenter
-                color: T.Config.fg
+                color: T.Config.surfaceText
                 font.pixelSize: 13
             }
 
@@ -53,7 +53,7 @@ Rectangle {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                S.Network.connectTo(root.ssid)
+                S.Network.connectTo(root.ssid);
             }
         }
     }

@@ -25,11 +25,10 @@ Item {
             Text {
                 id: avText
                 text: "Peers"
-                color: T.Config.fg
+                color: T.Config.surfaceText
                 font.pixelSize: 13
             }
         }
-
 
         Rectangle {
             id: listContainer
@@ -66,26 +65,26 @@ Item {
                                 color: "transparent"
                                 Text {
                                     id: icon
-                                    text:  {
+                                    text: {
                                         if (modelData.connected) {
-                                            return "󰱓"
+                                            return "󰱓";
                                         }
-                                        return  "󰅛"
+                                        return "󰅛";
                                     }
                                     font.pixelSize: 18
                                     anchors.verticalCenter: parent.verticalCenter
-                                    color: modelData.connected ? T.Config.green : T.Config.red
+                                    color: modelData.connected ? T.Config.accent : T.Config.surfaceContainerHighest
                                 }
                             }
 
                             Rectangle {
                                 width: S.Tailscale.colHostWidth
-                                height: 22; 
+                                height: 22
                                 anchors.verticalCenter: parent.verticalCenter
                                 color: "transparent"
                                 Text {
                                     text: modelData.hostName
-                                    color: T.Config.fg
+                                    color: T.Config.surfaceText
                                     font.pixelSize: T.Config.tailscalePeersFontSize
                                     elide: Text.ElideRight
                                     anchors.verticalCenter: parent.verticalCenter
@@ -93,11 +92,13 @@ Item {
                             }
 
                             Rectangle {
-                                width: S.Tailscale.colDnsWidth; height: 22; color: "transparent"
+                                width: S.Tailscale.colDnsWidth
+                                height: 22
+                                color: "transparent"
                                 anchors.verticalCenter: parent.verticalCenter
                                 Text {
                                     text: modelData.dnsName
-                                    color: T.Config.fg
+                                    color: T.Config.surfaceText
                                     font.pixelSize: T.Config.tailscalePeersFontSize
                                     elide: Text.ElideRight
                                     anchors.verticalCenter: parent.verticalCenter
@@ -105,17 +106,18 @@ Item {
                             }
 
                             Rectangle {
-                                width: S.Tailscale.colIpWidth; height: 22; color: "transparent"
+                                width: S.Tailscale.colIpWidth
+                                height: 22
+                                color: "transparent"
                                 anchors.verticalCenter: parent.verticalCenter
                                 Text {
                                     text: modelData.ip
-                                    color: T.Config.fg
+                                    color: T.Config.surfaceText
                                     font.pixelSize: T.Config.tailscalePeersFontSize
                                     elide: Text.ElideRight
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                             }
-
                         }
 
                         Process {
@@ -128,13 +130,13 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
-                            onClicked:(mouse)=> {
+                            onClicked: mouse => {
                                 if (mouse.button == Qt.RightButton)
-                                    wlcopy.command = ["wl-copy", modelData.ip]
+                                    wlcopy.command = ["wl-copy", modelData.ip];
                                 else {
-                                    wlcopy.command = ["wl-copy", modelData.dnsName]
+                                    wlcopy.command = ["wl-copy", modelData.dnsName];
                                 }
-                                wlcopy.running = true
+                                wlcopy.running = true;
                             }
                         }
                     }

@@ -18,8 +18,8 @@ Item {
         width: parent.width
         spacing: 10
         Text {
-            text: "Audio "  + (Pipewire.defaultAudioSink ? " - " + Pipewire.defaultAudioSink?.description : "")
-            color: T.Config.fg
+            text: "Audio " + (Pipewire.defaultAudioSink ? " - " + Pipewire.defaultAudioSink?.description : "")
+            color: T.Config.surfaceText
             font.bold: true
             font.pointSize: 11
             Layout.alignment: Qt.AlignLeft
@@ -28,8 +28,6 @@ Item {
             clip: true
         }
 
-        AudioVolumeSlider{
-        }
+        AudioVolumeSlider {}
     }
 }
-

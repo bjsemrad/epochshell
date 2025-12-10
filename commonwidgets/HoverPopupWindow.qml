@@ -10,6 +10,7 @@ PopupWindow {
     visible: false
     color: "transparent"
 
+    property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
     default property alias content: contentLayout.data
     readonly property int padding: 10
     property real popupWidth: 100
@@ -31,8 +32,9 @@ PopupWindow {
     anchor {
         item: trigger
         edges: Edges.Left | Edges.Bottom
-        gravity: Edges.Bottom | Edges.Right
+        gravity: Edges.Bottom | Edges.Middle
         adjustment: PopupAdjustment.Slide | PopupAdjustment.Flip
+        rect.y: trigger.mapToGlobal(0, 0).y + trigger.height + 20
     }
 
 
@@ -47,9 +49,11 @@ PopupWindow {
         Rectangle {
             id: contentSection
             anchors.fill: parent
-            radius: 8
-            color: T.Config.bg
-            border.color: T.Config.grey
+            anchors.bottomMargin: 10
+            radius: 10
+            color: T.Config.background
+            border.width: 1
+            border.color: T.Config.outline
             opacity: popup.visible ? 1 : 0
 
             Behavior on opacity {
@@ -60,7 +64,6 @@ PopupWindow {
                 }
             }
 
-            property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
 
             HoverHandler {
                 onHoveredChanged: {

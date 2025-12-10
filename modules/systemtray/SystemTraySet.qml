@@ -73,19 +73,18 @@ Item {
                     }
 
                     QsMenuAnchor {
-                      id: menu
-                      menu: trayItem.menu
-                      onVisibleChanged: {
-                        systemTrayPopup.stopHide = menu.visible
-                      }
+                        id: menu
+                        menu: trayItem.menu
+                        onVisibleChanged: {
+                            systemTrayPopup.stopHide = menu.visible;
+                        }
 
-                      anchor {
-                        item: iconImg
-                        edges: Edges.Left | Edges.Bottom
-                        gravity: Edges.Right | Edges.Bottom
-                        adjustment: PopupAdjustment.FlipX
-                      }
-
+                        anchor {
+                            item: iconImg
+                            edges: Edges.Left | Edges.Bottom
+                            gravity: Edges.Right | Edges.Bottom
+                            adjustment: PopupAdjustment.FlipX
+                        }
                     }
 
                     Text {
@@ -99,7 +98,7 @@ Item {
                             return itemId.charAt(0).toUpperCase();
                         }
                         font.pixelSize: 10
-                        color: T.Config.fg
+                        color: T.Config.surfaceText
                     }
                 }
 
@@ -117,7 +116,7 @@ Item {
                         }
 
                         if (mouse.button === Qt.RightButton && !delegateRoot.trayItem.onlyMenu) {
-                            menu.open()
+                            menu.open();
                             return;
                         }
                     }
@@ -126,4 +125,3 @@ Item {
         }
     }
 }
-

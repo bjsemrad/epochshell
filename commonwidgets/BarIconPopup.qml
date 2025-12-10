@@ -4,11 +4,12 @@ import Quickshell.Widgets
 import Quickshell.Io
 import qs.theme as T
 import qs.services as S
+
 Rectangle {
     id: root
-    color:  popup && popup.visible ? T.Config.bgDark : "transparent"
+    color: popup && popup.visible ? T.Config.surfaceVariant : "transparent"
     border.width: 1
-    border.color:  popup && popup.visible ? T.Config.bg3 : "transparent"
+    border.color: popup && popup.visible ? T.Config.outline : "transparent"
     radius: 20
     implicitWidth: inner.implicitWidth + 18
     implicitHeight: inner.implicitHeight + 5
@@ -29,27 +30,27 @@ Rectangle {
             text: root.iconText
             font.pixelSize: 18
             anchors.verticalCenter: parent.verticalCenter
-            color: T.Config.fg
+            color: T.Config.surfaceText
 
-             MouseArea {
+            MouseArea {
                 id: mouseArea
                 enabled: mouseEnabled
                 anchors.fill: parent
                 hoverEnabled: root.hoverEnabled
                 cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                 onClicked: {
-                    if(!popup.visible) {
-                        popup.visible = true //Don't set this to !popup.visible, on high-refresh get odd flickering
+                    if (!popup.visible) {
+                        popup.visible = true; //Don't set this to !popup.visible, on high-refresh get odd flickering
                     }
                 }
 
                 onEntered: {
-                    popup.visible = mouseArea.containsMouse
+                    popup.visible = mouseArea.containsMouse;
                 }
 
                 onExited: {
-                    if(root.hoverEnabled){
-                        popup.visible = !mouseArea.containMouse
+                    if (root.hoverEnabled) {
+                        popup.visible = !mouseArea.containMouse;
                     }
                 }
             }

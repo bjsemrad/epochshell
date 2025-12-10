@@ -6,21 +6,20 @@ Rectangle {
     id: clock
 
     SystemClock {
-      id: sysclk
-      precision: SystemClock.Seconds
+        id: sysclk
+        precision: SystemClock.Seconds
     }
 
     Text {
         text: Qt.formatDateTime(sysclk.date, "ddd hh:mm AP")
-        color: T.Config.fgDark
+        color: T.Config.surfaceText
         font {
-          pointSize: 12
-          family: T.Config.fontFamily
+            pointSize: 12
+            family: T.Config.fontFamily
         }
         anchors {
-          verticalCenter: parent.verticalCenter
-          horizontalCenter: parent.horizontalCenter
+            verticalCenter: parent.verticalCenter
+            horizontalCenter: parent.horizontalCenter
         }
-
     }
 }

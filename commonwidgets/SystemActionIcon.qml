@@ -15,9 +15,8 @@ Rectangle {
     required property string icon
     required property string description
     function onClick() {
-        console.log("Implementation Missing")
+        console.log("Implementation Missing");
     }
-
 
     RowLayout {
         anchors.centerIn: parent
@@ -28,7 +27,7 @@ Rectangle {
             text: icon
             font.pixelSize: 18
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-            color: T.Config.fg
+            color: T.Config.surfaceText
         }
     }
     MouseArea {
@@ -37,10 +36,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            onClick()
+            onClick();
         }
-
     }
 }
-
-

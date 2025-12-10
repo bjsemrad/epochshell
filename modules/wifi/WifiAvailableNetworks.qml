@@ -13,11 +13,13 @@ Item {
     Layout.preferredHeight: header.height + listContainer.height
 
     property bool expanded: false
+    required property var attachedPanel
 
     Connections {
-        target: wifiNetworkPanel
+        target: attachedPanel
         function onVisibleChanged() {
-            if (!wifiNetworkPanel.visible) networksSection.expanded = false
+            if (!attachedPanel.visible)
+                networksSection.expanded = false;
         }
     }
 
@@ -35,14 +37,14 @@ Item {
                 Text {
                     id: avText
                     text: "Available Networks"
-                    color: T.Config.fg
+                    color: T.Config.surfaceText
                     font.pixelSize: 13
                     Layout.leftMargin: 4
                 }
 
                 Text {
                     text: expanded ? "▲" : "▼"
-                    color: T.Config.fg 
+                    color: T.Config.surfaceText
                     font.pixelSize: 12
                 }
 
@@ -57,28 +59,24 @@ Item {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
 
-                onClicked: function() {
-                    if(!networksSection.expanded) {
-                        S.Network.refreshAvailable()
+                onClicked: function () {
+                    if (!networksSection.expanded) {
+                        S.Network.refreshAvailable();
                     }
-                    networksSection.expanded = !networksSection.expanded
-
+                    networksSection.expanded = !networksSection.expanded;
                 }
             }
         }
 
-
         Rectangle {
             id: listContainer
             radius: 6
-            color: T.Config.bg
+            color: T.Config.background
             clip: true
             border.width: 2
-            border.color: T.Config.bg2
+            border.color: T.Config.surfaceVariant
             Layout.fillWidth: true
-            Layout.preferredHeight: networksSection.expanded
-                    ? Math.min(networkList.contentHeight, 300)
-                    : 0
+            Layout.preferredHeight: networksSection.expanded ? Math.min(networkList.contentHeight, 300) : 0
 
             Behavior on height {
                 NumberAnimation {
@@ -90,12 +88,12 @@ Item {
             ListView {
                 id: networkList
                 anchors.fill: parent
-                implicitHeight: Math.min(listContainer.implicitHeight,  100)
+                implicitHeight: Math.min(listContainer.implicitHeight, 100)
                 model: S.Network.accessPoints
                 interactive: true
 
                 delegate: Rectangle {
-                    width: ListView.view.width*.95
+                    width: ListView.view.width * .95
                     implicitHeight: 30
                     radius: 6
                     color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
@@ -106,25 +104,27 @@ Item {
                         anchors.margins: 10
                         spacing: 8
 
-
                         Text {
-                            text:  {
-                                const s = modelData.strength
+                            text: {
+                                const s = modelData.strength;
 
-                                if (s >= 75) return "󰤨"
-                                if (s >= 50) return "󰤢"
-                                if (s >= 25) return "󰤟"
-                                return "󰤟"
+                                if (s >= 75)
+                                    return "󰤨";
+                                if (s >= 50)
+                                    return "󰤢";
+                                if (s >= 25)
+                                    return "󰤟";
+                                return "󰤟";
                             }
                             font.pixelSize: 18
                             Layout.alignment: Qt.AlignVCenter
                             Layout.leftMargin: 10
-                            color: T.Config.fg
+                            color: T.Config.surfaceText
                         }
- 
+
                         Text {
                             text: modelData.ssid
-                            color: T.Config.fg
+                            color: T.Config.surfaceText
                             font.pixelSize: 13
                             elide: Text.ElideRight
                             Layout.alignment: Qt.AlignVCenter
@@ -137,7 +137,7 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                           S.Network.connectTo(modelData.ssid) 
+                            S.Network.connectTo(modelData.ssid);
                         }
                     }
                 }

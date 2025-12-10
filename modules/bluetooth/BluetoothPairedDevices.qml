@@ -23,7 +23,7 @@ Item {
 
         Text {
             text: "Paired Devices"
-            color: T.Config.fg
+            color: T.Config.surfaceText
             font.pixelSize: 13
         }
 
@@ -34,6 +34,5 @@ Item {
                 device: modelData
             }
         }
-
-     }
+    }
 }

@@ -19,7 +19,7 @@ Item {
         spacing: 10
         Text {
             text: "Microphone" + (Pipewire.defaultAudioSource ? " - " + Pipewire.defaultAudioSource?.description : "")
-            color: T.Config.fg
+            color: T.Config.surfaceText
             font.bold: true
             font.pointSize: 11
             Layout.alignment: Qt.AlignLeft
@@ -28,7 +28,6 @@ Item {
             clip: true
         }
 
-        MicVolumeSlider{}
+        MicVolumeSlider {}
     }
 }
-

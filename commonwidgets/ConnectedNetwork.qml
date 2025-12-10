@@ -15,7 +15,6 @@ Item {
     required property string connectedName
     required property string connectedIp
 
-
     Layout.fillWidth: true
     Layout.preferredHeight: root.implicitHeight
     RowLayout {
@@ -32,17 +31,17 @@ Item {
             height: 40
             Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
             radius: 20
-            color: T.Config.bg0
-            border.color: connectedStatus ? T.Config.green : T.Config.red
-            border.width: 2 
+            color: T.Config.surface
+            border.color: connectedStatus ? T.Config.accent : T.Config.surfaceContainerHighest
+            border.width: 2
             antialiasing: true
 
-              Text {
-                text:  networkIconText
+            Text {
+                text: networkIconText
                 font.pixelSize: 18
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.centerIn: parent
-                color: T.Config.fg
+                color: T.Config.surfaceText
             }
         }
 
@@ -58,7 +57,7 @@ Item {
                 Text {
                     id: name
                     text: connectedStatus ? connectedName : "Disconnected"
-                    color: T.Config.fg
+                    color: T.Config.surfaceText
                     font.pixelSize: 16
                 }
 
@@ -68,12 +67,11 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     acceptedButtons: Qt.LeftButton
-                    onClicked:(mouse)=> {
-                        wlcopy.command = ["wl-copy", connectedName]
-                        wlcopy.running = true
+                    onClicked: mouse => {
+                        wlcopy.command = ["wl-copy", connectedName];
+                        wlcopy.running = true;
                     }
                 }
-
             }
 
             Rectangle {
@@ -85,10 +83,9 @@ Item {
                 Text {
                     id: ip
                     text: connectedStatus ? connectedIp : "Disconnected"
-                    color: T.Config.fg
-                    font.pixelSize: 14;
+                    color: T.Config.surfaceText
+                    font.pixelSize: 14
                 }
-
 
                 MouseArea {
                     id: mouseAreaIp
@@ -96,9 +93,9 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     acceptedButtons: Qt.LeftButton
-                    onClicked:(mouse)=> {
-                        wlcopy.command = ["wl-copy", connectedIp]
-                        wlcopy.running = true
+                    onClicked: mouse => {
+                        wlcopy.command = ["wl-copy", connectedIp];
+                        wlcopy.running = true;
                     }
                 }
             }

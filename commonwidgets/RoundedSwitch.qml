@@ -7,17 +7,21 @@ Item {
     width: 42
     height: 24
     property bool checked: false
-    signal toggled()
+    signal toggled
 
     Rectangle {
         id: track
         anchors.fill: parent
         radius: height / 2
         border.width: 1
-        border.color: checked ? T.Config.accent : T.Config.bg3
+        border.color: checked ? T.Config.accent : T.Config.surfaceVariant
 
-        color: checked ? T.Config.accent : T.Config.bg0
-        Behavior on color { ColorAnimation { duration: 160 } }
+        color: checked ? T.Config.accent : T.Config.surfaceContainer
+        Behavior on color {
+            ColorAnimation {
+                duration: 160
+            }
+        }
     }
 
     // Knob
@@ -28,12 +32,12 @@ Item {
         radius: 10
         y: 2
         x: checked ? (root.width - width - 2) : 2
-        color: checked ? T.Config.bg0 : T.Config.accent
-        
+        color: checked ? T.Config.surface : T.Config.surfaceContainerHighest
+
         Text {
             text: ""
             anchors.centerIn: parent
-            color: T.Config.accent
+            color: checked ? T.Config.accent : T.Config.surfaceContainerHighest
             font.pixelSize: 14
             font.bold: true
         }
@@ -45,15 +49,19 @@ Item {
             }
         }
 
-        Behavior on color { ColorAnimation { duration: 160 } }
+        Behavior on color {
+            ColorAnimation {
+                duration: 160
+            }
+        }
     }
 
     MouseArea {
-      anchors.fill: parent
-      cursorShape: Qt.PointingHandCursor
-      onClicked: {
-            root.checked = !root.checked
-            root.toggled()
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+            root.checked = !root.checked;
+            root.toggled();
         }
     }
 }

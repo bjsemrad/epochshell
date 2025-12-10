@@ -15,7 +15,6 @@ Rectangle {
     radius: 6
     color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
-
     property BluetoothDevice device
 
     Rectangle {
@@ -23,30 +22,30 @@ Rectangle {
         height: parent.height
         color: "transparent"
         RowLayout {
-                id: row
-                spacing: 10
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width
+            id: row
+            spacing: 10
+            anchors.verticalCenter: parent.verticalCenter
+            width: parent.width
 
-                Text {
-                    text: S.Bluetooth.getDeviceIcon(device)
-                    font.pixelSize: 18
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.leftMargin: 10
-                    color: device.state === BluetoothDeviceState.Connected ? T.Config.green : T.Config.fg
-                }
+            Text {
+                text: S.Bluetooth.getDeviceIcon(device)
+                font.pixelSize: 18
+                Layout.alignment: Qt.AlignVCenter
+                Layout.leftMargin: 10
+                color: device.state === BluetoothDeviceState.Connected ? T.Config.accent : T.Config.surfaceText
+            }
 
-                Text {
-                    text: device.name
-                    Layout.alignment: Qt.AlignVCenter
-                    color: T.Config.fg
-                    font.pixelSize: 13
-                }
+            Text {
+                text: device.name
+                Layout.alignment: Qt.AlignVCenter
+                color: T.Config.surfaceText
+                font.pixelSize: 13
+            }
 
-                Spinner {
-                    id: bluetoothSpinner
-                    running: device.state === BluetoothDeviceState.Connecting
-                }
+            Spinner {
+                id: bluetoothSpinner
+                running: device.state === BluetoothDeviceState.Connecting
+            }
         }
         MouseArea {
             id: mouseArea
@@ -54,10 +53,10 @@ Rectangle {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                if(device.state === BluetoothDeviceState.Connected){
-                    device.disconnect()
-                }else{
-                    device.connect()
+                if (device.state === BluetoothDeviceState.Connected) {
+                    device.disconnect();
+                } else {
+                    device.connect();
                 }
             }
         }

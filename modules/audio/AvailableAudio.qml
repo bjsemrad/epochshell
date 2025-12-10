@@ -16,12 +16,12 @@ Item {
     required property string type
     required property PwNode defaultAudioNode
 
-    function isAudioType(node){
-        console.log("ERROR Missing Implementations")
+    function isAudioType(node) {
+        console.log("ERROR Missing Implementations");
     }
 
-    function clickOperation(nodeId){
-        S.AudioService.setDefault(nodeId)
+    function clickOperation(nodeId) {
+        S.AudioService.setDefault(nodeId);
     }
 
     ColumnLayout {
@@ -38,12 +38,11 @@ Item {
                 Text {
                     id: avText
                     text: "Available " + type
-                    color: T.Config.fg
+                    color: T.Config.surfaceText
                     font.pixelSize: 13
                 }
             }
         }
-
 
         Rectangle {
             id: listContainer
@@ -76,15 +75,15 @@ Item {
                             anchors.rightMargin: 10
                             spacing: 8
                             Text {
-                                text:  ""
+                                text: ""
                                 font.pixelSize: 18
                                 Layout.alignment: Qt.AlignVCenter
-                                color: modelData.id === defaultAudioNode?.id ? T.Config.blue : T.Config.fg
+                                color: modelData.id === defaultAudioNode?.id ? T.Config.accent : T.Config.surfaceText
                             }
 
                             Text {
                                 text: modelData.description
-                                color: T.Config.fg
+                                color: T.Config.surfaceText
                                 font.pixelSize: 13
                                 Layout.fillWidth: true
                                 clip: true
@@ -99,7 +98,7 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                clickOperation(modelData.id)
+                                clickOperation(modelData.id);
                             }
                         }
                     }

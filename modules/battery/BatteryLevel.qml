@@ -22,37 +22,35 @@ Item {
         ColumnLayout {
             id: content
             spacing: 20
-            width: parent.width*.55
+            width: parent.width * .55
             anchors.verticalCenter: parent.verticalCenter
             RowLayout {
                 spacing: 10
                 Layout.fillWidth: true
                 Text {
                     text: S.BatteryService.batteryIcon()
-                    color: T.Config.fg
+                    color: T.Config.surfaceText
                     font.bold: true
                     font.pointSize: 12
                 }
 
                 Text {
                     text: Math.round(S.BatteryService.percentage) + "%"
-                    color: T.Config.fg
+                    color: T.Config.surfaceText
                     font.bold: true
                     font.pointSize: 12
                 }
             }
 
-             RowLayout {
+            RowLayout {
                 Layout.fillWidth: true
                 Text {
                     text: S.BatteryService.stateText()
-                    color: T.Config.fg
+                    color: T.Config.surfaceText
                     font.bold: true
                     font.pointSize: 11
                 }
-
             }
-
         }
     }
 }

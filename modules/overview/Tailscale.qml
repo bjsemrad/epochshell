@@ -1,18 +1,14 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import qs.modules.wifi
+import qs.modules.tailscale
 import qs.commonwidgets
 ColumnLayout {
     Layout.fillWidth: true
-    WifiOnOff {}
+    TailscaleOnOff {}
     ComponentSplitter{}
-    WifiConnectedNetwork{}
+    TailscaleConnectedNetwork{}
     ComponentSplitter{}
-    WifiSavedNetworks{}
-    ComponentSplitter{}
-    WifiAvailableNetworks{
-        attachedPanel: parent
-    }
+    TailscalePeers{}
     ComponentSpacer{}
 }

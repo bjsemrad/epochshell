@@ -47,7 +47,11 @@ HoverPopupWindow {
     ComponentSplitter{}
     WifiSavedNetworks{}
     ComponentSplitter{}
-    WifiAvailableNetworks{}
+    WifiAvailableNetworks{
+        attachedPanel: networkPopup
+    }
     ComponentSpacer{}
+    ComponentSpacer{}
+
 }
 

@@ -4,6 +4,7 @@ import Quickshell.Widgets
 import Quickshell.Io
 import qs.theme as T
 import qs.services as S
+
 Rectangle {
     id: root
     color: "transparent"
@@ -12,13 +13,12 @@ Rectangle {
     required property string iconText
     required property bool mouseEnabled
 
-
-    function performLeftClickAction(){
-        console.log("Missing Implementation")
+    function performLeftClickAction() {
+        console.log("Missing Implementation");
     }
 
-    function performRightClickAction(){
-        performLeftClickAction()
+    function performRightClickAction() {
+        performLeftClickAction();
     }
 
     MouseArea {
@@ -26,11 +26,11 @@ Rectangle {
         anchors.fill: parent
         cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked:(mouse)=> {
+        onClicked: mouse => {
             if (mouse.button == Qt.RightButton) {
-                performRightClickAction()
+                performRightClickAction();
             } else {
-                performLeftClickAction()
+                performLeftClickAction();
             }
         }
     }
@@ -39,12 +39,12 @@ Rectangle {
         id: inner
         anchors.centerIn: parent
         height: parent.height
-        spacing: 5 
+        spacing: 5
         Text {
             text: root.iconText
             font.pixelSize: 18
             anchors.verticalCenter: parent.verticalCenter
-            color: T.Config.fg
+            color: T.Config.surfaceText
         }
     }
 }

@@ -17,12 +17,12 @@ Item {
     required property bool checkedValue
     property bool enableToggle: true
 
-    function handleToggled(checked){
-        console.log("Missing Implementation")
+    function handleToggled(checked) {
+        console.log("Missing Implementation");
     }
 
-    function settingsClick(){
-        console.log("Missing Implementation")
+    function settingsClick() {
+        console.log("Missing Implementation");
     }
 
     Rectangle {
@@ -34,7 +34,7 @@ Item {
         Text {
             anchors.verticalCenter: parent.verticalCenter
             text: headerText
-            color: T.Config.fg
+            color: T.Config.surfaceText
             font.bold: true
             font.pointSize: 13
         }
@@ -44,20 +44,20 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         spacing: 10
-        RoundedSwitch{
-            visible: enableToggle
+        RoundedSwitch {
             id: rSwitch
+            visible: enableToggle
             Layout.alignment: Qt.AlignVCenter
             checked: checkedValue
             onToggled: {
-                handleToggled(rSwitch.checked)
+                handleToggled(rSwitch.checked);
             }
         }
         PanelHeaderIcon {
             id: settings
             iconText: ""
-            function onClick(){
-                settingsClick()
+            function onClick() {
+                settingsClick();
             }
         }
     }

@@ -5,41 +5,100 @@ import Quickshell.Widgets
 import Quickshell.Hyprland
 import qs.theme as T
 
-RowLayout {
-    id: workspaces
-    spacing: 6
+Rectangle {
+    id: workspaceFrame
+    radius: 20
+    border.width: 1
+    border.color: T.Config.showIndividualIcons ? "transparent" : T.Config.surfaceContainer
+    color: T.Config.showIndividualIcons ? "transparent" : T.Config.surfaceContainer
     Layout.alignment: Qt.AlignVCenter
 
-    Repeater {
-        model: Hyprland.workspaces.values
+    property int padding: 10
+    implicitHeight: inner.implicitHeight + padding
+    implicitWidth: inner.implicitWidth + padding * 2
 
-        delegate: WrapperMouseArea {
-            required property var modelData
-            readonly property int wsId: modelData.id
+    RowLayout {
+        id: inner
+        spacing: padding * 2
+        anchors.centerIn: parent
 
-            implicitWidth: 30
-            implicitHeight: 22
+        Repeater {
+            model: Hyprland.workspaces.values
 
-            readonly property bool active: (
-                Hyprland.focusedWorkspace
-                && Hyprland.focusedWorkspace.id === wsId
-            )
+            delegate: WrapperMouseArea {
+                required property var modelData
+                readonly property int wsId: modelData.id
 
-            onPressed: Hyprland.dispatch(`workspace ${wsId}`)
+                implicitWidth: ws.implicitWidth
+                implicitHeight: ws.implicitHeight
 
-            Rectangle {
-                anchors.fill: parent
-                color: T.Config.bg
+                cursorShape: Qt.PointingHandCursor
+                readonly property bool active: (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === wsId)
 
-                Text {
-                    anchors.centerIn: parent
-                    text: wsId
-                    font.pixelSize: 16
-                    font.weight: active ? Font.Bold : Font.Normal
-                    font.family: T.Config.fontFamily
-                    color: active ? T.Config.active  : T.Config.inactive
+                onPressed: Hyprland.dispatch(`workspace ${wsId}`)
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
+
+                    Text {
+                        id: ws
+                        anchors.centerIn: parent
+                        text: wsId
+                        font.pixelSize: 16
+                        font.weight: active ? Font.Bold : Font.Normal
+                        font.family: T.Config.fontFamily
+                        color: active ? T.Config.active : T.Config.inactive
+                    }
                 }
             }
         }
     }
 }
+
+
+// import QtQuick
+// import QtQuick.Layouts
+// import Quickshell
+// import Quickshell.Widgets
+// import Quickshell.Hyprland
+// import qs.theme as T
+//
+// RowLayout {
+//     id: workspaces
+//     spacing: 6
+//     Layout.alignment: Qt.AlignVCenter
+//
+//     Repeater {
+//         model: Hyprland.workspaces.values
+//
+//         delegate: WrapperMouseArea {
+//             required property var modelData
+//             readonly property int wsId: modelData.id
+//
+//             implicitWidth: 30
+//             implicitHeight: 22
+//
+//             readonly property bool active: (
+//                 Hyprland.focusedWorkspace
+//                 && Hyprland.focusedWorkspace.id === wsId
+//             )
+//
+//             onPressed: Hyprland.dispatch(`workspace ${wsId}`)
+//
+//             Rectangle {
+//                 anchors.fill: parent
+//                 color: T.Config.bg
+//
+//                 Text {
+//                     anchors.centerIn: parent
+//                     text: wsId
+//                     font.pixelSize: 16
+//                     font.weight: active ? Font.Bold : Font.Normal
+//                     font.family: T.Config.fontFamily
+//                     color: active ? T.Config.active  : T.Config.inactive
+//                 }
+//             }
+//         }
+//     }
+// }

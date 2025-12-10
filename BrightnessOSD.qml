@@ -22,9 +22,9 @@ Scope {
         stdout: SplitParser {
             splitMarker: ""
             onRead: data => {
-                root.hasBacklight = data.indexOf("class 'backlight'") !== -1
+                root.hasBacklight = data.indexOf("class 'backlight'") !== -1;
                 if (root.hasBacklight)
-                    backlightGetValueProc.running = true
+                    backlightGetValueProc.running = true;
             }
         }
     }
@@ -37,18 +37,18 @@ Scope {
         stdout: SplitParser {
             splitMarker: ""
             onRead: data => {
-                const s = data.trim().split(" ")
+                const s = data.trim().split(" ");
                 if (s.length >= 2) {
-                    let pct = (parseInt(s[0]) / parseInt(s[1]))
+                    let pct = (parseInt(s[0]) / parseInt(s[1]));
                     if (!root.initialized) {
-                        root.initialized = true
-                        root.brightness = pct
-                        return
+                        root.initialized = true;
+                        root.brightness = pct;
+                        return;
                     }
 
                     if (Math.abs(pct - root.brightness) > 0.001) {
-                        root.brightness = pct
-                        root.triggerOSD()
+                        root.brightness = pct;
+                        root.triggerOSD();
                     }
                 }
             }
@@ -62,13 +62,13 @@ Scope {
         repeat: true
         onTriggered: {
             if (root.hasBacklight)
-                backlightGetValueProc.running = true
+                backlightGetValueProc.running = true;
         }
     }
 
     function triggerOSD() {
-        root.shouldShowOsd = true
-        hideTimer.restart()
+        root.shouldShowOsd = true;
+        hideTimer.restart();
     }
 
     Timer {
@@ -88,12 +88,12 @@ Scope {
             implicitWidth: 400
             implicitHeight: 50
             color: "transparent"
-            mask: Region { }
+            mask: Region {}
 
             Rectangle {
                 anchors.fill: parent
                 radius: 20
-                color: T.Config.osdBg
+                color: T.Config.background
 
                 RowLayout {
                     anchors {
@@ -102,19 +102,18 @@ Scope {
                         rightMargin: 15
                     }
 
-
                     Text {
                         text: ""
                         font.pixelSize: 30
                         anchors.verticalCenter: parent.verticalCenter
-                        color: T.Config.fg
+                        color: T.Config.surfaceText
                     }
 
                     Rectangle {
                         Layout.fillWidth: true
                         implicitHeight: 10
                         radius: 20
-                        color: T.Config.bgDark
+                        color: T.Config.surfaceVariant
 
                         Rectangle {
                             anchors {
@@ -125,7 +124,7 @@ Scope {
 
                             implicitWidth: parent.width * root.brightness
                             radius: parent.radius
-                            color: T.Config.fg
+                            color: T.Config.surfaceText
                         }
                     }
                 }

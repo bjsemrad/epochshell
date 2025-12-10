@@ -12,15 +12,16 @@ Rectangle {
     property bool accent: false
 
     radius: 10
-    color: connectedOverview.visible ? T.Config.accentLightShade : mouseAreaMain.containsMouse ? T.Config.activeSelection : T.Config.bgDark
+    color: connectedOverview.visible ? T.Config.accentLightShade : mouseAreaMain.containsMouse ? T.Config.surfaceContainerHigh : T.Config.activeSelection
     border.width: connectedOverview.visible ? 1 : 0
     border.color: overviewSelectedColor()
 
-    implicitWidth: 150
+    // implicitWidth: 10
     implicitHeight: 50
 
+    Layout.fillWidth: true
     // Simple click handler you can hook into
-    signal clicked()
+    signal clicked
 
     MouseArea {
         id: mouseAreaMain
@@ -29,23 +30,24 @@ Rectangle {
         onClicked: root.clicked()
         cursorShape: Qt.PointingHandCursor
     }
-    
-    function overviewSelectedColor(){
-        return connectedOverview.visible ? T.Config.accent : T.Config.fg
+
+    function overviewSelectedColor() {
+        return connectedOverview.visible ? T.Config.accent : T.Config.surfaceText;
     }
 
     RowLayout {
-        // anchors.fill: parent
-        anchors.centerIn: parent
-        anchors.margins: 14
-        spacing: 12
+        anchors.fill: parent
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.leftMargin: 14
+        anchors.rightMargin: 14
+        spacing: 10
 
-            Text {
-                id: icon
-                // Layout.alignment: Qt.AlignVCenter
-                font.pixelSize: 24
-                color: overviewSelectedColor()
-            }
+        Text {
+            id: icon
+            Layout.alignment: Qt.AlignVCenter
+            font.pixelSize: 24
+            color: overviewSelectedColor()
+        }
 
         ColumnLayout {
             Layout.fillWidth: true
@@ -53,17 +55,20 @@ Rectangle {
 
             Text {
                 text: root.title
-                color: connectedOverview.visible ? T.Config.accent : T.Config.fg
+                color: connectedOverview.visible ? T.Config.accent : T.Config.surfaceText
                 font.pixelSize: 14
                 font.bold: true
                 elide: Text.ElideRight
+                Layout.fillWidth: true
             }
 
             Text {
                 text: root.subtitle
-                color: T.Config.fg
+                color: connectedOverview.visible ? T.Config.accent : T.Config.surfaceText
                 font.pixelSize: 11
                 elide: Text.ElideRight
+                clip: true
+                Layout.fillWidth: true
             }
         }
     }

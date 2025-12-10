@@ -120,7 +120,7 @@ RowLayout {
             width: volume.visualPosition * volume.width
             height: 10
             radius: height / 2
-            color: T.Config.blue
+            color: T.Config.accent
         }
     }
 }

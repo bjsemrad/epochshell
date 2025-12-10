@@ -23,7 +23,7 @@ Item {
 
         Text {
             text: "Saved Networks"
-            color: T.Config.fg
+            color: T.Config.surfaceText
             font.pixelSize: 13
         }
 
@@ -35,6 +35,5 @@ Item {
                 ssid: model.ssid
             }
         }
-
-     }
+    }
 }
