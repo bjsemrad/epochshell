@@ -22,10 +22,10 @@ RowLayout {
         id: ethNet
         popup: ethernetNetworkPanel
     }
-    TailscaleNetwork {
-        id: tailNet
-        popup: tailscaleNetworkPanel
-    }
+    // TailscaleNetwork {
+    //     id: tailNet
+    //     popup: tailscaleNetworkPanel
+    // }
     Bluetooth {
         id: bluet
         popup: bluetoothPanel
@@ -37,10 +37,6 @@ RowLayout {
     Battery {
         id: battery
         popup: batteryPanel
-    }
-    SystemTray {
-        id: sysTray
-        popup: systemTrayPanel
     }
     SystemOptions {
         id: systemOptions
@@ -58,10 +54,10 @@ RowLayout {
         trigger: ethNet
     }
 
-    TailscaleNetworkPanel {
-        id: tailscaleNetworkPanel
-        trigger: tailNet
-    }
+    // TailscaleNetworkPanel {
+    //     id: tailscaleNetworkPanel
+    //     trigger: tailNet
+    // }
 
     AudioPanel {
         id: audioPanel
@@ -77,12 +73,8 @@ RowLayout {
         id: bluetoothPanel
         trigger: bluet
     }
-    ControlCenterPanelAlt {
+    ControlCenterPanel {
         id: systemPanel
         trigger: systemOptions
-    }
-    SystemTrayPanel {
-        id: systemTrayPanel
-        trigger: sysTray
     }
 }

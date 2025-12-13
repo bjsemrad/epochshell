@@ -14,6 +14,7 @@ Item {
     Layout.bottomMargin: 10
 
     property bool expanded: false
+    property string bgColor: T.Config.background
 
     Connections {
         target: bluetoothPanel
@@ -81,7 +82,7 @@ Item {
         Rectangle {
             id: listContainer
             radius: 6
-            color: T.Config.background
+            color: bgColor
             clip: true
             border.width: 2
             border.color: T.Config.surfaceVariant

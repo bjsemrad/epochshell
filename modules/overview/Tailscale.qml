@@ -3,12 +3,13 @@ import QtQuick.Layouts
 import Quickshell
 import qs.modules.tailscale
 import qs.commonwidgets
-ColumnLayout {
-    Layout.fillWidth: true
+import qs.theme as T
+
+ExpandingOverview {
     TailscaleOnOff {}
-    ComponentSplitter{}
-    TailscaleConnectedNetwork{}
-    ComponentSplitter{}
-    TailscalePeers{}
-    ComponentSpacer{}
+    ComponentSplitter {}
+    TailscaleConnectedNetwork {}
+    ComponentSplitter {}
+    TailscalePeers {}
+    ComponentSpacer {}
 }

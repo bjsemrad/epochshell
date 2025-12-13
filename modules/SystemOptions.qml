@@ -1,9 +1,9 @@
 import qs.commonwidgets
 import qs.services as S
 
-BarIconPopup {
+PanelTrigger {
     id: root
     mouseEnabled: true
     hoverEnabled: false
-    iconText:  ""
+    iconText: ""
 }

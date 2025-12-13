@@ -4,7 +4,6 @@ import Quickshell
 import Quickshell.Io
 
 Singleton {
-
     id: net
 
     property var networkConnections: {} // map of device,  { name, type, strength, ipv4 }
@@ -48,121 +47,117 @@ Singleton {
 
         stdout: StdioCollector {
             onStreamFinished: {
-                net._parseActiveConnections(text)
+                net._parseActiveConnections(text);
             }
         }
     }
 
     function updateProperties() {
-        wifiConnected = Object.values(networkConnections).some(c => c.active && c.type === "wifi")
+        wifiConnected = Object.values(networkConnections).some(c => c.active && c.type === "wifi");
         let wifi = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "wifi");
-        if(wifi) {
-            wifiConnectedIP = wifi[1].ipv4
+        if (wifi) {
+            wifiConnectedIP = wifi[1].ipv4;
         }
-        tailscaleConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn" && c.name.indexOf("tailscale") >= 0)
+        tailscaleConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn" && c.name.indexOf("tailscale") >= 0);
 
-        ethernetConnected = Object.values(networkConnections).some(c => c.active && c.type === "ethernet")
+        ethernetConnected = Object.values(networkConnections).some(c => c.active && c.type === "ethernet");
         let eth = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "ethernet");
-        if(eth) {
-            ethernetDeviceName = eth[0]
-            ethernetConnectedIP = eth[1].ipv4
+        if (eth) {
+            ethernetDeviceName = eth[0];
+            ethernetConnectedIP = eth[1].ipv4;
         }
-        tailscaleConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn" && c.name.indexOf("tailscale") >= 0)
+        tailscaleConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn" && c.name.indexOf("tailscale") >= 0);
         let tail = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "vpn" && conn.name.indexOf("tailscale") >= 0);
-        if(tail) {
-            tailscaleConnectedIP = tail[1].ipv4
+        if (tail) {
+            tailscaleConnectedIP = tail[1].ipv4;
         }
-
     }
 
-    
-
     function _parseActiveConnections(text) {
-        if (!networkConnections) networkConnections = {}
-    
-        wifiDevice = false
-        ethernetDevice = false
-        let lines = text.trim().split("\n")
+        if (!networkConnections)
+            networkConnections = {};
+
+        wifiDevice = false;
+        ethernetDevice = false;
+        let lines = text.trim().split("\n");
         for (let line of lines) {
-            let parts = line.split(":")
-            let active = parts[0]
-            let name = parts[1]
-            let device = parts[2]
-            let parsedType = parts[3]
-            let type = "none"
+            let parts = line.split(":");
+            let active = parts[0];
+            let name = parts[1];
+            let device = parts[2];
+            let parsedType = parts[3];
+            let type = "none";
 
             if (parsedType.indexOf("wireless") >= 0) {
-                type = "wifi"
-                wifiDevice = true
+                type = "wifi";
+                wifiDevice = true;
             } else if (parsedType.indexOf("ethernet") >= 0) {
-                type = "ethernet"
-                ethernetDevice = true
+                type = "ethernet";
+                ethernetDevice = true;
             } else if (parsedType.indexOf("tun") >= 0) {
-                type = "vpn"
+                type = "vpn";
             }
 
-            if(type !== "none"){
-                if (!networkConnections[device]) networkConnections[device] = {}
+            if (type !== "none") {
+                if (!networkConnections[device]) {
+                    networkConnections[device] = {};
+                }
                 Object.assign(networkConnections[device], {
-                    active: active === "yes" ? true : false ,
+                    active: active === "yes" ? true : false,
                     name: name,
                     type: type,
-                    ipv4: "",
-                })
+                    ipv4: ""
+                });
             }
         }
-        ipCmd.running = true
+        ipCmd.running = true;
     }
 
     Process {
         id: ipCmd
-        command: ["sh", "-c", 
-              "for d in $(nmcli -t -f DEVICE device); do " +
-              "ip=$(nmcli -t -f IP4.ADDRESS device show \"$d\" | head -n1 | cut -d: -f2 | cut -d/ -f1); " +
-              "echo \"$d:$ip\"; " +
-              "done"]
+        command: ["sh", "-c", "for d in $(nmcli -t -f DEVICE device); do " + "ip=$(nmcli -t -f IP4.ADDRESS device show \"$d\" | head -n1 | cut -d: -f2 | cut -d/ -f1); " + "echo \"$d:$ip\"; " + "done"]
 
         stdout: StdioCollector {
             onStreamFinished: {
-                _parseActiveIPAddresses(text)
-                updateProperties()
+                _parseActiveIPAddresses(text);
+                updateProperties();
             }
         }
     }
-
 
     function _parseActiveIPAddresses(text) {
-        let lines = text.trim().split("\n")
+        let lines = text.trim().split("\n");
         for (let line of lines) {
-            if(line.trim() === "") {continue}
-            let parts = line.split(":")
-            let device = parts[0]
-            let ip = parts[1] || ""
+            if (line.trim() === "") {
+                continue;
+            }
+            let parts = line.split(":");
+            let device = parts[0];
+            let ip = parts[1] || "";
             if (networkConnections[device]) {
-                networkConnections[device].ipv4 = ip
+                networkConnections[device].ipv4 = ip;
             }
         }
     }
-
 
     Process {
         id: wifiStatusCmd
-        command: ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL", "dev", "wifi" ]
+        command: ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL", "dev", "wifi"]
 
         stdout: StdioCollector {
             onStreamFinished: {
-                net._parseWifiStatus(text)
+                net._parseWifiStatus(text);
             }
         }
     }
 
     Process {
         id: scanCmd
-        command: ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL", "dev", "wifi" ]
+        command: ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL", "dev", "wifi"]
         stdout: StdioCollector {
             onStreamFinished: {
-                net._parseScan(text)
-                wifiScanning = false
+                net._parseScan(text);
+                wifiScanning = false;
             }
         }
     }
@@ -172,9 +167,9 @@ Singleton {
         command: "nmcli"
         stdout: StdioCollector {
             onStreamFinished: {
-                net.refresh()
-                wifiConnecting = false
-                wifiConnectingTo = ""
+                net.refresh();
+                wifiConnecting = false;
+                wifiConnectingTo = "";
             }
         }
     }
@@ -183,19 +178,18 @@ Singleton {
         id: deleteCmd
         command: ["nmcli", "connection", "delete"]
         onExited: {
-            refreshSaved()
+            refreshSaved();
         }
-
     }
 
-       // grab saved connections once at startup
+    // grab saved connections once at startup
     // you can re-run this on a timer if you want it to refresh
     Process {
         id: savedNetworks
         // running: true
         // -t: terse, -f: fields we care about
         // we only keep entries where TYPE == wifi
-        command: [ "sh", "-c", "nmcli -t -f NAME,TYPE connection show" ]
+        command: ["sh", "-c", "nmcli -t -f NAME,TYPE connection show"]
 
         stdout: SplitParser {
             onRead: line => {
@@ -212,97 +206,96 @@ Singleton {
                     for (let i = 0; i < savedWifiModel.count; ++i) {
                         if (savedWifiModel.get(i).ssid === name)
                             return;
-                        }
-                        savedWifiModel.append({ ssid: name });
+                    }
+                    savedWifiModel.append({
+                        ssid: name
+                    });
                 }
             }
         }
     }
-    
 
     function refreshAvailable(callback) {
-        wifiScanning = true
-        scanCmd.running = true
+        wifiScanning = true;
+        scanCmd.running = true;
     }
 
     function refreshSaved() {
-        savedWifiModel.clear()  
-        savedNetworks.running = true
+        savedWifiModel.clear();
+        savedNetworks.running = true;
     }
 
     function refreshStatus() {
-        wifiStatusCmd.running = true
+        wifiStatusCmd.running = true;
     }
 
     function refresh() {
-        activeConnCmd.running = true
-        savedNetworks.running = true
-        wifiStatusCmd.running = true
+        activeConnCmd.running = true;
+        savedNetworks.running = true;
+        wifiStatusCmd.running = true;
     }
 
     function connectTo(ssidName) {
-        wifiConnecting = true
-        wifiConnectingTo = ssidName
-        connectCmd.command = ["nmcli", "device", "wifi", "connect", ssidName]
-        connectCmd.running = true
+        wifiConnecting = true;
+        wifiConnectingTo = ssidName;
+        connectCmd.command = ["nmcli", "device", "wifi", "connect", ssidName];
+        connectCmd.running = true;
     }
 
-     function deleteNetwork(ssidName) {
-        deleteCmd.command = ["nmcli", "connection", "delete", ssidName]
-        deleteCmd.running = true
+    function deleteNetwork(ssidName) {
+        deleteCmd.command = ["nmcli", "connection", "delete", ssidName];
+        deleteCmd.running = true;
     }
-
-
 
     function _parseWifiStatus(text) {
-        let lines = text.trim().split("\n")
+        let lines = text.trim().split("\n");
         if (lines.length === 0) {
             // wifiConnected = false
-            ssid = ""
-            strength = 0
-            return
+            ssid = "";
+            strength = 0;
+            return;
         }
 
         // Find the active entry (ACTIVE=yes)
-        let activeLine = lines.find(l => l.startsWith("yes:"))
+        let activeLine = lines.find(l => l.startsWith("yes:"));
         if (!activeLine) {
             // wifiConnected = false
-            ssid = ""
-            strength = 0
-            return
+            ssid = "";
+            strength = 0;
+            return;
         }
 
-        let p = activeLine.split(":")
+        let p = activeLine.split(":");
         // wifiConnected = (p[0] === "yes")
-        ssid = p[1] ?? ""
-        strength = parseInt(p[2] ?? "0") || 0
+        ssid = p[1] ?? "";
+        strength = parseInt(p[2] ?? "0") || 0;
     }
 
     function _parseScan(text) {
-        let lines = text.trim().split("\n")
-        let aps = []
+        let lines = text.trim().split("\n");
+        let aps = [];
 
         for (let line of lines) {
-            let p = line.split(":")
+            let p = line.split(":");
             aps.push({
                 active: p[0] === "yes",
                 ssid: p[1],
                 strength: parseInt(p[2] ?? "0") || 0
-            })
+            });
         }
 
         // Dedupe by SSID
-        let map = {}
+        let map = {};
         for (let ap of aps) {
-            if (!ap.ssid) continue
-            let key = ap.ssid
+            if (!ap.ssid)
+                continue;
+            let key = ap.ssid;
             if (!map[key] || ap.active || ap.strength > map[key].strength)
-                map[key] = ap
+                map[key] = ap;
         }
 
-        accessPoints = Object.values(map).sort((a, b) => b.strength - a.strength)
+        accessPoints = Object.values(map).sort((a, b) => b.strength - a.strength);
     }
-
 
     Process {
         id: editorProcess
@@ -310,18 +303,20 @@ Singleton {
     }
 
     function editNetworks() {
-        editorProcess.startDetached()
+        editorProcess.startDetached();
     }
-
 
     Process {
         id: disableWifi
     }
 
-    function disableWifi(on){
-        wifiEnabled = on
-        disableWifi.command = ["nmcli", "radio", "wifi", wifiEnabled ? "on" : "off"]
-        disableWifi.running = true
+    function disableWifi(on) {
+        wifiEnabled = on;
+        if (!wifiEnabled) {
+            networkConnections = {};
+        }
+        disableWifi.command = ["nmcli", "radio", "wifi", wifiEnabled ? "on" : "off"];
+        disableWifi.running = true;
+        refresh();
     }
-
 }

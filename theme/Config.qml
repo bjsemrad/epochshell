@@ -9,27 +9,18 @@ Singleton {
 
     property color accent: blue
     property color accentLightShade: Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10)
-    property color inactive: surfaceTextInactive
+    property color inactive: Qt.rgba(Qt.color(surfaceText).r, Qt.color(surfaceText).g, Qt.color(surfaceText).b, 0.75)
     property color active: surfaceText
-    property color activeSelection: Qt.rgba(Qt.color(surfaceVariant).r, Qt.color(surfaceVariant).g, Qt.color(surfaceVariant).b, 0.25)
+    property color activeSelection: surfaceContainerHigh //Qt.rgba(Qt.color(surfaceContainerHigh).r, Qt.color(surfaceContainerHigh).g, Qt.color(surfaceContainerHigh).b, 0.25)
 
-    property color background: "#101418"
-    property color surface: "#101418"
+    property color background: "#0e1013"
+    property color surface: "#1f2329"
+    property color surfaceVariant: "#323641"
+    property color surfaceContainer: "#1f2329"
+    property color surfaceContainerHigh: "#282c34" //"#272a2f"
+    property color surfaceContainerHighest: "#30363f"
     property color surfaceText: "#a0a8b7"
-    property color surfaceTextInactive: "#758799"
-    property color surfaceContainer: "#1d2024"
     property color outline: "#8c9199"
-    property color surfaceVariant: "#42474e"
-    property color surfaceContainerHigh: "#272a2f"
-    property color surfaceContainerHighest: "#32353a"
-    property color primaryText: "#000000"
-
-    // property color primary: "#42a5f5"
-    // property color primaryContainer: "#0d47a1" //blue
-    // property color secondary: "#8ab4f8" //blue
-    // property color surfaceVariantText: "#c2c7cf"
-    // property color surfaceTint: "#8ab4f8"
-    // property color backgroundText: "#e0e2e8"
 
     // ───────────────────────────────────────────────
     //  ACCENT COLORS
@@ -64,4 +55,5 @@ Singleton {
     property bool showIndividualIcons: true
 
     property int barHeight: 40
+    property int cornerRadius: 18
 }

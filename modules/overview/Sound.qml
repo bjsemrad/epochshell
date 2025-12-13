@@ -3,26 +3,27 @@ import QtQuick.Layouts
 import Quickshell
 import qs.modules.audio
 import qs.commonwidgets
+import qs.theme as T
 
-ColumnLayout {
-    AudioHeader{
+ExpandingOverview {
+    AudioHeader {
         id: header
     }
-    ComponentSplitter{}
+    ComponentSplitter {}
     AudioVolumeRow {
         id: vol
     }
-    ComponentSplitter{}
-    AvailableAudioOutputs{
+    ComponentSplitter {}
+    AvailableAudioOutputs {
         id: output
     }
-    ComponentSplitter{}
-    MicVolumeRow{
+    ComponentSplitter {}
+    MicVolumeRow {
         id: mic
     }
-    ComponentSplitter{}
-    AvailableAudioInputs{
+    ComponentSplitter {}
+    AvailableAudioInputs {
         id: input
     }
-    ComponentSpacer{}
+    ComponentSpacer {}
 }

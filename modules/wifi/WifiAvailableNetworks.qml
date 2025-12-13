@@ -10,10 +10,13 @@ import qs.commonwidgets
 Item {
     id: networksSection
     Layout.fillWidth: true
-    Layout.preferredHeight: header.height + listContainer.height
+    Layout.preferredHeight: col.implicitHeight
+    Layout.bottomMargin: 10
+    clip: true
 
     property bool expanded: false
     required property var attachedPanel
+    property string bgColor: T.Config.background
 
     Connections {
         target: attachedPanel
@@ -24,6 +27,7 @@ Item {
     }
 
     ColumnLayout {
+        id: col
         anchors.fill: parent
         spacing: 6
         Rectangle {
@@ -43,7 +47,7 @@ Item {
                 }
 
                 Text {
-                    text: expanded ? "▲" : "▼"
+                    text: expanded ? "" : "▼"
                     color: T.Config.surfaceText
                     font.pixelSize: 12
                 }
@@ -57,13 +61,13 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+                cursorShape: networkSection.expanded ? Qt.ArrowCursor : Qt.PointingHandCursor
 
                 onClicked: function () {
                     if (!networksSection.expanded) {
                         S.Network.refreshAvailable();
                     }
-                    networksSection.expanded = !networksSection.expanded;
+                    networksSection.expanded = true; //!networksSection.expanded;
                 }
             }
         }
@@ -71,19 +75,12 @@ Item {
         Rectangle {
             id: listContainer
             radius: 6
-            color: T.Config.background
+            color: bgColor
             clip: true
             border.width: 2
             border.color: T.Config.surfaceVariant
             Layout.fillWidth: true
             Layout.preferredHeight: networksSection.expanded ? Math.min(networkList.contentHeight, 300) : 0
-
-            Behavior on height {
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.InOutQuad
-                }
-            }
 
             ListView {
                 id: networkList

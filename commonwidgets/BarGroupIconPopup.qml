@@ -13,7 +13,7 @@ Rectangle {
     required property bool hoverEnabled
     property int padding: 10
 
-    border.color: T.surfaceContainer
+    border.color: T.Config.surfaceContainer
     color: T.Config.surfaceContainer
     border.width: 1
     radius: 20
@@ -33,16 +33,32 @@ Rectangle {
         onClicked: {
             if (!popup.visible) {
                 popup.visible = true; //Don't set this to !popup.visible, on high-refresh get odd flickering
+            } else {
+                popup.visible = false;
             }
         }
 
         onEntered: {
-            popup.visible = mouseArea.containsMouse;
+            if (root.hoverEnabled) {
+                if (mouseArea.containsMouse) {
+                    popup.showPanel();
+                } else {
+                    popup.hidePanel();
+                }
+                // popup.visible = mouse/Area.containsMouse;
+            }
         }
 
         onExited: {
             if (root.hoverEnabled) {
-                popup.visible = !mouseArea.containMouse;
+                if (mouseArea.containsMouse) {
+                    popup.showPanel();
+                } else {
+                    popup.hidePanel();
+                }
+                // popup.visible = mouse/Area.containsMouse;
+
+                // popup.visible = !mouseArea.containMouse;
             }
         }
     }

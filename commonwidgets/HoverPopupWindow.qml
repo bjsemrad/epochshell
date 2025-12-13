@@ -18,6 +18,17 @@ PopupWindow {
     implicitWidth: popupWidth
     implicitHeight: contentLayout.implicitHeight + padding * 2
 
+    property bool open: false
+
+    function showPanel() {
+        open = true;
+        visible = true;
+    }
+    function hidePanel() {
+        open = false;
+        visible = false;
+    }
+
     property Item trigger: null
 
     property bool popupHover: false
@@ -25,7 +36,7 @@ PopupWindow {
 
     function _updateHover() {
         if (!popupHover && !stopHide) {
-            popup.visible = false;
+            hidePanel();
         }
     }
 
@@ -40,7 +51,7 @@ PopupWindow {
     Item {
         Window.onActiveChanged: {
             if (!Window.active) {
-                popup.visible = false;
+                hidePanel();
             }
         }
         anchors.fill: parent

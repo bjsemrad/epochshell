@@ -7,9 +7,9 @@ import qs.services as S
 
 Rectangle {
     id: root
-    color: popup && popup.visible ? T.Config.surfaceContainerHighest : "transparent"
+    color: popup && popup.open ? T.Config.surfaceContainer : "transparent"
     border.width: 1
-    border.color: popup && popup.visible ? T.Config.outline : "transparent"
+    border.color: popup && popup.open ? T.Config.outline : "transparent"
     radius: 20
     implicitWidth: inner.implicitWidth + 18
     implicitHeight: inner.implicitHeight + 5
@@ -39,7 +39,7 @@ Rectangle {
                 hoverEnabled: root.hoverEnabled
                 cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                 onClicked: {
-                    if (popup.visible) {
+                    if (popup.open) {
                         popup.hidePanel();
                     } else {
                         popup.showPanel();
@@ -49,21 +49,13 @@ Rectangle {
 
                 onEntered: {
                     if (root.hoverEnabled) {
-                        if (mouseArea.containsMouse) {
-                            popup.showPanel();
-                        } else {
-                            popup.hidePanel();
-                        }
-                        // popup.visible = mouseArea.containsMouse;
+                        popup.visible = mouseArea.containsMouse;
                     }
                 }
 
                 onExited: {
                     if (root.hoverEnabled) {
-                        if (!mouseArea.containsMouse) {
-                            popup.hidePanel();
-                        }
-                        // popup.visible = !mouseArea.containMouse;
+                        popup.visible = !mouseArea.containMouse;
                     }
                 }
             }

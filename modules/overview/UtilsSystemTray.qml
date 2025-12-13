@@ -9,15 +9,21 @@ import qs.modules
 import qs.theme as T
 import qs.services as S
 
-Item {
+Rectangle {
     id: trayContainer
     Layout.fillWidth: true
-    Layout.preferredHeight: iconRow.implicitHeight
+    Layout.preferredHeight: iconRow.implicitHeight + 20
+    radius: T.Config.cornerRadius
+    color: T.Config.surfaceContainer
+    property var panelRef
 
     RowLayout {
         id: iconRow
         anchors.centerIn: parent
         spacing: 10
+
+        Clipboard {}
+        Colorpicker {}
 
         Repeater {
             model: S.SystemTray.trayItems
@@ -51,54 +57,44 @@ Item {
 
                 Layout.preferredWidth: 30
                 Layout.preferredHeight: 20
-                Layout.alignment: Qt.AlignVCenter
 
-                Rectangle {
-                    id: visualContent
-                    width: 30
-                    height: 30
-                    // Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    radius: 15
-                    color: trayItemArea.containsMouse ? T.Config.activeSelection : "transparent"
+                IconImage {
+                    id: iconImg
+                    width: 18
+                    height: 18
+                    source: delegateRoot.iconSource
+                    asynchronous: true
+                    smooth: true
+                    mipmap: true
+                    visible: status === Image.Ready
+                }
 
-                    IconImage {
-                        id: iconImg
-                        width: 18
-                        height: 18
-                        source: delegateRoot.iconSource
-                        asynchronous: true
-                        smooth: true
-                        mipmap: true
-                        visible: status === Image.Ready
+                QsMenuAnchor {
+                    id: menu
+                    menu: trayItem.menu
+                    onVisibleChanged: {
+                        panelRef.stopHide = menu.visible;
                     }
 
-                    QsMenuAnchor {
-                        id: menu
-                        menu: trayItem.menu
-                        onVisibleChanged: {
-                            systemTrayPopup.stopHide = menu.visible;
-                        }
-
-                        anchor {
-                            item: iconImg
-                            edges: Edges.Left | Edges.Bottom
-                            gravity: Edges.Right | Edges.Bottom
-                            adjustment: PopupAdjustment.FlipX
-                        }
+                    anchor {
+                        item: iconImg
+                        edges: Edges.Left | Edges.Bottom
+                        gravity: Edges.Right | Edges.Bottom
+                        adjustment: PopupAdjustment.FlipX
                     }
+                }
 
-                    Text {
-                        visible: !iconImg.visible
-                        text: {
-                            const itemId = trayItem?.id || "";
-                            if (!itemId) {
-                                return "?";
-                            }
-                            return itemId.charAt(0).toUpperCase();
+                Text {
+                    visible: !iconImg.visible
+                    text: {
+                        const itemId = trayItem?.id || "";
+                        if (!itemId) {
+                            return "?";
                         }
-                        font.pixelSize: 10
-                        color: T.Config.surfaceText
+                        return itemId.charAt(0).toUpperCase();
                     }
+                    font.pixelSize: 10
+                    color: T.Config.surfaceText
                 }
 
                 MouseArea {

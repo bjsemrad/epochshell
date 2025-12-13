@@ -11,16 +11,22 @@ Rectangle {
     property string subtitle: ""
     property bool accent: false
 
-    radius: 10
-    color: connectedOverview.visible ? T.Config.accentLightShade : mouseAreaMain.containsMouse ? T.Config.surfaceContainerHigh : T.Config.activeSelection
-    border.width: connectedOverview.visible ? 1 : 0
-    border.color: overviewSelectedColor()
+    topLeftRadius: 10
+    topRightRadius: 10
+    color: connectedOverview.expanded ? T.Config.accentLightShade : mouseAreaMain.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
 
-    // implicitWidth: 10
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+
+        height: 1
+        color: overviewSelectedColor()
+    }
+
     implicitHeight: 50
 
     Layout.fillWidth: true
-    // Simple click handler you can hook into
     signal clicked
 
     MouseArea {
@@ -32,7 +38,7 @@ Rectangle {
     }
 
     function overviewSelectedColor() {
-        return connectedOverview.visible ? T.Config.accent : T.Config.surfaceText;
+        return connectedOverview.expanded ? T.Config.accent : T.Config.surfaceText;
     }
 
     RowLayout {
@@ -55,7 +61,7 @@ Rectangle {
 
             Text {
                 text: root.title
-                color: connectedOverview.visible ? T.Config.accent : T.Config.surfaceText
+                color: connectedOverview.expanded ? T.Config.accent : T.Config.surfaceText
                 font.pixelSize: 14
                 font.bold: true
                 elide: Text.ElideRight
@@ -64,7 +70,7 @@ Rectangle {
 
             Text {
                 text: root.subtitle
-                color: connectedOverview.visible ? T.Config.accent : T.Config.surfaceText
+                color: connectedOverview.expanded ? T.Config.accent : T.Config.surfaceText
                 font.pixelSize: 11
                 elide: Text.ElideRight
                 clip: true

@@ -13,24 +13,23 @@ import qs.modules.overview
 import qs.popups
 
 RowLayout {
-  spacing: 10
-  GroupedBattery{
-    id: groupedBattery
-    popup: batteryPanel
-  }
-  ControlCenter{
-    id: controlCenter
-    popup: systemPanel
-  }
-  BarFill{}
-  
-  BatteryPanel {
-    id: batteryPanel
-    trigger: groupedBattery
-  }
-  ControlCenterPanel {
-    id: systemPanel
-    trigger: controlCenter
-  }
-}
+    spacing: 10
+    GroupedBattery {
+        id: groupedBattery
+        popup: batteryPanel
+    }
+    ControlCenter {
+        id: controlCenter
+        popup: systemPanel
+    }
+    BarFill {}
 
+    BatteryPanel {
+        id: batteryPanel
+        trigger: groupedBattery
+    }
+    ControlCenterPanel {
+        id: systemPanel
+        trigger: controlCenter
+    }
+}

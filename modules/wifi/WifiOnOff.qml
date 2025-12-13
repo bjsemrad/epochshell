@@ -12,7 +12,7 @@ import qs.commonwidgets
 SettingsToggleHeader {
     headerText: "Wifi"
     enableToggle: true
-    checkedValue: true
+    checkedValue: S.Network.wifiConnected
 
     function settingsClick() {
         S.Network.editNetworks();

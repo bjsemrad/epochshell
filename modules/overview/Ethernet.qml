@@ -3,10 +3,11 @@ import QtQuick.Layouts
 import Quickshell
 import qs.modules.ethernet
 import qs.commonwidgets
-ColumnLayout {
-    Layout.fillWidth: true
+import qs.theme as T
+
+ExpandingOverview {
     EthernetHeader {}
-    ComponentSplitter{}
-    EthernetConnectedNetwork{}
-    ComponentSpacer{}
+    ComponentSplitter {}
+    EthernetConnectedNetwork {}
+    ComponentSpacer {}
 }
