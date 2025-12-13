@@ -49,20 +49,26 @@ Rectangle {
         }
     }
 
-    Item {
-        id: content
-        anchors {
-            fill: parent
-            leftMargin: 12
-            rightMargin: 12
-            topMargin: 12
-            bottomMargin: 12
-        }
-        clip: true
+    // Item {
+    //     id: content
+    //     anchors {
+    //         fill: parent
+    //         leftMargin: 12
+    //         rightMargin: 12
+    //         topMargin: 12
+    //         bottomMargin: 12
+    //     }
+        // clip: true
         ColumnLayout {
             id: col
             // Layout.fillWidth: true
             anchors.fill: parent
+            anchors {
+                leftMargin: 12
+                topMargin: 12
+                rightMargin: 12
+                bottomMargin: 12
+            }
             clip: true
             onImplicitHeightChanged: {
                 if (root.visible) {
@@ -70,5 +76,5 @@ Rectangle {
                 }
             }
         }
-    }
+    // }
 }

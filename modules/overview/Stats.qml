@@ -66,7 +66,7 @@ Rectangle {
 
     Process {
         id: statsProc
-        command: ["/home/brian/projects/EpochShell/stats.py"]
+        command: ["/home/brian/projects/epoch-shell/stats.py"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {

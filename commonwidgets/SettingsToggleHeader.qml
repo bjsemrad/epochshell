@@ -12,6 +12,7 @@ import qs.commonwidgets
 Item {
     Layout.fillWidth: true
     Layout.preferredHeight: 30
+    Layout.topMargin: 5
 
     required property string headerText
     required property bool checkedValue

@@ -99,7 +99,6 @@ PanelWindow {
         if (newCard.expanded) {
             newCard.closeCard();
         } else {
-            console.log(newCard);
             for (let card of cards) {
                 if (card === newCard) {
                     card.openCard();
@@ -183,7 +182,7 @@ PanelWindow {
                     ControlCard {
                         id: ethernetCard
                         title: "Ethernet"
-                        visible: S.Network.ethernetDevice && S.Network.wifiConnected
+                        visible: S.Network.ethernetDevice && !S.Network.wifiConnected
                         subtitle: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
                         accent: true
                         iconSource: S.Network.currentEthernetIcon

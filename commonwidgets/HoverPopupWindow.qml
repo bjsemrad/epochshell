@@ -59,7 +59,6 @@ PopupWindow {
         ClippingRectangle {
             id: contentSection
             anchors.fill: parent
-            anchors.bottomMargin: 10
             radius: 10
             color: T.Config.background
             border.width: 1
@@ -84,7 +83,10 @@ PopupWindow {
             ColumnLayout {
                 id: contentLayout
                 anchors.fill: parent
-                anchors.margins: padding * 2
+                anchors.leftMargin: padding * 2
+                anchors.rightMargin: padding * 2
+                anchors.bottomMargin: padding * 2
+                anchors.topMargin: padding
                 spacing: 8
             }
         }
