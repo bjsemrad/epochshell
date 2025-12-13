@@ -14,15 +14,19 @@ import qs.modules.overview as O
 
 PanelWindow {
     id: popup
-
-    // width of the panel
     implicitWidth: 600
-    // implicitHeight: col.implicitHeight //screen.height / 2   // or some fixed height if you prefer
-
     color: "transparent"
     focusable: false
+    aboveWindows: true
+    exclusionMode: ExclusionMode.Ignore
+    visible: true
 
+    property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
+    property var trigger
     property bool open: false
+    property bool stopHide: false
+    property string username
+    property var cards: []
 
     function showPanel() {
         open = true;
@@ -32,24 +36,17 @@ PanelWindow {
     }
     function hidePanel() {
         open = false;
-        // for (let card of cards) {
-        //     card.resetCard();
-        //     // card.visible = false;
-        // }
     }
 
-    // Attach to right edge of screen, full height
     anchors {
         right: true
         top: true
         bottom: true
     }
-    margins.top: T.Config.barHeight + 10
-    margins.bottom: 10
 
-    // show on top of normal windows
-    aboveWindows: true
-    exclusionMode: ExclusionMode.Ignore
+    margins.right: open ? 0 : -implicitWidth
+    margins.top: T.Config.barHeight  //+ 10
+    // margins.bottom: 10
 
     HoverHandler {
         onHoveredChanged: {
@@ -57,19 +54,9 @@ PanelWindow {
                 if (!hovered) {
                     hidePanel();
                 }
-                // popup.visible = hovered;
             }
         }
     }
-
-    property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
-
-    visible: true
-    // Open/close state
-    property var trigger
-    property bool stopHide: false
-
-    margins.right: open ? 10 : -implicitWidth
 
     Behavior on margins.right {
         NumberAnimation {
@@ -97,9 +84,6 @@ PanelWindow {
             }
         }
     }
-
-    property string username
-    property var cards: []
 
     onVisibleChanged: {
         if (visible) {
@@ -142,19 +126,17 @@ PanelWindow {
         precision: SystemClock.Seconds
     }
 
-    // ─ rounded “card” that looks like the screenshot ─
     ClippingRectangle {
         id: content
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.fill: parent
-        radius: T.Config.cornerRadius
+        // radius: T.Config.cornerRadius
         color: T.Config.background
-        border.width: 2
-        border.color: T.Config.outline
+        // border.width: 2
+        // border.color: T.Config.outline
 
-        // Content goes inside the window like before
         ColumnLayout {
             id: col
             anchors {
@@ -242,18 +224,7 @@ PanelWindow {
                         visible: S.Network.wifiDevice && !S.Network.ethernetConnected
                         subtitle: S.Network.ssid
                         accent: true
-                        iconSource: {
-                            const s = S.Network.strength;
-                            if (!S.Network.wifiConnected)
-                                return "󰤭";
-                            if (s >= 75)
-                                return "󰤨";
-                            if (s >= 50)
-                                return "󰤢";
-                            if (s >= 25)
-                                return "󰤟";
-                            return "󰤟";
-                        }
+                        iconSource: S.Network.currentWifiIcon
                         Layout.fillWidth: true
                         connectedOverview: overviewWifi
                         onClicked: swapToCard(overviewWifi)
@@ -265,12 +236,7 @@ PanelWindow {
                         visible: S.Network.ethernetDevice && S.Network.wifiConnected
                         subtitle: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
                         accent: true
-                        iconSource: {
-                            if (S.Network.ethernetConnected) {
-                                return "󰌗";
-                            }
-                            return "󰌙";
-                        }
+                        iconSource: S.Network.currentEthernetIcon
                         Layout.fillWidth: true
                         connectedOverview: overviewEthernet
                         onClicked: swapToCard(overviewEthernet)
@@ -280,7 +246,7 @@ PanelWindow {
                         title: "Bluetooth"
                         subtitle: S.Bluetooth.connected ? "Connected Devices" : "No Devices"
                         accent: true
-                        iconSource: S.Bluetooth.enabled ? S.Bluetooth.connected ? "󰂱" : "󰂯" : "󰂲"
+                        iconSource: S.Bluetooth.currentBluetoothIcon
                         Layout.fillWidth: true
                         connectedOverview: overviewBluetooth
                         onClicked: swapToCard(overviewBluetooth)
@@ -289,16 +255,7 @@ PanelWindow {
                     ControlCard {
                         title: "Sound"
                         subtitle: Pipewire.defaultAudioSink ? Pipewire.defaultAudioSink?.description : "None"
-                        iconSource: {
-                            const vol = Pipewire.defaultAudioSink?.audio.volume * 100;
-                            if (Pipewire.defaultAudioSink?.audio.muted)
-                                return "󰝟";
-                            if (vol >= 65)
-                                return "󰕾";
-                            if (vol >= 25)
-                                return "󰖀";
-                            return "󰕿";
-                        }
+                        iconSource: S.AudioService.currentAudioIcon
                         Layout.fillWidth: true
                         connectedOverview: overviewSound
                         onClicked: swapToCard(overviewSound)
@@ -307,7 +264,7 @@ PanelWindow {
                     ControlCard {
                         title: "Tailscale"
                         subtitle: S.Tailscale.connected ? S.Tailscale.magicDNSSuffix : "Disconnected"
-                        iconSource: S.Tailscale.connected ? "󰒄" : "󰅛"
+                        iconSource: S.Tailscale.currentTailscaleIcon
                         Layout.fillWidth: true
                         connectedOverview: overviewTailscale
                         onClicked: swapToCard(overviewTailscale)

@@ -3,9 +3,10 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import qs.commonwidgets
+import qs.modules.controlcenter
 
 RowLayout {
-    Layout.alignment:  Qt.AlignRight
+    Layout.alignment: Qt.AlignRight
     spacing: 10
 
     Process {
@@ -17,7 +18,7 @@ RowLayout {
         icon: ""
         description: "Lock"
         function onClick() {
-            lock.running = true
+            lock.running = true;
         }
     }
 
@@ -30,7 +31,7 @@ RowLayout {
         icon: "󰤄"
         description: "Sleep"
         function onClick() {
-            sleep.running = true
+            sleep.running = true;
         }
     }
 
@@ -39,12 +40,11 @@ RowLayout {
         command: ["systemctl", "reboot"]
     }
 
-
     SystemActionIcon {
         icon: ""
         description: "Reboot"
         function onClick() {
-            reboot.running = true
+            reboot.running = true;
         }
     }
 
@@ -57,7 +57,7 @@ RowLayout {
         icon: "⏻"
         description: "Shutdown"
         function onClick() {
-            poweroff.running = true
+            poweroff.running = true;
         }
     }
 
@@ -70,8 +70,7 @@ RowLayout {
         icon: "󰗽"
         description: "Logout"
         function onClick() {
-            logout.running = true
+            logout.running = true;
         }
     }
-
 }

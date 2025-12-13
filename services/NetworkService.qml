@@ -31,6 +31,34 @@ Singleton {
     property bool tailscaleConnected: false
     property string tailscaleConnectedIP: ""
 
+    readonly property string currentNetworkIcon: {
+        if (wifiDevice && !ethernetConnected) {
+            return currentWifiIcon;
+        } else if (ethernetDevice && !wifiConnected) {
+            return currentEthernetIcon;
+        }
+        return "󰛵";
+    }
+    readonly property string currentEthernetIcon: {
+        if (ethernetConnected) {
+            return "󰌗";
+        }
+        return "󰌙";
+    }
+
+    readonly property string currentWifiIcon: {
+        const s = strength;
+        if (!wifiConnected)
+            return "󰤭";
+        if (s >= 75)
+            return "󰤨";
+        if (s >= 50)
+            return "󰤢";
+        if (s >= 25)
+            return "󰤟";
+        return "󰤟";
+    }
+
     Timer {
         id: refreshTimer
         interval: 5000
@@ -58,8 +86,6 @@ Singleton {
         if (wifi) {
             wifiConnectedIP = wifi[1].ipv4;
         }
-        tailscaleConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn" && c.name.indexOf("tailscale") >= 0);
-
         ethernetConnected = Object.values(networkConnections).some(c => c.active && c.type === "ethernet");
         let eth = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "ethernet");
         if (eth) {

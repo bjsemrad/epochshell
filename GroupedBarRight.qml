@@ -10,6 +10,7 @@ import qs.modules.systemtray
 import qs.modules.tailscale
 import qs.modules.wifi
 import qs.modules.overview
+import qs.modules.controlcenter
 import qs.popups
 
 RowLayout {

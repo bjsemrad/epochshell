@@ -8,9 +8,7 @@ import qs.theme as T
 Rectangle {
     id: workspaceFrame
     radius: 20
-    border.width: 1
-    border.color: T.Config.showIndividualIcons ? "transparent" : T.Config.surfaceContainer
-    color: T.Config.showIndividualIcons ? "transparent" : T.Config.surfaceContainer
+    color: "transparent"
     Layout.alignment: Qt.AlignVCenter
 
     property int padding: 10
@@ -55,7 +53,6 @@ Rectangle {
         }
     }
 }
-
 
 // import QtQuick
 // import QtQuick.Layouts

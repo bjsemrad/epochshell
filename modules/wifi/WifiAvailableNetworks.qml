@@ -61,7 +61,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: networkSection.expanded ? Qt.ArrowCursor : Qt.PointingHandCursor
+                cursorShape: networksSection.expanded ? Qt.ArrowCursor : Qt.PointingHandCursor
 
                 onClicked: function () {
                     if (!networksSection.expanded) {

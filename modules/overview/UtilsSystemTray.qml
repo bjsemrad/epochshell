@@ -8,6 +8,7 @@ import qs.commonwidgets
 import qs.modules
 import qs.theme as T
 import qs.services as S
+import qs.modules.controlcenter
 
 Rectangle {
     id: trayContainer

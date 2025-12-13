@@ -13,28 +13,27 @@ Rectangle {
     required property bool hoverEnabled
     property int padding: 10
 
-    border.color: T.Config.surfaceContainer
-    color: T.Config.surfaceContainer
-    border.width: 1
+    color: popup.open ? T.Config.activeSelection : mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
     radius: 20
     Layout.alignment: Qt.AlignVCenter
     implicitHeight: inner.implicitHeight + padding
     implicitWidth: inner.implicitWidth + padding * 2
 
     MouseArea {
+        id: mouseArea
         anchors.fill: parent
 
         implicitWidth: inner.implicitWidth
         implicitHeight: inner.implicitHeight
 
-        hoverEnabled: frame.hoverEnabled
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
 
         onClicked: {
-            if (!popup.visible) {
-                popup.visible = true; //Don't set this to !popup.visible, on high-refresh get odd flickering
+            if (!popup.open) {
+                popup.showPanel();
             } else {
-                popup.visible = false;
+                popup.hidePanel();
             }
         }
 
@@ -45,7 +44,6 @@ Rectangle {
                 } else {
                     popup.hidePanel();
                 }
-                // popup.visible = mouse/Area.containsMouse;
             }
         }
 
@@ -56,9 +54,6 @@ Rectangle {
                 } else {
                     popup.hidePanel();
                 }
-                // popup.visible = mouse/Area.containsMouse;
-
-                // popup.visible = !mouseArea.containMouse;
             }
         }
     }

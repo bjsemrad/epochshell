@@ -5,5 +5,5 @@ BarGroupIconPopup {
     id: root
     mouseEnabled: true
     hoverEnabled: false
-    iconSet:  ["󰤨", "󰒄", "󰂯", "󰕾"]
+    iconSet: [S.Network.currentNetworkIcon, S.Bluetooth.currentBluetoothIcon, S.AudioService.currentAudioIcon, "⏻"]
 }
