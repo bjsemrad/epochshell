@@ -18,7 +18,11 @@ Singleton {
     signal windowListChanged
     signal displayScalesChanged
 
-    Component.onCompleted: initialize()
+    Component.onCompleted: {
+        if (CompositorService.isNiri) {
+            initialize();
+        }
+    }
 
     function initialize() {
         niriEventStream.connected = true;

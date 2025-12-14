@@ -48,8 +48,12 @@ Scope {
                 children: [
                     BarFill {},
                     ApplicationLauncher {},
-                    NiriWorkspaces {},
-                    Workspaces {}
+                    NiriWorkspaces {
+                        visible: S.CompositorService.isNiri
+                    },
+                    HyprlandWorkspaces {
+                        visible: S.CompositorService.isHyprland
+                    }
                 ]
             }
 
