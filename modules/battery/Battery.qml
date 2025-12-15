@@ -9,6 +9,6 @@ BarIconPopup {
 
     mouseEnabled: true
     hoverEnabled: true
-    visible: S.BatteryService.hasBattery()
+    visible: S.BatteryService.hasBattery
     iconText: S.BatteryService.batteryIcon()
 }

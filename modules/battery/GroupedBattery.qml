@@ -5,5 +5,6 @@ BarGroupIconPopup {
     id: root
     mouseEnabled: true
     hoverEnabled: true
-    iconSet:  [S.BatteryService.batteryIcon()]
+    visible: S.BatteryService.hasBattery
+    iconSet: [S.BatteryService.batteryIcon()]
 }
