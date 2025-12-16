@@ -64,10 +64,10 @@ Rectangle {
                         arr.push(m[i]);
 
                     arr.sort((a, b) => {
-                        if (a.astIpcObject?.at[0] !== b.lastIpcObject?.at[0]) {
-                            return a.lastIpcObject.at[0] - b.lastIpcObject.at[0];
+                        if (a.lastIpcObject?.at?.[0] !== b.lastIpcObject?.at?.[0]) {
+                            return a.lastIpcObject?.at?.[0] - b.lastIpcObject?.at?.[0];
                         }
-                        return a.lastIpcObject.at[1] - b.lastIpcObject.at[1];
+                        return a.lastIpcObject?.at?.[1] - b.lastIpcObject?.at?.[1];
                     });
 
                     return arr;
@@ -75,14 +75,14 @@ Rectangle {
                 color: active ? T.Config.surfaceContainer : mwrap.containsMouse ? T.Config.activeSelection : "transparent"
                 Layout.preferredWidth: innerRow.implicitWidth + padding * 3
                 Layout.preferredHeight: innerRow.implicitHeight + padding / 2
-                visible: true//modelData.isActive || modelData.isOccupied
+                visible: true
                 radius: 10
 
                 Connections {
                     target: Hyprland
                     function onActiveToplevelChanged() {
                         Hyprland.refreshToplevels();
-                        Qt.callLater(() => Qt.callLater(() => { /* read */ }));
+                        Qt.callLater(() => Qt.callLater(() => { /* read extra ticks */ }));
                         Hyprland.refreshWorkspaces();
                         Qt.callLater(() => Qt.callLater(() => { /* read */ }));
                     }
@@ -126,11 +126,6 @@ Rectangle {
                             delegate: RowLayout {
                                 required property var modelData
                                 spacing: 5
-                                Component.onCompleted: {
-                                    // console.log("A: " + modelData.wayland.appId);
-                                    console.log("B: " + modelData.lastIpcObject.class);
-                                    console.log("B: " + modelData.lastIpcObject.initialClass);
-                                }
                                 IconImage {
                                     width: 20
                                     height: 20
