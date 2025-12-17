@@ -105,7 +105,7 @@ Scope {
                     Text {
                         text: ""
                         font.pixelSize: 30
-                        anchors.verticalCenter: parent.verticalCenter
+                        Layout.alignment: Qt.AlignVCenter
                         color: T.Config.surfaceText
                     }
 
