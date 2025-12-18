@@ -24,117 +24,30 @@ Rectangle {
         Repeater {
             model: Hyprland.workspaces.values
 
-            // delegate: WrapperMouseArea {
-            //     required property var modelData
-            //     readonly property int wsId: modelData.id
-            //
-            //     implicitWidth: ws.implicitWidth
-            //     implicitHeight: ws.implicitHeight
-            //
-            //     cursorShape: Qt.PointingHandCursor
-            //     readonly property bool active: (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === wsId)
-            //
-            //     onPressed: Hyprland.dispatch(`workspace ${wsId}`)
-            //
-            //     Rectangle {
-            //         anchors.fill: parent
-            //         color: "transparent"
-            //
-            //         Text {
-            //             id: ws
-            //             anchors.centerIn: parent
-            //             text: wsId
-            //             font.pixelSize: 16
-            //             font.weight: active ? Font.Bold : Font.Normal
-            //             font.family: T.Config.fontFamily
-            //             color: active ? T.Config.active : T.Config.inactive
-            //         }
-            //     }
-            // }
-
-            delegate: Rectangle {
-                id: workspaceWrapper
+            delegate: WrapperMouseArea {
                 required property var modelData
                 readonly property int wsId: modelData.id
+
+                implicitWidth: ws.implicitWidth
+                implicitHeight: ws.implicitHeight
+
+                cursorShape: Qt.PointingHandCursor
                 readonly property bool active: (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === wsId)
-                property var sortedWindows: {
-                    const arr = [];
-                    const m = modelData.toplevels.values;
-                    for (let i = 0; i < m.length; i++)
-                        arr.push(m[i]);
 
-                    arr.sort((a, b) => {
-                        if (a.lastIpcObject?.at?.[0] !== b.lastIpcObject?.at?.[0]) {
-                            return a.lastIpcObject?.at?.[0] - b.lastIpcObject?.at?.[0];
-                        }
-                        return a.lastIpcObject?.at?.[1] - b.lastIpcObject?.at?.[1];
-                    });
+                onPressed: Hyprland.dispatch(`workspace ${wsId}`)
 
-                    return arr;
-                }
-                color: active ? T.Config.surfaceContainer : mwrap.containsMouse ? T.Config.activeSelection : "transparent"
-                Layout.preferredWidth: innerRow.implicitWidth + padding * 3
-                Layout.preferredHeight: innerRow.implicitHeight + padding / 2
-                visible: true
-                radius: 10
+                Rectangle {
+                    anchors.fill: parent
+                    color: "transparent"
 
-                Connections {
-                    target: Hyprland
-                    function onActiveToplevelChanged() {
-                        Hyprland.refreshToplevels();
-                        Qt.callLater(() => Qt.callLater(() => { /* read extra ticks */ }));
-                        Hyprland.refreshWorkspaces();
-                        Qt.callLater(() => Qt.callLater(() => { /* read */ }));
-                    }
-                }
-                // border.width: 1
-                // border.color: active ? T.Config.accentLightShade : "transparent"
-
-                WrapperMouseArea {
-                    id: mwrap
-                    anchors.centerIn: parent
-                    implicitWidth: visible ? innerRow.implicitWidth : 0
-                    implicitHeight: visible ? innerRow.implicitHeight : 0
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-
-                    onPressed: Hyprland.dispatch(`workspace ${wsId}`)
-
-                    RowLayout {
-                        id: innerRow
-                        anchors.fill: parent
-                        spacing: 5
-
-                        Text {
-                            id: ws
-                            text: wsId
-                            font.pixelSize: 16
-                            font.weight: active ? Font.Bold : Font.Normal
-                            font.family: T.Config.fontFamily
-                            color: active ? T.Config.active : T.Config.inactive
-                        }
-                        Text {
-                            text: "|"
-                            font.pixelSize: 16
-                            font.weight: Font.Normal
-                            font.family: T.Config.fontFamily
-                            color: T.Config.inactive
-                            visible: modelData.toplevels.values.length > 0
-                        }
-                        Repeater {
-                            model: workspaceWrapper.sortedWindows
-                            delegate: RowLayout {
-                                required property var modelData
-                                spacing: 5
-                                IconImage {
-                                    width: 20
-                                    height: 20
-
-                                    source: Quickshell.iconPath(DesktopEntries.byId(modelData.lastIpcObject?.class || modelData.lastIpcObject?.initialClass)?.icon ?? "application-x-executable", "application-x-executable")
-                                    opacity: modelData.wayland?.activated ? 1.0 : 0.35
-                                }
-                            }
-                        }
+                    Text {
+                        id: ws
+                        anchors.centerIn: parent
+                        text: wsId
+                        font.pixelSize: 16
+                        font.weight: active ? Font.Bold : Font.Normal
+                        font.family: T.Config.fontFamily
+                        color: active ? T.Config.active : T.Config.inactive
                     }
                 }
             }

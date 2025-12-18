@@ -93,7 +93,7 @@ Rectangle {
                             model: mwrap.windows
                             delegate: RowLayout {
                                 spacing: 5
-                                property var entry: DesktopEntries.byId(modelData.appId) // || DesktopEntries.heuristicLookup(modelData.appId)
+                                property var entry: DesktopEntries.heuristicLookup(modelData.appId)
                                 IconImage {
                                     width: 20
                                     height: 20

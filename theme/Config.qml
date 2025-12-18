@@ -61,4 +61,5 @@ Singleton {
     property bool popupControlCenter: true
 
     property bool hideInactiveWorkspaces: true
+    property bool workspaceIcons: true
 }

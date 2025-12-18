@@ -69,8 +69,11 @@ Scope {
                     NiriWorkspaces {
                         visible: S.CompositorService.isNiri
                     },
+                    HyprlandWorkspacesIcons {
+                        visible: S.CompositorService.isHyprland && T.Config.workspaceIcons
+                    },
                     HyprlandWorkspaces {
-                        visible: S.CompositorService.isHyprland
+                        visible: S.CompositorService.isHyprland && !T.Config.workspaceIcons
                     },
                     BarFill {}
                 ]
