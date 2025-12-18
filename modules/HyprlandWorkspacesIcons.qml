@@ -96,10 +96,6 @@ Rectangle {
                                 required property var modelData
                                 spacing: 5
 
-                                function iconMatch(field, key) {
-                                    return field.toLowerCase() !== "" && key.toLowerCase().indexOf(field.toLowerCase()) !== -1;
-                                }
-
                                 IconImage {
                                     width: 20
                                     height: 20
@@ -109,45 +105,13 @@ Rectangle {
                                         let entry = null;
                                         for (let i = 0; i < keys.length && !entry; i++) {
                                             const k = String(keys[i]);
-                                            entry = DesktopEntries.byId(k) || DesktopEntries.heuristicLookup(k);
-
-                                            if (!entry) {
-                                                if (k.startsWith("brave-")) {
-                                                    const k2 = k.replace(/.com__-Default$/, "").replace(/.com-Default$/, "").replace(/brave-/, "");
-                                                    entry = DesktopEntries.heuristicLookup(k2);
-                                                }
-                                                if (k.startsWith("chrome-")) {
-                                                    const k2 = k.replace(/.com__-Default$/, "").replace(/.com-Default$/, "").replace(/chrome-/, "");
-                                                    entry = DesktopEntries.heuristicLookup(k2);
-                                                }
-                                            }
-
-                                            //Lookup by basic information
-                                            if (!entry) {
-                                                for (let i = 0; i < DesktopEntries.applications.values.length; i++) {
-                                                    const e = DesktopEntries.applications.values[i];
-                                                    if (iconMatch(e.name, k) || iconMatch(e.startupClass, k) || iconMatch(e.id, k)) {
-                                                        entry = e;
-                                                        break;
-                                                    }
-                                                }
+                                            entry = S.CompositorService.getDesktopEntry(k);
+                                            if (entry) {
+                                                break;
                                             }
                                         }
 
-                                        if (entry?.icon) {
-                                            const icon = String(entry.icon);
-
-                                            if (icon.startsWith("/") || icon.startsWith("file:") || icon.includes("/")) {
-                                                return icon.startsWith("file:") ? icon : ("file://" + icon);
-                                            }
-
-                                            const p = Quickshell.iconPath(icon, "");
-                                            // console.log(p);
-                                            if (p && p.length > 0)
-                                                return p;
-                                        }
-
-                                        return Quickshell.iconPath("application-x-executable", "application-x-executable");
+                                        return S.CompositorService.getDesktopIcon(entry);
                                     }
                                     opacity: modelData.wayland?.activated ? 1.0 : 0.35
                                 }

@@ -93,12 +93,12 @@ Rectangle {
                             model: mwrap.windows
                             delegate: RowLayout {
                                 spacing: 5
-                                property var entry: DesktopEntries.heuristicLookup(modelData.appId)
+                                property var entry: S.CompositorService.getDesktopEntry(modelData.appId)
                                 IconImage {
                                     width: 20
                                     height: 20
 
-                                    source: Quickshell.iconPath(entry?.icon ?? "application-x-executable", "application-x-executable")
+                                    source: S.CompositorService.getDesktopIcon(entry)
                                     opacity: modelData.isFocused ? 1.0 : 0.35
                                 }
                             }

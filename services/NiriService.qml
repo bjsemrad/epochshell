@@ -207,6 +207,7 @@ Singleton {
     }
 
     function getWindowData(win) {
+        console.log(JSON.stringify(win));
         return {
             "id": win.id,
             "title": win.title || "",
