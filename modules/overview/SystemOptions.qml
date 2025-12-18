@@ -61,9 +61,26 @@ RowLayout {
         }
     }
 
+    property string username
+    Process {
+        id: whoami
+        command: ["whoami"]
+        running: true
+
+        stdout: SplitParser {
+            onRead: data => username = data.trim()
+        }
+    }
+
+    Component.onCompleted: {
+        if (!username) {
+            whoami.running = true;
+        }
+    }
+
     Process {
         id: logout
-        command: ["sh", "~/.config/wmscripts/logout.sh"]
+        command: ["sh", "/home/" + username + "/.config/wmscripts/logout.sh"]
     }
 
     SystemActionIcon {
