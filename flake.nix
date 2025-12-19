@@ -87,7 +87,7 @@
 
         config = lib.mkIf cfg.enable {
           # Install quickshell runtime and your flake package (optional but nice to have)
-          home.packages = [ qsPkg epochPkg epochRun ];
+          home.packages = [ qsPkg epochRun ];
 
           # Install repo config into ~/.config/${cfg.configDir}
           xdg.configFile."${cfg.configDir}".source = "${self}/config";
