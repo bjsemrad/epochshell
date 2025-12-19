@@ -62,7 +62,7 @@
         epochRun = pkgs.writeShellScriptBin "epochshell" ''
           set -euo pipefail
 
-          CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+          CONFIG_HOME="''${XDG_CONFIG_HOME:-''${HOME}/.config}"
           CONFIG_DIR="$CONFIG_HOME/${cfg.configDir}"
 
           exec ${qsPkg}/bin/quickshell -c "$CONFIG_DIR" "$@"
