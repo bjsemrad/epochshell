@@ -51,56 +51,65 @@
       # Home Manager module
       # -----------------------
       homeManagerModules.default = { config, lib, pkgs, ... }:
-        let
-          cfg = config.programs.epochshell;
-          epochPkg = self.packages.${pkgs.system}.epochshell;
-          qsPkg = self.packages.${pkgs.system}.quickshell;
-        in
-        {
-          options.programs.epochshell = {
-            enable = lib.mkEnableOption "EpochShell (runs Quickshell)";
+      let
+        cfg = config.programs.epochshell;
 
-            # Where your config is installed under ~/.config/
-            configDir = lib.mkOption {
-              type = lib.types.str;
-              default = "epochshell";
-              description = "Directory under XDG config home containing the EpochShell config.";
-            };
+        # From your flake packages
+        epochPkg = self.packages.${pkgs.system}.epochshell;
+        qsPkg    = self.packages.${pkgs.system}.quickshell;
 
-            autostart = lib.mkOption {
-              type = lib.types.bool;
-              default = true;
-              description = "Start EpochShell (quickshell) via systemd --user.";
-            };
+        # HM-generated wrapper that ALWAYS sets -c <user config dir>
+        epochRun = pkgs.writeShellScriptBin "epochshell" ''
+          set -euo pipefail
+
+          CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+          CONFIG_DIR="$CONFIG_HOME/${cfg.configDir}"
+
+          exec ${qsPkg}/bin/quickshell -c "$CONFIG_DIR" "$@"
+        '';
+      in
+      {
+        options.programs.epochshell = {
+          enable = lib.mkEnableOption "EpochShell (runs Quickshell)";
+
+          configDir = lib.mkOption {
+            type = lib.types.str;
+            default = "epochshell";
+            description = "Directory under XDG config home containing the EpochShell config.";
           };
 
-          config = lib.mkIf cfg.enable {
-            # Install both:
-            # - quickshell runtime (useful for debugging / direct calls)
-            # - epochshell wrapper (the command you want to run)
-            home.packages = [ qsPkg epochPkg ];
-
-            # Put your repo's ./config into ~/.config/epochshell
-            xdg.configFile."${cfg.configDir}".source = ./config;
-
-            # Autostart service runs `epochshell` (which runs `quickshell`)
-            systemd.user.services.epochshell = lib.mkIf cfg.autostart {
-              Unit = {
-                Description = "EpochShell (Quickshell)";
-                After = [ "graphical-session.target" ];
-              };
-              Service = {
-                ExecStart = "${epochPkg}/bin/epochshell";
-                Restart = "on-failure";
-              };
-              Install = {
-                WantedBy = [ "graphical-session.target" ];
-              };
-            };
+          autostart = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            description = "Start EpochShell (quickshell) via systemd --user.";
           };
         };
 
-      # Optional: a simple dev shell
+        config = lib.mkIf cfg.enable {
+          # Install quickshell runtime and your flake package (optional but nice to have)
+          home.packages = [ qsPkg epochPkg epochRun ];
+
+          # Install repo config into ~/.config/${cfg.configDir}
+          xdg.configFile."${cfg.configDir}".source = ./config;
+
+          # Autostart uses the HM wrapper so -c is guaranteed
+          systemd.user.services.epochshell = lib.mkIf cfg.autostart {
+            Unit = {
+              Description = "EpochShell (Quickshell)";
+              After = [ "graphical-session.target" ];
+            };
+            Service = {
+              ExecStart = "${epochRun}/bin/epochshell";
+              Restart = "on-failure";
+            };
+            Install = {
+              WantedBy = [ "graphical-session.target" ];
+            };
+          };
+        };
+      };
+
+        # Optional: a simple dev shell
       devShells = forAllSystems ({ pkgs, system }: {
         default = pkgs.mkShell {
           packages = [
