@@ -100,7 +100,7 @@
             };
             Service = {
               ExecStart = "${epochRun}/bin/epochshell";
-              Restart = "on-failure";
+              Restart = "always"; # "on-failure";
             };
             Install = {
               WantedBy = [ "graphical-session.target" ];
