@@ -3,12 +3,14 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import qs.theme as T
+import qs.services as S
 
 Rectangle {
     id: root
     color: "transparent"
     implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
     implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
+    visible: S.CompositorService.isHyprland
     Row {
         id: inner
         anchors.centerIn: parent

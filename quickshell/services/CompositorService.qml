@@ -40,7 +40,6 @@ Singleton {
         if (!entry) {
             if (app.startsWith("brave-")) {
                 const k2 = app.replace(/.com__-Default$/, "").replace(/.com-Default$/, "").replace(/brave-/, "").replace(/\./, "");
-                console.log(k2);
                 entry = DesktopEntries.heuristicLookup(k2);
             }
             if (app.startsWith("chrome-")) {

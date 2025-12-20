@@ -14,6 +14,8 @@ import qs.modules.ethernet
 import qs.modules.wifi
 import qs.modules.tailscale
 import qs.modules.systemtray
+import qs.modules.hyprland
+import qs.modules.niri
 import qs.services as S
 
 Scope {
