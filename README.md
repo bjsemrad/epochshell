@@ -7,4 +7,3 @@ TODO:
 - Launcher
 - Replace Hyprlock (maybe)
 - Support multiple themes
-- Music Player support?
