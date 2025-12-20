@@ -17,7 +17,7 @@ Rectangle {
         height: parent.height
         spacing: 5
         Text {
-            text: S.CompositorService.isHyprland && Hyprland.focusedWorkspace?.id === Hyprland.activeToplevel?.workspace?.id ? Hyprland.activeToplevel?.title : ""
+            text: S.CompositorService.isHyprland && Hyprland.focusedWorkspace?.id === Hyprland.activeToplevel?.workspace?.id ? (Hyprland.activeToplevel?.title || "") : ""
             font.pixelSize: T.Config.fontSizeNormal
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
