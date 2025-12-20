@@ -100,7 +100,7 @@ Item {
                     width: 44
                     height: 44
 
-                    property bool isPlaying: root.player.isPlaying
+                    property bool isPlaying: root.player ? root.player?.isPlaying : false
                     signal clicked
 
                     Rectangle {
