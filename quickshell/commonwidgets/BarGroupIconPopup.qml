@@ -11,10 +11,10 @@ Rectangle {
     required property var iconSet
     required property bool mouseEnabled
     required property bool hoverEnabled
-    property int padding: 10
+    property int padding: T.Config.popupPadding
 
     color: popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
-    radius: 10
+    radius: T.Config.popupRadius
     Layout.alignment: Qt.AlignVCenter
     implicitHeight: inner.implicitHeight + padding
     implicitWidth: inner.implicitWidth + padding * 2
@@ -70,7 +70,7 @@ Rectangle {
                 id: ws
                 Layout.alignment: Qt.AlignVCenter
                 text: modelData
-                font.pixelSize: 16
+                font.pixelSize: T.Config.barIconSize
                 font.weight: Font.Normal
                 font.family: T.Config.fontFamily
                 color: T.Config.surfaceText

@@ -8,8 +8,8 @@ import qs.services as S
 Rectangle {
     id: root
     color: "transparent"
-    implicitWidth: inner.implicitWidth + 20
-    implicitHeight: inner.implicitHeight + 5
+    implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
+    implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
     required property string iconText
     required property bool mouseEnabled
 
@@ -39,10 +39,10 @@ Rectangle {
         id: inner
         anchors.centerIn: parent
         height: parent.height
-        spacing: 5
+        spacing: T.Config.heightPaddingSmall
         Text {
             text: root.iconText
-            font.pixelSize: 18
+            font.pixelSize: T.Config.fontSizeLarge
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
         }

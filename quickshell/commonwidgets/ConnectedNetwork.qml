@@ -20,17 +20,17 @@ Item {
     RowLayout {
         id: root
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 20
+        spacing: T.Config.layoutSpacingLarge
         Process {
             id: wlcopy
         }
 
         Rectangle {
             id: iconTile
-            width: 40
-            height: 40
+            width: T.Config.connectedIconSize
+            height: T.Config.connectedIconSize
             Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-            radius: 20
+            radius: T.Config.roundRadius
             color: T.Config.surface
             border.color: connectedStatus ? T.Config.accent : T.Config.surfaceContainerHighest
             border.width: 2
@@ -38,7 +38,7 @@ Item {
 
             Text {
                 text: networkIconText
-                font.pixelSize: 18
+                font.pixelSize: T.Config.fontSizeLarge
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.centerIn: parent
                 color: T.Config.surfaceText

@@ -11,8 +11,8 @@ Rectangle {
     property string subtitle: ""
     property bool accent: false
 
-    topLeftRadius: 10
-    topRightRadius: 10
+    topLeftRadius: T.Config.cardRadius
+    topRightRadius: T.Config.cardRadius
     color: connectedOverview.expanded ? T.Config.accentLightShade : mouseAreaMain.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
 
     Rectangle {
@@ -24,7 +24,7 @@ Rectangle {
         color: overviewSelectedColor()
     }
 
-    implicitHeight: 50
+    implicitHeight: T.Config.cardHeight
 
     Layout.fillWidth: true
     signal clicked
@@ -44,14 +44,14 @@ Rectangle {
     RowLayout {
         anchors.fill: parent
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 14
-        anchors.rightMargin: 14
-        spacing: 10
+        anchors.leftMargin: T.Config.cardMargin
+        anchors.rightMargin: T.Config.cardMargin
+        spacing: T.Config.cardSpacing
 
         Text {
             id: icon
             Layout.alignment: Qt.AlignVCenter
-            font.pixelSize: 24
+            font.pixelSize: T.Config.fontSizeXLarge
             color: overviewSelectedColor()
         }
 
@@ -62,7 +62,7 @@ Rectangle {
             Text {
                 text: root.title
                 color: connectedOverview.expanded ? T.Config.accent : T.Config.surfaceText
-                font.pixelSize: 14
+                font.pixelSize: T.Config.fontSizeNormal
                 font.bold: true
                 elide: Text.ElideRight
                 Layout.fillWidth: true
@@ -71,7 +71,7 @@ Rectangle {
             Text {
                 text: root.subtitle
                 color: connectedOverview.expanded ? T.Config.accent : T.Config.surfaceText
-                font.pixelSize: 11
+                font.pixelSize: T.Config.fontSizeSubtext
                 elide: Text.ElideRight
                 clip: true
                 Layout.fillWidth: true

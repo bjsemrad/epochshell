@@ -6,7 +6,7 @@ import qs.theme as T
 
 Rectangle {
     Layout.fillWidth: true
-    Layout.topMargin: 5
+    Layout.topMargin: T.Config.layoutMarginSmall
     height: 1
     color: T.Config.surfaceVariant
 }

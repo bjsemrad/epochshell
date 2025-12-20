@@ -4,8 +4,8 @@ import qs.theme as T
 
 Item {
     id: root
-    width: 42
-    height: 24
+    width: T.Config.switchHeight
+    height: T.Config.switchWidth
     property bool checked: false
     signal toggled
 
@@ -24,12 +24,11 @@ Item {
         }
     }
 
-    // Knob
     Rectangle {
         id: knob
-        width: 20
-        height: 20
-        radius: 10
+        width: T.Config.switchKnobSize
+        height: T.Config.switchKnobSize
+        radius: T.Config.switchKnobRadius
         y: 2
         x: checked ? (root.width - width - 2) : 2
         color: checked ? T.Config.surface : T.Config.surfaceContainerHighest
@@ -38,7 +37,7 @@ Item {
             text: ""
             anchors.centerIn: parent
             color: checked ? T.Config.accent : T.Config.surfaceContainerHighest
-            font.pixelSize: 14
+            font.pixelSize: T.Config.fontSizeNormal
             font.bold: true
         }
 

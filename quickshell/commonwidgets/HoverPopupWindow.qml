@@ -12,9 +12,12 @@ PopupWindow {
     color: "transparent"
 
     property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
+
     default property alias content: contentLayout.data
-    readonly property int padding: 10
-    property real popupWidth: 100
+
+    readonly property int padding: T.Config.popupPadding
+    property real popupWidth: 1
+
     implicitWidth: popupWidth
     implicitHeight: contentLayout.implicitHeight + padding * 2
 
@@ -59,7 +62,7 @@ PopupWindow {
         ClippingRectangle {
             id: contentSection
             anchors.fill: parent
-            radius: 10
+            radius: T.Config.popupRadius
             color: T.Config.background
             border.width: 1
             border.color: T.Config.outline
@@ -87,7 +90,7 @@ PopupWindow {
                 anchors.rightMargin: padding * 2
                 anchors.bottomMargin: padding * 2
                 anchors.topMargin: padding
-                spacing: 8
+                spacing: T.Config.popupLayoutSpacing
             }
         }
     }

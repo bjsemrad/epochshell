@@ -11,8 +11,8 @@ import qs.commonwidgets
 
 Item {
     Layout.fillWidth: true
-    Layout.preferredHeight: 30
-    Layout.topMargin: 5
+    Layout.preferredHeight: T.Config.settingsHeaderHeight
+    Layout.topMargin: T.Config.layoutMarginSmall
 
     required property string headerText
     required property bool checkedValue
@@ -29,7 +29,7 @@ Item {
     Rectangle {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        height: 30
+        height: T.Config.settingsHeaderHeight
         color: "transparent"
 
         Text {
@@ -37,14 +37,14 @@ Item {
             text: headerText
             color: T.Config.surfaceText
             font.bold: true
-            font.pointSize: 13
+            font.pointSize: T.Config.fontSizeNormal
         }
     }
 
     RowLayout {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 10
+        spacing: T.Config.settingsHeaderSpacing
         RoundedSwitch {
             id: rSwitch
             visible: enableToggle

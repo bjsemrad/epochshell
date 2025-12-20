@@ -33,7 +33,7 @@ Rectangle {
             Text {
                 id: actionIcon
                 text: icon
-                font.pixelSize: 18
+                font.pixelSize: T.Config.fontSizeLarge
                 Layout.alignment: Qt.AlignVCenter
                 color: T.Config.surfaceText
             }
@@ -41,7 +41,7 @@ Rectangle {
             Text {
                 id: actionText
                 text: description
-                font.pixelSize: 18
+                font.pixelSize: T.Config.fontSizeLarge
                 Layout.alignment: Qt.AlignVCenter
                 color: T.Config.surfaceText
             }

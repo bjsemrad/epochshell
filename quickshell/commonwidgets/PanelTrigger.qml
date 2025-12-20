@@ -10,9 +10,9 @@ Rectangle {
     color: popup && popup.open ? T.Config.surfaceContainer : "transparent"
     border.width: 1
     border.color: popup && popup.open ? T.Config.outline : "transparent"
-    radius: 20
-    implicitWidth: inner.implicitWidth + 18
-    implicitHeight: inner.implicitHeight + 5
+    radius: T.Config.roundRadius
+    implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
+    implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
 
     property var popup
     required property string iconText
@@ -28,7 +28,7 @@ Rectangle {
         Text {
             id: iconText
             text: root.iconText
-            font.pixelSize: 18
+            font.pixelSize: T.Config.fontSizeLarge
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
 
@@ -44,7 +44,6 @@ Rectangle {
                     } else {
                         popup.showPanel();
                     }
-                    // popup.visible = !popup.visible; //Don't set this to !popup.visible, on high-refresh get odd flickering
                 }
 
                 onEntered: {

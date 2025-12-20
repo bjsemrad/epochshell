@@ -8,14 +8,13 @@ import qs.theme as T
 
 Rectangle {
     id: panelHeaderIcon
-    implicitWidth: 40
-    implicitHeight: 40
-    radius: 20
+    implicitWidth: T.Config.headerSize
+    implicitHeight: T.Config.headerSize
+    radius: T.Config.roundRadius
     border.width: 1
     border.color: headerMouseArea.containsMouse ? T.Config.surfaceText : "transparent"
     color: headerMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
     Layout.alignment: Qt.AlignVCenter
-    // anchors.verticalCenter: parent.verticalCenter
 
     required property string iconText
     function onClick() {
@@ -24,7 +23,7 @@ Rectangle {
 
     Text {
         text: iconText
-        font.pixelSize: 18
+        font.pixelSize: T.Config.fontSizeLarge
         anchors.verticalCenter: parent.verticalCenter
         anchors.centerIn: parent
         color: T.Config.surfaceText

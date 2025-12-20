@@ -29,7 +29,7 @@ RowLayout {
             text: iconText
             color: T.Config.surfaceText
             font.bold: true
-            font.pointSize: 18
+            font.pointSize: T.Config.fontSizeLarge
         }
 
         MouseArea {

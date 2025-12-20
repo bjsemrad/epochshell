@@ -39,6 +39,32 @@ Singleton {
     /* Misc */
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
 
+    property int popupPadding: 10
+    property int popupRadius: 10
+    property int popupLayoutSpacing: 8
+
+    property int barIconSize: 16
+
+    property int widthPaddingLarge: 20
+    property int heightPaddingSmall: 5
+
+    property int layoutMarginSmall: 5
+    property int layoutSpacingLarge: 20
+    property int layoutSpacingSmall: 20
+
+    property int roundRadius: 20
+    property int connectedIconSize: 40
+
+    property int fontSizeNormal: 14
+    property int fontSizeLarge: 18
+    property int fontSizeXLarge: 24
+    property int fontSizeSubtext: 11
+
+    property int cardRadius: 10
+    property int cardHeight: 50
+    property int cardMargin: 14
+    property int cardSpacing: 10
+
     property int networkPopupWidth: 400
     property int tailscalePopupWidth: 600
     property int bluetoothPopupWidth: 400
@@ -51,11 +77,24 @@ Singleton {
 
     property int selectedBorderWidth: 1
     property int panelBottomMargin: 5
+    property int panelBottomMarginMedium: 5
+
+    property int statMargin: 12
 
     property bool showIndividualIcons: false
 
     property int barHeight: 40
     property int cornerRadius: 18
+
+    property int headerSize: 40
+
+    property int switchHeight: 42
+    property int switchWidth: 24
+    property int switchKnobSize: 20
+    property int switchKnobRadius: 10
+
+    property int settingsHeaderHeight: 30
+    property int settingsHeaderSpacing: 10
 
     property bool panelAnimationsEnabled: false
     property bool popupControlCenter: true
