@@ -16,6 +16,10 @@ import qs.theme as T
 
 RowLayout {
     spacing: 10
+    MusicControl {
+        id: musicControl
+        popup: musicPanel
+    }
     GroupedBattery {
         id: groupedBattery
         popup: batteryPanel
@@ -37,6 +41,10 @@ RowLayout {
     ControlCenterPanel {
         id: systemPanel
         trigger: controlCenter
+    }
+    MusicPanel {
+        id: musicPanel
+        trigger: musicControl
     }
     Clock {}
 }

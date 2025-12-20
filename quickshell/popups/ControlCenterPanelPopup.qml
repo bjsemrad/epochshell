@@ -17,7 +17,7 @@ HoverPopupWindow {
     id: popup
     trigger: trigger
     color: "transparent"
-    popupWidth: 600
+    popupWidth: T.Config.controlCenterPopupWidth
 
     visible: true
 
@@ -149,6 +149,8 @@ HoverPopupWindow {
                 O.UtilsSystemTray {
                     panelRef: popup
                 }
+
+                O.MusicPlayer {}
 
                 ColumnLayout {
                     id: tabwrapper

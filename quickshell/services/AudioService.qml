@@ -3,9 +3,20 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
+import Quickshell.Services.Mpris
 
 Singleton {
     id: audioService
+
+    property var player: {
+        for (let i = 0; i < Mpris.players.values.length; i++) {
+            const p = Mpris.players.values[i];
+            if (p && p.canControl) {
+                return p;
+            }
+        }
+        return null;
+    }
 
     Process {
         id: pipewireCmd

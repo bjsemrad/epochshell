@@ -161,6 +161,8 @@ PanelWindow {
                     panelRef: popup
                 }
 
+                O.MusicPlayer {}
+
                 ColumnLayout {
                     id: tabwrapper
                     height: grid.implictHeight + cardContent.implicitHeight

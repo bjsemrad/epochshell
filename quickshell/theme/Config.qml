@@ -74,6 +74,8 @@ Singleton {
     property int systemTrayPopupWidth: 300
     property int systemPopupWidth: 300
     property int batteryPopupWidth: 250
+    property int musicPlayerWidth: 600
+    property int controlCenterPopupWidth: 600
 
     property int tailscalePeersFontSize: 14
 
