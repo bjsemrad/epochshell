@@ -11,6 +11,17 @@ Rectangle {
     implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
     implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
     visible: S.CompositorService.isHyprland
+
+    property int focusedWsId: {
+        const ws = Hyprland.focusedWorkspace;
+        return (ws && ws.id !== undefined) ? ws.id : -1;
+    }
+
+    property int activeWsId: {
+        const tl = Hyprland.activeToplevel;
+        const w = tl ? tl.workspace : null;
+        return (w && w.id !== undefined) ? w.id : -1;
+    }
     Row {
         id: inner
         anchors.centerIn: parent
@@ -20,16 +31,13 @@ Rectangle {
             text: {
                 if (!S.CompositorService.isHyprland)
                     return "";
+                if (focusedWsId < 0 || activeWsId < 0)
+                    return "";
+                if (focusedWsId !== activeWsId)
+                    return "";
 
-                const ws = Hyprland.focusedWorkspace;
                 const tl = Hyprland.activeToplevel;
-
-                if (!ws || ws.id === undefined)
-                    return "";
-                if (!tl || !tl.workspace || tl.workspace.id === undefined)
-                    return "";
-
-                return (ws.id === tl.workspace.id) ? (tl.title || "") : "";
+                return (tl && tl.title) ? tl.title : "";
             }
             font.pixelSize: T.Config.fontSizeNormal
             anchors.verticalCenter: parent.verticalCenter
