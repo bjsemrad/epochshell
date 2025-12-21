@@ -8,7 +8,7 @@ import qs.theme as T
 Rectangle {
     id: root
     Layout.fillWidth: true
-    height: 120
+    height: 100
     radius: T.Config.cornerRadius
     color: T.Config.surfaceContainer
 
@@ -25,7 +25,7 @@ Rectangle {
         anchors.right: parent.right
         columns: 4
         rows: 1
-        columnSpacing: 12
+        columnSpacing: 20
 
         RoundStat {
             label: "CPU"

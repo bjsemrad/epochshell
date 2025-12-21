@@ -157,11 +157,13 @@ PanelWindow {
                 // ── Header card ───────────────────────────
                 O.User {}
 
+                O.MusicPlayer {
+                    visible: S.AudioService.player
+                }
+
                 O.UtilsSystemTray {
                     panelRef: popup
                 }
-
-                O.MusicPlayer {}
 
                 ColumnLayout {
                     id: tabwrapper

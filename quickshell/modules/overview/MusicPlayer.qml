@@ -8,7 +8,7 @@ import qs.services as S
 Item {
     id: root
     Layout.fillWidth: true
-    Layout.preferredHeight: 100
+    Layout.preferredHeight: 75
 
     property var player: S.AudioService.player
 
@@ -19,15 +19,14 @@ Item {
 
         RowLayout {
             anchors.fill: parent
+            anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: 20
             anchors.rightMargin: 20
-            anchors.topMargin: 10
-            anchors.bottomMargin: 10
             spacing: 20
 
             Image {
-                Layout.preferredWidth: 65
-                Layout.preferredHeight: 65
+                Layout.preferredWidth: 55
+                Layout.preferredHeight: 55
                 fillMode: Image.PreserveAspectCrop
                 source: root.player && root.player.canPlay ? root.player.trackArtUrl : ""
                 visible: source !== ""

@@ -5,8 +5,8 @@ import qs.theme as T
 
 Item {
     id: root
-    width: 120
-    height: 120
+    width: 100
+    height: 100
 
     property real value: 0.37
     property string label: "CPU"
@@ -61,7 +61,7 @@ Item {
 
         RowLayout {
             anchors.centerIn: parent
-            spacing: T.Config.layoutSpacingSmall
+            spacing: 2
             Text {
                 text: root.displayIcon
                 color: T.Config.surfaceText
