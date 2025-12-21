@@ -43,11 +43,14 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 updateText = text;
+                console.log(text);
             }
         }
 
         onExited: (code, exitStatus) => {
             let lastExitCode = code;
+            console.log(code);
+            console.log(exitStatus);
             if (lastExitCode === 2) {
                 updatesAvailable = true;
             } else {
