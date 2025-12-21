@@ -42,6 +42,7 @@ Singleton {
 
         stdout: StdioCollector {
             onStreamFinished: {
+                console.log(checkForUpdates.command);
                 updateText = text;
                 console.log(text);
             }
