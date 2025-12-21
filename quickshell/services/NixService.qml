@@ -40,10 +40,11 @@ Singleton {
 
     Process {
         id: checkForUpdates
-        command: ["sh", "-c", configDir + "/services/scripts/updateCheck.sh", "/home/" + username + "/nixconfig"]
+        command: ["sh", "-c", "'" + configDir + "/services/scripts/updateCheck.sh " + "\"/home/" + username + "/nixconfig\"" + "'"]
 
         stdout: StdioCollector {
             onStreamFinished: {
+                console.log(checkForUpdates.command);
                 updateText = text;
             }
         }
