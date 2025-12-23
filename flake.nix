@@ -55,8 +55,8 @@
         cfg = config.programs.epochshell;
 
         # From your flake packages
-        epochPkg = self.packages.${pkgs.system}.epochshell;
-        qsPkg    = self.packages.${pkgs.system}.quickshell;
+        epochPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.epochshell;
+        qsPkg    = self.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
 
         # HM-generated wrapper that ALWAYS sets -c <user config dir>
         epochRun = pkgs.writeShellScriptBin "epochshell" ''
