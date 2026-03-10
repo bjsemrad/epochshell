@@ -51,8 +51,15 @@ Scope {
                 children: [
                     BarFill {},
                     ApplicationLauncher {},
-                    // HyprlandActiveTitle {},
-                    // NiriActiveTitle {},
+                    NiriWorkspaces {
+                        visible: S.CompositorService.isNiri
+                    },
+                    HyprlandWorkspacesIcons {
+                        visible: S.CompositorService.isHyprland && T.Config.workspaceIcons
+                    },
+                    HyprlandWorkspaces {
+                        visible: S.CompositorService.isHyprland && !T.Config.workspaceIcons
+                    },
                     BarFill {}
                 ]
             }
@@ -71,16 +78,16 @@ Scope {
                 implicitWidth: available
                 children: [
                     BarFill {},
-                    NiriWorkspaces {
-                        visible: S.CompositorService.isNiri
-                    },
-                    HyprlandWorkspacesIcons {
-                        visible: S.CompositorService.isHyprland && T.Config.workspaceIcons
-                    },
-                    HyprlandWorkspaces {
-                        visible: S.CompositorService.isHyprland && !T.Config.workspaceIcons
-                    },
-                    BarFill {}
+                    // NiriWorkspaces {
+                    //     visible: S.CompositorService.isNiri
+                    // },
+                    // HyprlandWorkspacesIcons {
+                    //     visible: S.CompositorService.isHyprland && T.Config.workspaceIcons
+                    // },
+                    // HyprlandWorkspaces {
+                    //     visible: S.CompositorService.isHyprland && !T.Config.workspaceIcons
+                    // },
+                    // BarFill {}
                 ]
             }
 
