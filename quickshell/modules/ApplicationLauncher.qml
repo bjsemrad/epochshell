@@ -9,10 +9,10 @@ BarIcon {
 
     Process {
         id: walker
-        command: ["uwsm", "app", "--", "walker"]
+        command: ["walker"]
     }
 
-    function performLeftClickAction(){
-        walker.running = true
+    function performLeftClickAction() {
+        walker.running = true;
     }
 }
