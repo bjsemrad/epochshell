@@ -34,7 +34,8 @@ Rectangle {
                 cursorShape: Qt.PointingHandCursor
                 readonly property bool active: (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === wsId)
 
-                onPressed: Hyprland.dispatch(`workspace ${wsId}`)
+                onPressed: Hyprland.dispatch(`hl.dsp.focus({ workspace = "${wsId}" })`)
+                //onPressed: Hyprland.dispatch(`workspace ${wsId}`)
 
                 Rectangle {
                     anchors.fill: parent

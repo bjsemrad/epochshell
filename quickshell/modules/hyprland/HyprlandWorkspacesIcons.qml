@@ -67,7 +67,7 @@ Rectangle {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
-                    onPressed: Hyprland.dispatch(`workspace ${wsId}`)
+                    onPressed: Hyprland.dispatch(`hl.dsp.focus({ workspace = "${wsId}" })`)
 
                     RowLayout {
                         id: innerRow
