@@ -12,14 +12,14 @@ BarIcon {
         id: clipboard
     }
 
-    function performLeftClickAction(){
-        S.PopupManager.closeAll()
-        clipboard.command = ["uwsm", "app", "--", "walker", "--provider", "clipboard"]
-        clipboard.running = true
+    function performLeftClickAction() {
+        S.PopupManager.closeAll();
+        clipboard.command = ["walker", "--provider", "clipboard"];
+        clipboard.running = true;
     }
 
-    function performRightClickAction(){
-        clipboard.command = ["cliphist", "wipe"]
-        clipboard.running = true
+    function performRightClickAction() {
+        clipboard.command = ["cliphist", "wipe"];
+        clipboard.running = true;
     }
 }

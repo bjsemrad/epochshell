@@ -9,10 +9,10 @@ BarIcon {
 
     Process {
         id: colorpicker
-        command: ["uwsm", "app", "--", "hyprpicker", "-a"]
+        command: ["hyprpicker", "-a"]
     }
 
-    function performLeftClickAction(){
-        colorpicker.running = true
+    function performLeftClickAction() {
+        colorpicker.running = true;
     }
 }
