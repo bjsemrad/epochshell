@@ -42,16 +42,6 @@ HoverPopupWindow {
         }
     }
 
-    HoverHandler {
-        onHoveredChanged: {
-            if (!stopHide) {
-                if (!hovered) {
-                    hidePanel();
-                }
-            }
-        }
-    }
-
     Component.onCompleted: {
         if (!username) {
             whoami.running = true;
@@ -120,6 +110,15 @@ HoverPopupWindow {
 
         Layout.preferredHeight: flick.implicitHeight
         color: T.Config.background
+
+        HoverHandler {
+            onHoveredChanged: {
+                if (!stopHide && !hovered) {
+                    hidePanel();
+                }
+            }
+        }
+
         Flickable {
             id: flick
             anchors.fill: parent
