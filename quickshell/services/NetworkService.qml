@@ -34,7 +34,7 @@ Singleton {
     readonly property string currentNetworkIcon: {
         if (wifiDevice && !ethernetConnected) {
             return currentWifiIcon;
-        } else if (ethernetDevice && !wifiConnected) {
+        } else if (ethernetDevice && ethernetConnected) {
             return currentEthernetIcon;
         }
         return "󰛵";
@@ -85,35 +85,45 @@ Singleton {
         let wifi = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "wifi");
         if (wifi) {
             wifiConnectedIP = wifi[1].ipv4;
+        } else {
+            wifiConnectedIP = "";
         }
         ethernetConnected = Object.values(networkConnections).some(c => c.active && c.type === "ethernet");
         let eth = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "ethernet");
         if (eth) {
             ethernetDeviceName = eth[0];
             ethernetConnectedIP = eth[1].ipv4;
+        } else {
+            ethernetDeviceName = "";
+            ethernetConnectedIP = "";
         }
         tailscaleConnected = Object.values(networkConnections).some(c => c.active && c.type === "vpn" && c.name.indexOf("tailscale") >= 0);
         let tail = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "vpn" && conn.name.indexOf("tailscale") >= 0);
         if (tail) {
             tailscaleConnectedIP = tail[1].ipv4;
+        } else {
+            tailscaleConnectedIP = "";
         }
     }
 
     function _parseActiveConnections(text) {
-        if (!networkConnections)
-            networkConnections = {};
-
+        let connections = {};
         wifiDevice = false;
         ethernetDevice = false;
         let lines = text.trim().split("\n");
         for (let line of lines) {
+            if (line.trim() === "") {
+                continue;
+            }
             let parts = line.split(":");
-            let active = parts[0];
+            if (parts.length < 4 || parts[2] === "") {
+                continue;
+            }
+            let devActive = parts[0];
             let name = parts[1];
             let device = parts[2];
             let parsedType = parts[3];
             let type = "none";
-
             if (parsedType.indexOf("wireless") >= 0) {
                 type = "wifi";
                 wifiDevice = true;
@@ -125,17 +135,15 @@ Singleton {
             }
 
             if (type !== "none") {
-                if (!networkConnections[device]) {
-                    networkConnections[device] = {};
-                }
-                Object.assign(networkConnections[device], {
-                    active: active === "yes" ? true : false,
+                connections[device] = {
+                    active: devActive === "yes" ? true : false,
                     name: name,
                     type: type,
                     ipv4: ""
-                });
+                };
             }
         }
+        networkConnections = connections;
         ipCmd.running = true;
     }
 

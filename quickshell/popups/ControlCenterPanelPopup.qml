@@ -158,14 +158,14 @@ HoverPopupWindow {
                     GridLayout {
                         id: grid
                         Layout.fillWidth: true
-                        columns: 4
+                        columns: 5
                         rowSpacing: 10
                         columnSpacing: 10
 
                         ControlCard {
                             id: wifiCard
                             title: "Wifi"
-                            visible: S.Network.wifiDevice && !S.Network.ethernetConnected
+                            visible: S.Network.wifiDevice
                             subtitle: S.Network.ssid
                             accent: true
                             iconSource: S.Network.currentWifiIcon
@@ -177,7 +177,7 @@ HoverPopupWindow {
                         ControlCard {
                             id: ethernetCard
                             title: "Ethernet"
-                            visible: S.Network.ethernetDevice && !S.Network.wifiConnected
+                            visible: S.Network.ethernetDevice && S.Network.ethernetConnected
                             subtitle: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
                             accent: true
                             iconSource: S.Network.currentEthernetIcon
