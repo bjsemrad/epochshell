@@ -19,19 +19,15 @@ HoverPopupWindow {
     color: "transparent"
     popupWidth: T.Config.controlCenterPopupWidth
 
-    visible: true
-
     property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
-    property bool open: false
-    property bool stopHide: false
     property string username
     property var cards: []
 
     function showPanel() {
-        open = true;
         for (let card of cards) {
             card.closeCard();
         }
+        open = true;
         visible = true;
     }
 
@@ -39,6 +35,11 @@ HoverPopupWindow {
         if (!stopHide) {
             open = false;
             visible = false;
+            popupHover = false;
+            for (let card of cards) {
+                card.visible = false;
+                card.resetCard();
+            }
         }
     }
 
@@ -53,11 +54,6 @@ HoverPopupWindow {
     onOpenChanged: {
         if (open) {
             S.PopupManager.closeOthers(popup);
-        } else {
-            for (let card of cards) {
-                card.visible = false;
-                card.resetCard();
-            }
         }
     }
 

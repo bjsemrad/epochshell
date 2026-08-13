@@ -27,9 +27,13 @@ PopupWindow {
         open = true;
         visible = true;
     }
+
     function hidePanel() {
-        open = false;
-        visible = false;
+        if (!stopHide) {
+            open = false;
+            visible = false;
+            popupHover = false;
+        }
     }
 
     property Item trigger: null
@@ -52,11 +56,6 @@ PopupWindow {
     }
 
     Item {
-        Window.onActiveChanged: {
-            if (!Window.active) {
-                hidePanel();
-            }
-        }
         anchors.fill: parent
 
         ClippingRectangle {

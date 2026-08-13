@@ -38,7 +38,7 @@ Rectangle {
         }
 
         onEntered: {
-            if (root.hoverEnabled) {
+            if (frame.hoverEnabled) {
                 if (mouseArea.containsMouse) {
                     popup.showPanel();
                 } else {
@@ -48,7 +48,7 @@ Rectangle {
         }
 
         onExited: {
-            if (root.hoverEnabled) {
+            if (frame.hoverEnabled) {
                 if (mouseArea.containsMouse) {
                     popup.showPanel();
                 } else {
