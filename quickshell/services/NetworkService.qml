@@ -80,6 +80,17 @@ Singleton {
         }
     }
 
+    Process {
+        id: deviceCmd
+        command: ["nmcli", "-t", "-f", "DEVICE,TYPE", "device"]
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                net._parseDevices(text);
+            }
+        }
+    }
+
     function updateProperties() {
         wifiConnected = Object.values(networkConnections).some(c => c.active && c.type === "wifi");
         let wifi = Object.entries(networkConnections).find(([device, conn]) => conn.active && conn.type === "wifi");
@@ -108,8 +119,6 @@ Singleton {
 
     function _parseActiveConnections(text) {
         let connections = {};
-        wifiDevice = false;
-        ethernetDevice = false;
         let lines = text.trim().split("\n");
         for (let line of lines) {
             if (line.trim() === "") {
@@ -126,10 +135,8 @@ Singleton {
             let type = "none";
             if (parsedType.indexOf("wireless") >= 0) {
                 type = "wifi";
-                wifiDevice = true;
             } else if (parsedType.indexOf("ethernet") >= 0) {
                 type = "ethernet";
-                ethernetDevice = true;
             } else if (parsedType.indexOf("tun") >= 0) {
                 type = "vpn";
             }
@@ -145,6 +152,30 @@ Singleton {
         }
         networkConnections = connections;
         ipCmd.running = true;
+    }
+
+    function _parseDevices(text) {
+        wifiDevice = false;
+        ethernetDevice = false;
+
+        let lines = text.trim().split("\n");
+        for (let line of lines) {
+            if (line.trim() === "") {
+                continue;
+            }
+
+            let parts = line.split(":");
+            if (parts.length < 2) {
+                continue;
+            }
+
+            let type = parts[1];
+            if (type === "wifi" || type.indexOf("wireless") >= 0) {
+                wifiDevice = true;
+            } else if (type.indexOf("ethernet") >= 0) {
+                ethernetDevice = true;
+            }
+        }
     }
 
     Process {
@@ -259,6 +290,7 @@ Singleton {
     }
 
     function refresh() {
+        deviceCmd.running = true;
         activeConnCmd.running = true;
         savedNetworks.running = true;
         wifiStatusCmd.running = true;
