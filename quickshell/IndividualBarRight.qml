@@ -16,10 +16,14 @@ import qs.theme as T
 RowLayout {
     spacing: 0
     BarFill {}
-    NixUpdates {
-        id: nixUpdates
-        popup: nixUpdatePanel
+    Battery {
+        id: battery
+        popup: batteryPanel
     }
+    // NixUpdates {
+    //     id: nixUpdates
+    //     popup: nixUpdatePanel
+    // }
     WifiNetwork {
         id: wifiNet
         popup: wifiNetworkPanel
@@ -28,10 +32,6 @@ RowLayout {
         id: ethNet
         popup: ethernetNetworkPanel
     }
-    // TailscaleNetwork {
-    //     id: tailNet
-    //     popup: tailscaleNetworkPanel
-    // }
     Bluetooth {
         id: bluet
         popup: bluetoothPanel
@@ -40,12 +40,13 @@ RowLayout {
         id: vol
         popup: audioPanel
     }
-    Battery {
-        id: battery
-        popup: batteryPanel
+    TailscaleNetwork {
+        id: tailNet
+        popup: tailscaleNetworkPanel
     }
     SystemOptions {
         id: systemOptions
+        Layout.rightMargin: 10
         popup: T.Config.popupControlCenter ? systemPanelPopup : systemPanel
     }
     BarFill {}
@@ -60,10 +61,10 @@ RowLayout {
         trigger: ethNet
     }
 
-    // TailscaleNetworkPanel {
-    //     id: tailscaleNetworkPanel
-    //     trigger: tailNet
-    // }
+    TailscaleNetworkPanel {
+        id: tailscaleNetworkPanel
+        trigger: tailNet
+    }
 
     AudioPanel {
         id: audioPanel
@@ -79,7 +80,7 @@ RowLayout {
         id: bluetoothPanel
         trigger: bluet
     }
-    ControlCenterPanelPopup {
+    IndividualSystemPanelPopup {
         id: systemPanelPopup
         trigger: systemOptions
     }
@@ -87,9 +88,8 @@ RowLayout {
         id: systemPanel
         trigger: systemOptions
     }
-    NixUpdatesPanel {
-        id: nixUpdatePanel
-        trigger: nixUpdates
-    }
-    Clock {}
+    // NixUpdatesPanel {
+    //     id: nixUpdatePanel
+    //     trigger: nixUpdates
+    // }
 }

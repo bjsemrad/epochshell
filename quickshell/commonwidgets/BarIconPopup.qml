@@ -7,17 +7,51 @@ import qs.services as S
 
 Rectangle {
     id: root
-    color: popup && popup.visible ? T.Config.surfaceContainerHighest : "transparent"
     border.width: 1
-    border.color: popup && popup.visible ? T.Config.outline : "transparent"
+    color: popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
     implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
-    implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
+    implicitHeight: inner.implicitHeight + verticalPadding
 
     property var popup
     required property string iconText
     required property bool mouseEnabled
     required property bool hoverEnabled
+    property int fontPixelSize: T.Config.fontSizeLarge
+    property int verticalPadding: T.Config.heightPaddingSmall
+
+    MouseArea {
+        id: mouseArea
+        enabled: mouseEnabled
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onClicked: {
+            if (popup.visible) {
+                popup.hidePanel();
+            } else {
+                popup.showPanel();
+            }
+        }
+
+        onEntered: {
+            if (root.hoverEnabled) {
+                if (mouseArea.containsMouse) {
+                    popup.showPanel();
+                } else {
+                    popup.hidePanel();
+                }
+            }
+        }
+
+        onExited: {
+            if (root.hoverEnabled) {
+                if (!mouseArea.containsMouse) {
+                    popup.hidePanel();
+                }
+            }
+        }
+    }
 
     Rectangle {
         id: inner
@@ -28,42 +62,9 @@ Rectangle {
         Text {
             id: iconText
             text: root.iconText
-            font.pixelSize: T.Config.fontSizeLarge
+            font.pixelSize: root.fontPixelSize
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
-
-            MouseArea {
-                id: mouseArea
-                enabled: mouseEnabled
-                anchors.fill: parent
-                hoverEnabled: root.hoverEnabled
-                cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                onClicked: {
-                    if (popup.visible) {
-                        popup.hidePanel();
-                    } else {
-                        popup.showPanel();
-                    }
-                }
-
-                onEntered: {
-                    if (root.hoverEnabled) {
-                        if (mouseArea.containsMouse) {
-                            popup.showPanel();
-                        } else {
-                            popup.hidePanel();
-                        }
-                    }
-                }
-
-                onExited: {
-                    if (root.hoverEnabled) {
-                        if (!mouseArea.containsMouse) {
-                            popup.hidePanel();
-                        }
-                    }
-                }
-            }
         }
     }
 }

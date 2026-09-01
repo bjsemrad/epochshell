@@ -16,7 +16,7 @@ import qs.popups
 import qs.theme as T
 
 RowLayout {
-    spacing: 10
+    spacing: 5
     // MusicControl {
     //     id: musicControl
     //     popup: musicPanel
@@ -25,13 +25,14 @@ RowLayout {
     //     id: nixUpdates
     //     popup: nixUpdatePanel
     // }
-    GroupedBattery {
-        id: groupedBattery
-        popup: batteryPanel
-    }
+    Clipboard {}
     ControlCenter {
         id: controlCenter
         popup: T.Config.popupControlCenter ? systemPanelPopup : systemPanel
+    }
+    GroupedBattery {
+        id: groupedBattery
+        popup: batteryPanel
     }
     BarFill {}
 
@@ -55,5 +56,4 @@ RowLayout {
     //     id: musicPanel
     //     trigger: musicControl
     // }
-    Clock {}
 }

@@ -31,13 +31,12 @@ Rectangle {
             Text {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.leftMargin: 10
-                text: "Background Apps: "
+                text: "Tray"
                 color: T.Config.surfaceText
                 font.bold: true
                 font.pointSize: 10
             }
 
-            Clipboard {}
             Colorpicker {}
 
             Repeater {

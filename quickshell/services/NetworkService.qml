@@ -32,10 +32,14 @@ Singleton {
     property string tailscaleConnectedIP: ""
 
     readonly property string currentNetworkIcon: {
-        if (wifiDevice && !ethernetConnected) {
-            return currentWifiIcon;
-        } else if (ethernetDevice && ethernetConnected) {
+        if (ethernetConnected) {
             return currentEthernetIcon;
+        } else if (wifiConnected) {
+            return currentWifiIcon;
+        } else if (ethernetDevice) {
+            return currentEthernetIcon;
+        } else if (wifiDevice) {
+            return currentWifiIcon;
         }
         return "󰛵";
     }

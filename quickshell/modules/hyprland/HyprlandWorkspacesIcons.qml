@@ -12,13 +12,14 @@ Rectangle {
     color: "transparent"
     Layout.alignment: Qt.AlignVCenter
 
-    property int padding: 10
-    implicitHeight: inner.implicitHeight + padding
+    property int padding: 7
+    property int verticalPadding: 10
+    implicitHeight: inner.implicitHeight + verticalPadding
     implicitWidth: inner.implicitWidth + padding * 2
 
     RowLayout {
         id: inner
-        spacing: padding
+        spacing: padding / 2
         anchors.centerIn: parent
 
         Repeater {
@@ -44,8 +45,8 @@ Rectangle {
                     return arr;
                 }
                 color: active ? T.Config.surfaceContainer : mwrap.containsMouse ? T.Config.activeSelection : "transparent"
-                Layout.preferredWidth: innerRow.implicitWidth + padding * 3
-                Layout.preferredHeight: innerRow.implicitHeight + padding / 2
+                Layout.preferredWidth: innerRow.implicitWidth + padding * 2
+                Layout.preferredHeight: innerRow.implicitHeight + verticalPadding / 2
                 visible: true
                 radius: 10
 
@@ -77,18 +78,10 @@ Rectangle {
                         Text {
                             id: ws
                             text: wsId
-                            font.pixelSize: T.Config.fontSizeMedium
+                            font.pixelSize: T.Config.fontSizeLarge
                             font.weight: active ? Font.Bold : Font.Normal
                             font.family: T.Config.fontFamily
                             color: active ? T.Config.active : T.Config.inactive
-                        }
-                        Text {
-                            text: "|"
-                            font.pixelSize: T.Config.fontSizeMedium
-                            font.weight: Font.Normal
-                            font.family: T.Config.fontFamily
-                            color: T.Config.inactive
-                            visible: modelData.toplevels.values.length > 0
                         }
                         Repeater {
                             model: workspaceWrapper.sortedWindows

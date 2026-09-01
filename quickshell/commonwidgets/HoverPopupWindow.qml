@@ -15,11 +15,12 @@ PopupWindow {
 
     default property alias content: contentLayout.data
 
-    readonly property int padding: T.Config.popupPadding
+    property int padding: T.Config.popupPadding
+    property int bottomPadding: padding * 2
     property real popupWidth: 1
 
     implicitWidth: popupWidth
-    implicitHeight: contentLayout.implicitHeight + padding * 2
+    implicitHeight: contentLayout.implicitHeight + padding + bottomPadding
 
     property bool open: false
 
@@ -87,7 +88,7 @@ PopupWindow {
                 anchors.fill: parent
                 anchors.leftMargin: padding * 2
                 anchors.rightMargin: padding * 2
-                anchors.bottomMargin: padding * 2
+                anchors.bottomMargin: bottomPadding
                 anchors.topMargin: padding
                 spacing: T.Config.popupLayoutSpacing
             }

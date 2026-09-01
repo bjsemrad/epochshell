@@ -7,9 +7,8 @@ import qs.services as S
 
 Rectangle {
     id: root
-    color: popup && popup.open ? T.Config.surfaceContainer : "transparent"
+    color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     border.width: 1
-    border.color: popup && popup.open ? T.Config.outline : "transparent"
     radius: T.Config.roundRadius
     implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
     implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
@@ -18,6 +17,39 @@ Rectangle {
     required property string iconText
     required property bool mouseEnabled
     required property bool hoverEnabled
+
+    MouseArea {
+        id: mouseArea
+        enabled: mouseEnabled
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onClicked: {
+            if (popup.open) {
+                popup.hidePanel();
+            } else {
+                popup.showPanel();
+            }
+        }
+
+        onEntered: {
+            if (root.hoverEnabled) {
+                if (mouseArea.containsMouse) {
+                    popup.showPanel();
+                } else {
+                    popup.hidePanel();
+                }
+            }
+        }
+
+        onExited: {
+            if (root.hoverEnabled) {
+                if (!mouseArea.containsMouse) {
+                    popup.hidePanel();
+                }
+            }
+        }
+    }
 
     Rectangle {
         id: inner
@@ -31,33 +63,6 @@ Rectangle {
             font.pixelSize: T.Config.fontSizeLarge
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
-
-            MouseArea {
-                id: mouseArea
-                enabled: mouseEnabled
-                anchors.fill: parent
-                hoverEnabled: root.hoverEnabled
-                cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                onClicked: {
-                    if (popup.open) {
-                        popup.hidePanel();
-                    } else {
-                        popup.showPanel();
-                    }
-                }
-
-                onEntered: {
-                    if (root.hoverEnabled) {
-                        popup.visible = mouseArea.containsMouse;
-                    }
-                }
-
-                onExited: {
-                    if (root.hoverEnabled) {
-                        popup.visible = mouseArea.containsMouse;
-                    }
-                }
-            }
         }
     }
 }

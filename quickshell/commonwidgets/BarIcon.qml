@@ -7,9 +7,10 @@ import qs.services as S
 
 Rectangle {
     id: root
-    color: "transparent"
+    color: mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    radius: T.Config.popupRadius
     implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
-    implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
+    implicitHeight: inner.implicitHeight + T.Config.popupPadding
     required property string iconText
     required property bool mouseEnabled
 
@@ -22,8 +23,10 @@ Rectangle {
     }
 
     MouseArea {
+        id: mouseArea
         enabled: mouseEnabled
         anchors.fill: parent
+        hoverEnabled: true
         cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: mouse => {

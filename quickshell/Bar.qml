@@ -39,29 +39,38 @@ Scope {
             color: T.Config.background
             implicitHeight: T.Config.barHeight
 
-            RowLayout {
+            Flickable {
                 id: leftSide
-                spacing: 10
+                width: Math.min(leftContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
+                contentWidth: leftContent.implicitWidth
+                contentHeight: height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                interactive: contentWidth > width
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
                     left: parent.left
                 }
 
-                children: [
-                    BarFill {},
-                    ApplicationLauncher {},
+                RowLayout {
+                    id: leftContent
+                    height: parent.height
+                    spacing: 10
+
+                    BarFill {}
+                    ApplicationLauncher {}
                     NiriWorkspaces {
                         visible: S.CompositorService.isNiri
-                    },
+                    }
                     HyprlandWorkspacesIcons {
                         visible: S.CompositorService.isHyprland && T.Config.workspaceIcons
-                    },
+                    }
                     HyprlandWorkspaces {
                         visible: S.CompositorService.isHyprland && !T.Config.workspaceIcons
-                    },
+                    }
                     BarFill {}
-                ]
+                }
             }
 
             RowLayout {
@@ -77,6 +86,15 @@ Scope {
 
                 implicitWidth: available
                 children: [
+                    BarFill {},
+                    ClickableClock {
+                        id: clock
+                        popup: calendarPanel
+                    },
+                    Weather {
+                        id: weather
+                        popup: weatherPanel
+                    },
                     BarFill {},
                     // NiriWorkspaces {
                     //     visible: S.CompositorService.isNiri
@@ -115,6 +133,16 @@ Scope {
 
                     sourceComponent: GroupedBarRight {}
                 }
+            }
+
+            CalendarPanel {
+                id: calendarPanel
+                trigger: clock
+            }
+
+            WeatherPanel {
+                id: weatherPanel
+                trigger: weather
             }
         }
     }

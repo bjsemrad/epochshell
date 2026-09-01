@@ -114,4 +114,5 @@ Singleton {
 
     property bool hideInactiveWorkspaces: true
     property bool workspaceIcons: true
+    property real workspaceStripMaxWidthRatio: 0.45
 }

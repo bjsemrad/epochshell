@@ -34,6 +34,10 @@ PanelWindow {
         for (let card of cards) {
             card.closeCard();
         }
+        const defaultCard = defaultNetworkOverview();
+        if (defaultCard) {
+            defaultCard.openCard();
+        }
         if (!T.Config.panelAnimationsEnabled) {
             visible = true;
         }
@@ -116,6 +120,14 @@ PanelWindow {
         }
     }
 
+    function defaultNetworkOverview() {
+        if (S.Network.ethernetConnected) return overviewEthernet;
+        if (S.Network.wifiConnected) return overviewWifi;
+        if (S.Network.ethernetDevice) return overviewEthernet;
+        if (S.Network.wifiDevice) return overviewWifi;
+        return null;
+    }
+
     Process {
         id: whoami
         command: ["whoami"]
@@ -193,7 +205,7 @@ PanelWindow {
                         ControlCard {
                             id: ethernetCard
                             title: "Ethernet"
-                            visible: S.Network.ethernetDevice && !S.Network.wifiConnected
+                            visible: S.Network.ethernetDevice
                             subtitle: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
                             accent: true
                             iconSource: S.Network.currentEthernetIcon
@@ -273,11 +285,11 @@ PanelWindow {
                         }
                     }
                 }
-                BarFill {}
-                O.Stats {
-                    Layout.fillWidth: true
-                    container: popup
-                }
+                // BarFill {}
+                // O.Stats {
+                //     Layout.fillWidth: true
+                //     container: popup
+                // }
             }
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded

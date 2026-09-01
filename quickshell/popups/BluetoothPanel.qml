@@ -14,6 +14,7 @@ HoverPopupWindow {
     id: bluetoothPopup
     trigger: trigger
     popupWidth:  T.Config.bluetoothPopupWidth
+    padding: 6
 
     onVisibleChanged: {
         if (visible) {
@@ -30,6 +31,5 @@ HoverPopupWindow {
     BluetoothPairedDevices{}
     ComponentSplitter{}
     BluetoothAvailableDevices{}
-    ComponentSpacer{}
+    ComponentSpacer { bottomMargin: 6 }
 }
-

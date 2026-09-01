@@ -18,6 +18,7 @@ HoverPopupWindow {
     trigger: trigger
     color: "transparent"
     popupWidth: T.Config.controlCenterPopupWidth
+    bottomPadding: 5
 
     property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
     property string username
@@ -26,6 +27,10 @@ HoverPopupWindow {
     function showPanel() {
         for (let card of cards) {
             card.closeCard();
+        }
+        const defaultCard = defaultNetworkOverview();
+        if (defaultCard) {
+            defaultCard.openCard();
         }
         open = true;
         visible = true;
@@ -80,6 +85,14 @@ HoverPopupWindow {
                 }
             }
         }
+    }
+
+    function defaultNetworkOverview() {
+        if (S.Network.ethernetConnected) return overviewEthernet;
+        if (S.Network.wifiConnected) return overviewWifi;
+        if (S.Network.ethernetDevice) return overviewEthernet;
+        if (S.Network.wifiDevice) return overviewWifi;
+        return null;
     }
 
     Process {
@@ -177,7 +190,7 @@ HoverPopupWindow {
                         ControlCard {
                             id: ethernetCard
                             title: "Ethernet"
-                            visible: S.Network.ethernetDevice && S.Network.ethernetConnected
+                            visible: S.Network.ethernetDevice
                             subtitle: S.Network.ethernetConnected ? S.Network.ethernetConnectedIP : "Disconnected"
                             accent: true
                             iconSource: S.Network.currentEthernetIcon
@@ -257,11 +270,11 @@ HoverPopupWindow {
                         }
                     }
                 }
-                BarFill {}
-                O.Stats {
-                    Layout.fillWidth: true
-                    container: popup
-                }
+                // BarFill {}
+                // O.Stats {
+                //     Layout.fillWidth: true
+                //     container: popup
+                // }
             }
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded

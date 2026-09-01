@@ -14,6 +14,7 @@ HoverPopupWindow {
     id: networkPopup
     trigger: trigger
     popupWidth:  T.Config.networkPopupWidth
+    padding: 6
     function refresh() {
         S.Network.refresh()
     }
@@ -50,8 +51,7 @@ HoverPopupWindow {
     WifiAvailableNetworks{
         attachedPanel: networkPopup
     }
-    ComponentSpacer{}
-    ComponentSpacer{}
+    ComponentSpacer { bottomMargin: 6 }
+    ComponentSpacer { bottomMargin: 6 }
 
 }
-
