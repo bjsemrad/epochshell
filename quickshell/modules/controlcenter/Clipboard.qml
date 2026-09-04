@@ -2,11 +2,13 @@ import Quickshell
 import Quickshell.Io
 import qs.commonwidgets
 import qs.services as S
+import qs.theme as T
 
 BarIcon {
     id: root
     mouseEnabled: true
     iconText: "󰨸"
+    fontPixelSize: T.Config.barIconSize
 
     Process {
         id: clipboard

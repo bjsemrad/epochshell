@@ -13,6 +13,7 @@ Rectangle {
     implicitHeight: inner.implicitHeight + T.Config.popupPadding
     required property string iconText
     required property bool mouseEnabled
+    property int fontPixelSize: T.Config.fontSizeLarge
 
     function performLeftClickAction() {
         console.log("Missing Implementation");
@@ -45,7 +46,7 @@ Rectangle {
         spacing: T.Config.heightPaddingSmall
         Text {
             text: root.iconText
-            font.pixelSize: T.Config.fontSizeLarge
+            font.pixelSize: root.fontPixelSize
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
         }
