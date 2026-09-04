@@ -45,7 +45,7 @@ Rectangle {
                         id: ws
                         anchors.centerIn: parent
                         text: wsId
-                        font.pixelSize: T.Config.fontSizeNormal
+                        font.pixelSize: T.Config.barIconSize
                         font.weight: active ? Font.Bold : Font.Normal
                         font.family: T.Config.fontFamily
                         color: active ? T.Config.active : T.Config.inactive

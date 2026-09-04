@@ -13,7 +13,7 @@ Rectangle {
     implicitHeight: inner.implicitHeight + T.Config.popupPadding
     required property string iconText
     required property bool mouseEnabled
-    property int fontPixelSize: T.Config.fontSizeLarge
+    property int fontPixelSize: T.Config.barIconSize
 
     function performLeftClickAction() {
         console.log("Missing Implementation");

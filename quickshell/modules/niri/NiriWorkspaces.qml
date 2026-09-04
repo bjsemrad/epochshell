@@ -75,7 +75,7 @@ Rectangle {
                         Text {
                             id: ws
                             text: wsId
-                            font.pixelSize: T.Config.fontSizeLarge
+                            font.pixelSize: T.Config.barIconSize
                             font.weight: active ? Font.Bold : Font.Normal
                             font.family: T.Config.fontFamily
                             color: active ? T.Config.active : T.Config.inactive
@@ -86,8 +86,8 @@ Rectangle {
                                 spacing: 5
                                 property var entry: S.CompositorService.getDesktopEntry(modelData.appId)
                                 IconImage {
-                                    width: 20
-                                    height: 20
+                                    width: T.Config.barIconSize
+                                    height: T.Config.barIconSize
 
                                     source: S.CompositorService.getDesktopIcon(entry)
                                     opacity: modelData.isFocused ? 1.0 : 0.35

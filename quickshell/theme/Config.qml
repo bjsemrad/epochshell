@@ -43,7 +43,7 @@ Singleton {
     property int popupRadius: 10
     property int popupLayoutSpacing: 8
 
-    property int barIconSize: 16
+    property int barIconSize: 18
 
     property int widthPaddingLarge: 20
     property int heightPaddingSmall: 5
