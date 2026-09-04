@@ -17,6 +17,7 @@ Rectangle {
     required property string iconText
     required property bool mouseEnabled
     required property bool hoverEnabled
+    property int fontPixelSize: T.Config.barIconSize
 
     MouseArea {
         id: mouseArea
@@ -60,7 +61,8 @@ Rectangle {
         Text {
             id: iconText
             text: root.iconText
-            font.pixelSize: T.Config.fontSizeLarge
+            font.pixelSize: root.fontPixelSize
+            font.family: T.Config.fontFamily
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
         }

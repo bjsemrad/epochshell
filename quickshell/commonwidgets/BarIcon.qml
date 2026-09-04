@@ -47,6 +47,7 @@ Rectangle {
         Text {
             text: root.iconText
             font.pixelSize: root.fontPixelSize
+            font.family: T.Config.fontFamily
             anchors.verticalCenter: parent.verticalCenter
             color: T.Config.surfaceText
         }

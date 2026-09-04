@@ -10,8 +10,8 @@ BarIconPopup {
     mouseEnabled: true
     hoverEnabled: false
     fontPixelSize: T.Config.fontSizeNormal
-    verticalPadding: T.Config.popupPadding + T.Config.fontSizeLarge - fontPixelSize
-    iconText: weatherIcon + (temperature ? "   " + temperature : "")
+    verticalPadding: T.Config.popupPadding + T.Config.barIconSize - fontPixelSize
+    iconText: weatherIcon + (temperature ? " " + temperature : "")
 
     property string weatherIcon: ""
     property string temperature: ""
