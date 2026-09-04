@@ -10,8 +10,8 @@ Rectangle {
     color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     border.width: 1
     radius: T.Config.roundRadius
-    implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
-    implicitHeight: inner.implicitHeight + T.Config.heightPaddingSmall
+    implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding
+    implicitHeight: inner.implicitHeight + T.Config.barModuleVerticalPadding
 
     property var popup
     required property string iconText

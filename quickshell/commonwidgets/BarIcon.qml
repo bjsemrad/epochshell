@@ -9,8 +9,8 @@ Rectangle {
     id: root
     color: mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
-    implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
-    implicitHeight: inner.implicitHeight + T.Config.popupPadding
+    implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding
+    implicitHeight: inner.implicitHeight + T.Config.barModuleVerticalPadding
     required property string iconText
     required property bool mouseEnabled
     property int fontPixelSize: T.Config.barIconSize
@@ -43,7 +43,7 @@ Rectangle {
         id: inner
         anchors.centerIn: parent
         height: parent.height
-        spacing: T.Config.heightPaddingSmall
+        spacing: T.Config.barIconTextSpacing
         Text {
             text: root.iconText
             font.pixelSize: root.fontPixelSize

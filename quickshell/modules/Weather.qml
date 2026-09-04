@@ -2,16 +2,16 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import qs.commonwidgets
 import qs.theme as T
 
-BarIconPopup {
+Rectangle {
     id: root
-    mouseEnabled: true
-    hoverEnabled: false
-    fontPixelSize: T.Config.fontSizeNormal
-    verticalPadding: T.Config.popupPadding + T.Config.barIconSize - fontPixelSize
-    iconText: weatherIcon + (temperature ? " " + temperature : "")
+    color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    radius: T.Config.popupRadius
+    implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding
+    implicitHeight: inner.implicitHeight + T.Config.barModuleVerticalPadding
+
+    property var popup
 
     property string weatherIcon: ""
     property string temperature: ""
@@ -21,6 +21,43 @@ BarIconPopup {
     property string humidity: ""
     property string wind: ""
     property var forecast: []
+
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+            if (popup.open) {
+                popup.hidePanel();
+            } else {
+                popup.showPanel();
+            }
+        }
+    }
+
+    RowLayout {
+        id: inner
+        anchors.centerIn: parent
+        spacing: T.Config.barIconTextSpacing
+
+        Text {
+            text: root.weatherIcon
+            font.pixelSize: T.Config.barWeatherSize
+            font.family: T.Config.fontFamily
+            color: T.Config.surfaceText
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        Text {
+            visible: root.temperature.length > 0
+            text: root.temperature
+            font.pixelSize: T.Config.barWeatherSize
+            font.family: T.Config.fontFamily
+            color: T.Config.surfaceText
+            Layout.alignment: Qt.AlignVCenter
+        }
+    }
 
     function iconForCode(code) {
         const c = parseInt(String(code || "0"), 10);

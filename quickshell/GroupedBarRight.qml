@@ -16,7 +16,7 @@ import qs.popups
 import qs.theme as T
 
 RowLayout {
-    spacing: 5
+    spacing: T.Config.barGroupedModuleSpacing
     // MusicControl {
     //     id: musicControl
     //     popup: musicPanel

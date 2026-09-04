@@ -56,7 +56,7 @@ Scope {
                 RowLayout {
                     id: leftContent
                     height: parent.height
-                    spacing: 10
+                    spacing: T.Config.barModuleSpacing
 
                     BarFill {}
                     ApplicationLauncher {}
@@ -75,7 +75,7 @@ Scope {
 
             RowLayout {
                 id: centerSide
-                spacing: 10
+                spacing: T.Config.barModuleSpacing
 
                 anchors {
                     top: parent.top
@@ -111,7 +111,7 @@ Scope {
 
             RowLayout {
                 id: rightSide
-                spacing: 10
+                spacing: T.Config.barModuleSpacing
                 Layout.alignment: Qt.AlignVCenter
 
                 anchors {

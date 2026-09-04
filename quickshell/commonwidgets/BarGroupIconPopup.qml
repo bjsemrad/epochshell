@@ -11,13 +11,13 @@ Rectangle {
     required property var iconSet
     required property bool mouseEnabled
     required property bool hoverEnabled
-    property int padding: T.Config.popupPadding
+    property int padding: T.Config.barModuleVerticalPadding
 
     color: popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
     Layout.alignment: Qt.AlignVCenter
     implicitHeight: inner.implicitHeight + padding
-    implicitWidth: inner.implicitWidth + padding * 2
+    implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding
 
     MouseArea {
         id: mouseArea
@@ -60,7 +60,7 @@ Rectangle {
 
     RowLayout {
         id: inner
-        spacing: padding * 2
+        spacing: T.Config.barGroupIconSpacing
         anchors.centerIn: parent
 
         Repeater {

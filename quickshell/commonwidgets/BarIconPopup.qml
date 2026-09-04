@@ -10,7 +10,7 @@ Rectangle {
     border.width: 1
     color: popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
-    implicitWidth: inner.implicitWidth + T.Config.widthPaddingLarge
+    implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding
     implicitHeight: inner.implicitHeight + verticalPadding
 
     property var popup
@@ -18,7 +18,7 @@ Rectangle {
     required property bool mouseEnabled
     required property bool hoverEnabled
     property int fontPixelSize: T.Config.barIconSize
-    property int verticalPadding: T.Config.heightPaddingSmall
+    property int verticalPadding: T.Config.barModuleVerticalPadding
 
     MouseArea {
         id: mouseArea

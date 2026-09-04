@@ -44,6 +44,14 @@ Singleton {
     property int popupLayoutSpacing: 8
 
     property int barIconSize: 18
+    property int barClockSize: fontSizeSubtext
+    property int barWeatherSize: fontSizeNormal
+    property int barModuleSpacing: 10
+    property int barGroupedModuleSpacing: layoutMarginSmall
+    property int barGroupIconSpacing: barModuleVerticalPadding * 2
+    property int barIconTextSpacing: 5
+    property int barModuleHorizontalPadding: widthPaddingLarge
+    property int barModuleVerticalPadding: popupPadding
 
     property int widthPaddingLarge: 20
     property int heightPaddingSmall: 5

@@ -7,8 +7,8 @@ Rectangle {
     id: root
     color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
-    implicitWidth: clockText.implicitWidth + T.Config.widthPaddingLarge
-    implicitHeight: clockText.implicitHeight + T.Config.popupPadding
+    implicitWidth: clockText.implicitWidth + T.Config.barModuleHorizontalPadding
+    implicitHeight: clockText.implicitHeight + T.Config.barModuleVerticalPadding
 
     property var popup
 
@@ -36,7 +36,7 @@ Rectangle {
         text: Qt.formatDateTime(sysclk.date, "ddd hh:mm AP")
         color: T.Config.surfaceText
         font {
-            pointSize: T.Config.fontSizeSubtext
+            pointSize: T.Config.barClockSize
             family: T.Config.fontFamily
         }
         anchors.centerIn: parent
