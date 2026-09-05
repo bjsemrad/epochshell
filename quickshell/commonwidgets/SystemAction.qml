@@ -30,12 +30,18 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             spacing: T.Config.systemActionSpacing
 
-            Text {
-                id: actionIcon
-                text: icon
-                font.pixelSize: T.Config.fontSizeLarge
-                Layout.alignment: Qt.AlignVCenter
-                color: T.Config.surfaceText
+            Rectangle {
+                Layout.preferredWidth: 24
+                Layout.fillHeight: true
+                color: "transparent"
+
+                Text {
+                    id: actionIcon
+                    text: icon
+                    font.pixelSize: T.Config.fontSizeLarge
+                    anchors.centerIn: parent
+                    color: T.Config.surfaceText
+                }
             }
 
             Text {

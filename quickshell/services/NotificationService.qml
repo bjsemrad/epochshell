@@ -15,14 +15,68 @@ Singleton {
     readonly property int normalTimeout: 3500
     readonly property int lowTimeout: 2000
 
+    readonly property var browserNames: ({
+        "brave": "brave-",
+        "Brave": "brave-",
+        "chrome": "chrome-",
+        "Chrome": "chrome-",
+        "Chromium": "chrome-",
+        "firefox": "firefox-",
+        "Firefox": "firefox-",
+        "vivaldi": "vivaldi-",
+        "Vivaldi": "vivaldi-",
+        "edge": "edge-",
+        "Edge": "edge-",
+        "chromium": "chrome-",
+    })
+
     function snapshotOf(notification) {
+        let icon = String(notification.appIcon || "");
+        const appName = String(notification.appName || "");
+        const desktopEntry = String(notification.desktopEntry || "");
+        const image = String(notification.image || "");
+        let windowClass = "";
+
+        const browserPrefix = browserNames[appName];
+
+        if (browserPrefix && CompositorService.activeWindowClass.toLowerCase().startsWith(browserPrefix)) {
+            windowClass = CompositorService.activeWindowClass;
+        }
+
+        if (windowClass.length > 0) {
+            if (icon.length === 0) {
+                const entry = CompositorService.getDesktopEntry(windowClass);
+                if (entry) {
+                    const resolved = CompositorService.getDesktopIcon(entry);
+                    if (resolved.indexOf("application-x-executable") === -1) {
+                        icon = resolved;
+                    }
+                }
+            }
+        } else if (icon.length === 0) {
+            if (desktopEntry.length > 0) {
+                const entry = CompositorService.getDesktopEntry(desktopEntry);
+                if (entry) {
+                    icon = CompositorService.getDesktopIcon(entry);
+                }
+            }
+            if (icon.length === 0 && appName.length > 0) {
+                const entry = CompositorService.getDesktopEntry(appName);
+                if (entry) {
+                    icon = CompositorService.getDesktopIcon(entry);
+                }
+            }
+        }
+
         return {
             notificationId: notification.id || Date.now(),
-            appName: String(notification.appName || ""),
-            appIcon: String(notification.appIcon || ""),
+            appName: appName,
+            appIcon: icon,
+            windowClass: windowClass,
+            desktopEntry: desktopEntry,
             summary: String(notification.summary || ""),
             body: String(notification.body || ""),
-            image: String(notification.image || ""),
+            image: image,
             urgency: notification.urgency,
             timestamp: Date.now()
         };
@@ -137,6 +191,24 @@ Singleton {
         }
         closeLiveNotification(id);
         removeToastById(id);
+    }
+
+    function focusAndDismiss(id, appName, windowClass) {
+        const target = (windowClass && windowClass.length > 0) ? windowClass : appName;
+        if (target && target.length > 0) {
+            CompositorService.focusWindowByAppName(target);
+        }
+        invokeDefault(id);
+    }
+
+    function focusFromHistory(appName, index, windowClass) {
+        const target = (windowClass && windowClass.length > 0) ? windowClass : appName;
+        if (target && target.length > 0) {
+            CompositorService.focusWindowByAppName(target);
+        }
+        if (index !== undefined && index !== null) {
+            dismissHistory(index);
+        }
     }
 
     function removeToastById(id) {

@@ -50,10 +50,11 @@ Singleton {
     property int barGroupedModuleSpacing: layoutMarginSmall
     property int barGroupIconSpacing: barModuleVerticalPadding * 2
     property int barIconTextSpacing: 5
-    property int barModuleHorizontalPadding: widthPaddingLarge
+    property int barModuleHorizontalPadding: widthPaddingSmall
     property int barModuleVerticalPadding: popupPadding
 
     property int widthPaddingLarge: 20
+    property int widthPaddingSmall: 14
     property int heightPaddingSmall: 5
 
     property int layoutMarginSmall: 5

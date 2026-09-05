@@ -104,6 +104,7 @@ HoverPopupWindow {
             required property int notificationId
             required property string appName
             required property string appIcon
+            required property string windowClass
             required property string summary
             required property string body
             required property string image
@@ -123,7 +124,7 @@ HoverPopupWindow {
                 image: historySlot.image
                 urgency: historySlot.urgency
                 closeVisible: true
-                onClicked: S.Notifications.invokeDefault(historySlot.notificationId)
+                onClicked: S.Notifications.focusFromHistory(historySlot.appName, historySlot.index, historySlot.windowClass)
                 onDismissRequested: S.Notifications.dismissHistory(historySlot.index)
             }
         }

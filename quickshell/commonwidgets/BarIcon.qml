@@ -39,16 +39,17 @@ Rectangle {
         }
     }
 
-    Row {
+    Rectangle {
         id: inner
+        implicitWidth: T.Config.barIconSize
+        implicitHeight: T.Config.barIconSize
+        color: "transparent"
         anchors.centerIn: parent
-        height: parent.height
-        spacing: T.Config.barIconTextSpacing
         Text {
             text: root.iconText
             font.pixelSize: root.fontPixelSize
             font.family: T.Config.fontFamily
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.centerIn: parent
             color: T.Config.surfaceText
         }
     }

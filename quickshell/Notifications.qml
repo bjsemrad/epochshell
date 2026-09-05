@@ -47,6 +47,7 @@ Scope {
                         required property int notificationId
                         required property string appName
                         required property string appIcon
+                        required property string windowClass
                         required property string summary
                         required property string body
                         required property string image
@@ -77,7 +78,7 @@ Scope {
                             image: slot.image
                             urgency: slot.urgency
                             onDismissRequested: S.Notifications.dismissToast(slot.index)
-                            onClicked: S.Notifications.invokeDefault(slot.notificationId)
+                            onClicked: S.Notifications.focusAndDismiss(slot.notificationId, slot.appName, slot.windowClass)
                         }
                     }
                 }

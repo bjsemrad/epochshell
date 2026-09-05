@@ -63,8 +63,8 @@ Rectangle {
 
     Rectangle {
         id: inner
-        implicitWidth: iconText.implicitWidth
-        implicitHeight: iconText.implicitHeight
+        implicitWidth: T.Config.barIconSize
+        implicitHeight: T.Config.barIconSize
         color: "transparent"
         anchors.centerIn: parent
         Text {
@@ -72,7 +72,7 @@ Rectangle {
             text: root.iconText
             font.pixelSize: root.fontPixelSize
             font.family: T.Config.fontFamily
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.centerIn: parent
             color: T.Config.surfaceText
         }
     }
