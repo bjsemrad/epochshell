@@ -22,7 +22,7 @@ Rectangle {
         implicitHeight: T.Config.systemActionSize
         width: parent.width
         radius: T.Config.systemActionRadius
-        color: actionMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
+        color: actionMouseArea.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
 
         RowLayout {
             anchors.leftMargin: T.Config.systemActionMargin

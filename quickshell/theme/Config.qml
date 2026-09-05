@@ -116,7 +116,7 @@ Singleton {
     property int volumeSliderMargin: 30
     property int volumeSliderSpacing: 10
 
-    property bool showIndividualIcons: false
+    property bool showIndividualIcons: true
     property bool panelAnimationsEnabled: false
     property bool popupControlCenter: true
 

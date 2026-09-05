@@ -7,10 +7,10 @@ BarIconPopup {
     visible: T.Config.showIndividualIcons && S.Network.ethernetDevice
     mouseEnabled: true
     hoverEnabled: false
-    iconText:  {
+    iconText: {
         if (S.Network.ethernetConnected) {
-            return "󰌗"
+            return "󰌘";
         }
-        return "󰌙"
+        return "󰌙";
     }
 }

@@ -16,6 +16,23 @@ HoverPopupWindow {
     trigger: trigger
     popupWidth: T.Config.musicPlayerWidth
 
+    RowLayout {
+        Layout.fillWidth: true
+        Layout.preferredHeight: T.Config.settingsHeaderHeight
+        spacing: T.Config.layoutMarginSmall
+
+        Text {
+            text: "Now Playing"
+            color: T.Config.surfaceText
+            font.pixelSize: T.Config.fontSizeLarge
+            font.bold: true
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
+        }
+    }
+
+    ComponentSplitter {}
+
     O.MusicPlayer {}
 
     onVisibleChanged: {

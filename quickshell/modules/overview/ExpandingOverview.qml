@@ -18,7 +18,8 @@ Rectangle {
     visible: false
 
     default property alias content: col.data
-    property real fullHeight: col.implicitHeight + 20
+    property int contentPadding: 12
+    property real fullHeight: col.implicitHeight + contentPadding * 2
     property bool expanded: false
     property bool animationEnabled: true
 
@@ -36,7 +37,7 @@ Rectangle {
     }
 
     function openCard() {
-        fullHeight = col.implicitHeight + 5;
+        fullHeight = col.implicitHeight + contentPadding * 2;
         expanded = true;
         visible = true;
     }
@@ -55,10 +56,10 @@ Rectangle {
         id: col
         anchors.fill: parent
         anchors {
-            leftMargin: 12
-            topMargin: 12
-            rightMargin: 12
-            bottomMargin: 12
+            leftMargin: root.contentPadding
+            topMargin: root.contentPadding
+            rightMargin: root.contentPadding
+            bottomMargin: root.contentPadding
         }
         clip: true
         onImplicitHeightChanged: {

@@ -157,6 +157,7 @@ PanelWindow {
             contentWidth: width
             contentHeight: col.implicitHeight
             clip: true
+            interactive: false
 
             ColumnLayout {
                 id: col
@@ -164,14 +165,28 @@ PanelWindow {
                     fill: parent
                     margins: 16
                 }
-                spacing: 20
+                spacing: T.Config.popupLayoutSpacing
+
+                // ── Header ───────────────────────────
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: T.Config.settingsHeaderHeight
+                    spacing: T.Config.layoutMarginSmall
+
+                    Text {
+                        text: "Control Center"
+                        color: T.Config.surfaceText
+                        font.pixelSize: T.Config.fontSizeLarge
+                        font.family: T.Config.fontFamily
+                        font.bold: true
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                }
+                ComponentSplitter {}
 
                 // ── Header card ───────────────────────────
                 O.User {}
-
-                O.MusicPlayer {
-                    visible: S.AudioService.player
-                }
 
                 O.UtilsSystemTray {
                     panelRef: popup
@@ -179,7 +194,7 @@ PanelWindow {
 
                 ColumnLayout {
                     id: tabwrapper
-                    height: grid.implictHeight + cardContent.implicitHeight
+                    height: grid.implicitHeight + cardContent.implicitHeight
                     spacing: 0
 
                     // ── Cards grid ────────────────────────────
@@ -245,7 +260,8 @@ PanelWindow {
                     Rectangle {
                         id: cardContent
                         Layout.fillWidth: true
-                        Layout.preferredHeight: cardStack.implicitHeight + 5
+                        Layout.preferredHeight: cardStack.implicitHeight
+                        Layout.topMargin: 4
                         color: "transparent"
 
                         ColumnLayout {
@@ -292,8 +308,7 @@ PanelWindow {
                 // }
             }
             ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-                opacity: flick.moving ? 1 : 0.0
+                policy: ScrollBar.AlwaysOff
 
                 contentItem: Rectangle {
                     implicitWidth: 6

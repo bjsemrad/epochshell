@@ -18,7 +18,6 @@ HoverPopupWindow {
     trigger: trigger
     color: "transparent"
     popupWidth: T.Config.controlCenterPopupWidth
-    bottomPadding: 5
 
     property var anim_CURVE_SMOOTH_SLIDE: [0.23, 1, 0.32, 1, 1, 1]
     property string username
@@ -139,6 +138,7 @@ HoverPopupWindow {
             implicitWidth: popupWidth + 10
 
             clip: true
+            interactive: false
 
             ColumnLayout {
                 id: col
@@ -146,17 +146,31 @@ HoverPopupWindow {
                 anchors {
                     margins: 10
                 }
-                spacing: 20
+                spacing: T.Config.popupLayoutSpacing
                 layer.enabled: true
                 layer.smooth: true
                 // layer.mipmaps: true
 
+                // ── Header ───────────────────────────
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: T.Config.settingsHeaderHeight
+                    spacing: T.Config.layoutMarginSmall
+
+                    Text {
+                        text: "Control Center"
+                        color: T.Config.surfaceText
+                        font.pixelSize: T.Config.fontSizeLarge
+                        font.family: T.Config.fontFamily
+                        font.bold: true
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                }
+                ComponentSplitter {}
+
                 // ── Header card ───────────────────────────
                 O.User {}
-
-                O.MusicPlayer {
-                    visible: S.AudioService.player
-                }
 
                 O.UtilsSystemTray {
                     panelRef: popup
@@ -164,7 +178,7 @@ HoverPopupWindow {
 
                 ColumnLayout {
                     id: tabwrapper
-                    height: grid.implictHeight + cardContent.implicitHeight
+                    height: grid.implicitHeight + cardContent.implicitHeight
                     spacing: 0
 
                     // ── Cards grid ────────────────────────────
@@ -230,7 +244,8 @@ HoverPopupWindow {
                     Rectangle {
                         id: cardContent
                         Layout.fillWidth: true
-                        Layout.preferredHeight: cardStack.implicitHeight + 5
+                        Layout.preferredHeight: cardStack.implicitHeight
+                        Layout.topMargin: 4
                         color: "transparent"
 
                         ColumnLayout {
@@ -277,8 +292,7 @@ HoverPopupWindow {
                 // }
             }
             ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AsNeeded
-                opacity: flick.moving ? 1 : 0.0
+                policy: ScrollBar.AlwaysOff
 
                 contentItem: Rectangle {
                     implicitWidth: 3

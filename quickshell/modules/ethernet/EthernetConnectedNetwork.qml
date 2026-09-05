@@ -12,7 +12,7 @@ import qs.commonwidgets
 
 ConnectedNetwork {
     connectedStatus: S.Network.ethernetConnected
-    networkIconText: "󰌗"
+    networkIconText: "󰌘"
     connectedName: S.Network.ethernetDeviceName
     connectedIp: S.Network.ethernetConnectedIP
 }

@@ -13,10 +13,28 @@ import qs.services as S
 HoverPopupWindow {
     id: batteryPopup
     trigger: trigger
-    popupWidth:  T.Config.batteryPopupWidth
+    popupWidth: T.Config.batteryPopupWidth
+
+    RowLayout {
+        Layout.fillWidth: true
+        Layout.preferredHeight: T.Config.settingsHeaderHeight
+        spacing: T.Config.layoutMarginSmall
+
+        Text {
+            text: "Battery"
+            color: T.Config.surfaceText
+            font.pixelSize: T.Config.fontSizeLarge
+            font.bold: true
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
+        }
+    }
+
+    ComponentSplitter {}
 
     BatteryLevel{}
-    ComponentSpacer{}
+
+    ComponentSpacer{ bottomMargin: 6 }
 
     onVisibleChanged: {
         if (visible){

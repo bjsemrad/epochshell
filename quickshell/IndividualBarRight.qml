@@ -9,6 +9,8 @@ import qs.modules.ethernet
 import qs.modules.systemtray
 import qs.modules.tailscale
 import qs.modules.wifi
+import qs.modules.notifications
+import qs.modules.controlcenter
 import qs.modules.nix
 import qs.popups
 import qs.theme as T
@@ -16,14 +18,7 @@ import qs.theme as T
 RowLayout {
     spacing: 0
     BarFill {}
-    Battery {
-        id: battery
-        popup: batteryPanel
-    }
-    // NixUpdates {
-    //     id: nixUpdates
-    //     popup: nixUpdatePanel
-    // }
+    Clipboard {}
     WifiNetwork {
         id: wifiNet
         popup: wifiNetworkPanel
@@ -44,9 +39,16 @@ RowLayout {
         id: tailNet
         popup: tailscaleNetworkPanel
     }
+    Battery {
+        id: battery
+        popup: batteryPanel
+    }
+    NotificationIndicator {
+        id: notificationIndicator
+        popup: notificationPanel
+    }
     SystemOptions {
         id: systemOptions
-        Layout.rightMargin: 10
         popup: T.Config.popupControlCenter ? systemPanelPopup : systemPanel
     }
     BarFill {}
@@ -80,7 +82,13 @@ RowLayout {
         id: bluetoothPanel
         trigger: bluet
     }
-    IndividualSystemPanelPopup {
+
+    NotificationPanel {
+        id: notificationPanel
+        trigger: notificationIndicator
+    }
+
+    SystemMenuPanel {
         id: systemPanelPopup
         trigger: systemOptions
     }
@@ -88,8 +96,4 @@ RowLayout {
         id: systemPanel
         trigger: systemOptions
     }
-    // NixUpdatesPanel {
-    //     id: nixUpdatePanel
-    //     trigger: nixUpdates
-    // }
 }

@@ -5,5 +5,5 @@ PanelTrigger {
     id: root
     mouseEnabled: true
     hoverEnabled: false
-    iconText: ""
+    iconText: "⏻"
 }

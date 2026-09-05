@@ -14,7 +14,6 @@ HoverPopupWindow {
     id: networkPopup
     trigger: trigger
     popupWidth:  T.Config.networkPopupWidth
-    padding: 6
     function refresh() {
         S.Network.refresh()
     }

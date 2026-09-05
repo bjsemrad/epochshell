@@ -9,6 +9,7 @@ import Quickshell.Wayland
 
 ShellRoot {
     Bar {}
+    Notifications {}
     SoundOSD {}
     BrightnessOSD {}
 }

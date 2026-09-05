@@ -45,7 +45,7 @@ Singleton {
     }
     readonly property string currentEthernetIcon: {
         if (ethernetConnected) {
-            return "󰌗";
+            return "󰌘";
         }
         return "󰌙";
     }

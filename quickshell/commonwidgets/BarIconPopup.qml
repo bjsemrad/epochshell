@@ -19,6 +19,7 @@ Rectangle {
     required property bool hoverEnabled
     property int fontPixelSize: T.Config.barIconSize
     property int verticalPadding: T.Config.barModuleVerticalPadding
+    property alias isHovered: mouseArea.containsMouse
 
     MouseArea {
         id: mouseArea
@@ -26,7 +27,12 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: mouseEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: {
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: mouse => {
+            if (mouse.button === Qt.RightButton) {
+                root.rightClicked();
+                return;
+            }
             if (popup.visible) {
                 popup.hidePanel();
             } else {
@@ -52,6 +58,8 @@ Rectangle {
             }
         }
     }
+
+    signal rightClicked()
 
     Rectangle {
         id: inner

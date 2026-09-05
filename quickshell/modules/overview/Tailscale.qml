@@ -10,6 +10,6 @@ ExpandingOverview {
     ComponentSplitter {}
     TailscaleConnectedNetwork {}
     ComponentSplitter {}
-    TailscalePeers {}
+    TailscalePeers { useBackground: true }
     ComponentSpacer {}
 }

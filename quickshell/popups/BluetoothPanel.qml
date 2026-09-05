@@ -14,7 +14,6 @@ HoverPopupWindow {
     id: bluetoothPopup
     trigger: trigger
     popupWidth:  T.Config.bluetoothPopupWidth
-    padding: 6
 
     onVisibleChanged: {
         if (visible) {
