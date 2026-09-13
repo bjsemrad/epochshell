@@ -4,24 +4,21 @@ import qs.theme as T
 
 // The idle inhibitor, in the bar drawer.
 //
-// It follows the rule Tailscale and LocalSend use for their alerts: on show whenever it is
-// actually holding the machine awake, and otherwise only while the drawer is open. A machine that
-// will not sleep is worth seeing with the drawer shut, and the control is worth reaching for
-// before a presentation starts -- but an icon that says "everything is normal" earns no room on a
-// collapsed bar.
+// It follows the rule Tailscale and LocalSend use for their alerts, minus their second half:
+// shown while it is actually holding the machine awake, and not otherwise. A machine that will
+// not sleep is worth seeing, and clicking lets it sleep again -- but an icon saying everything is
+// normal earns no room on the bar, open drawer or not. Turning it on is the system menu's job,
+// and the battery panel's on a laptop.
 //
-// It is also the only way to reach this on a desktop: the battery panel carries the same switch,
-// and hides itself entirely on a machine with no battery, which still locks and sleeps.
-//
-// The glyph says what will happen rather than what is set: "zZ" when the machine will sleep
-// normally, the same struck through when it is being held awake.
+// The struck-through "zZ" is the only glyph this needs: it is never drawn while the machine is
+// free to sleep.
 BarIcon {
     id: root
-    // Overridden where it is placed, which decides when an alert shows.
-    visible: S.StayAwake.connected && S.StayAwake.available
+    // Overridden where it is placed, which decides when the alert shows.
+    visible: S.StayAwake.connected && S.StayAwake.enabled
     mouseEnabled: true
-    iconText: S.StayAwake.enabled ? "󰒳" : "󰒲"
-    iconColor: S.StayAwake.enabled ? T.Config.accent : T.Config.outline
+    iconText: "󰒳"
+    iconColor: T.Config.accent
 
     function performLeftClickAction() {
         S.StayAwake.toggle();

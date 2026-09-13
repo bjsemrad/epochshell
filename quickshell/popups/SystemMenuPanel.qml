@@ -136,7 +136,7 @@ HoverPopupWindow {
     // service rather than their own last click, so the two views never disagree.
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 0
+        spacing: T.Config.popupLayoutSpacing
 
         ToggleRow {
             label: "Night mode"
