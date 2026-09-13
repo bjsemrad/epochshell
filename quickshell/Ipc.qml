@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import qs.services as S
+import qs.theme as T
 
 // Every IPC target the shell exposes, gathered in one place at the shell root.
 //
@@ -153,6 +154,43 @@ Scope {
             if (!S.CompositorService.connected) return root.fail("EpochOxide is not reachable");
             S.CompositorService.focusWindow(id);
             return root.ok({ window: id });
+        }
+    }
+
+    // The palette. A theme is a file, and which one is worn is a line in another file, so this is
+    // only the door: a keybinding, a launcher entry and a script all come through it and all end
+    // up writing the same state the shell is already watching.
+    IpcHandler {
+        target: "theme"
+
+        function list(): string {
+            return root.ok({ themes: T.Config.availableThemes, current: T.Config.themeName });
+        }
+
+        // `loaded` false is the interesting case: the named theme's file was not found in either
+        // directory, so what is on screen is the built-in defaults.
+        function get(): string {
+            return root.ok({
+                theme: T.Config.themeName,
+                loaded: T.Config.themeLoaded,
+                path: T.Config.themePath,
+                selected: T.Config.selectedThemeName,
+                configured: T.Config.configThemeName,
+                themes: T.Config.availableThemes
+            });
+        }
+
+        function set(name: string): string {
+            if (!T.Config.selectTheme(name)) {
+                return root.fail('unknown theme "' + String(name) + '"', { known: T.Config.availableThemes });
+            }
+            return root.ok({ theme: T.Config.themeName });
+        }
+
+        // Forget the pick and go back to whatever config.toml asks for.
+        function reset(): string {
+            T.Config.clearThemeSelection();
+            return root.ok({ theme: T.Config.themeName });
         }
     }
 

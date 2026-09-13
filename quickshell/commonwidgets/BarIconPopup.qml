@@ -5,9 +5,11 @@ import Quickshell.Io
 import qs.theme as T
 import qs.services as S
 
+// No border. The hover and open states are carried by the fill alone -- a 1px outline was being
+// drawn here with no border.color set, which meant Qt's default black: a hard ring around every
+// bar icon, obvious on a light theme and a dark smudge on a dark one.
 Rectangle {
     id: root
-    border.width: 1
     color: popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
     implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding

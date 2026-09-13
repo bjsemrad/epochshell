@@ -127,6 +127,15 @@
               check "$menu"
             done
             [ "$found" = 1 ] || echo "  --    no menus installed"
+            data_home=''${XDG_DATA_HOME:-$HOME/.local/share}
+            echo "Themes:"
+            found=0
+            for theme in ${self}/quickshell/theme/themes/*.toml "$data_home"/epochshell/themes/*.toml; do
+              [ -e "$theme" ] || continue
+              found=1
+              check "$theme"
+            done
+            [ "$found" = 1 ] || echo "  --    no themes found"
             rm -f /tmp/epochshell-toml-err
             exit $status
           '';

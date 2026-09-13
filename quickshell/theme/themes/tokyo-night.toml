@@ -1,0 +1,30 @@
+# EpochShell theme: tokyo-night
+#
+# The closest thing here to the default dark -- deep blue-black with a bright blue accent -- but
+# colder and more saturated in its named colours. bg_dark is the ground so the bar reads as a shade
+# under the panels.
+#
+# `outline` is lifted off the comment colour (#565f89), which does not reach 3:1 on bg_dark, and
+# the hover surface is bg_highlight rather than bg -- the two are so close that a hover drawn in
+# bg was invisible.
+
+background = "#16161e"
+surface = "#1a1b26"
+surfaceVariant = "#414868"
+surfaceContainer = "#292e42"
+surfaceContainerHigh = "#333a54"
+surfaceContainerHighest = "#414868"
+surfaceText = "#c0caf5"
+outline = "#7982a9"
+
+accent = "#7aa2f7"
+
+purple = "#bb9af7"
+green = "#9ece6a"
+orange = "#ff9e64"
+blue = "#7aa2f7"
+yellow = "#e0af68"
+cyan = "#7dcfff"
+red = "#f7768e"
+bg_blue = "#7dcfff"
+bg_yellow = "#e0af68"

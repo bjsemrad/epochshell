@@ -7,6 +7,7 @@ import Quickshell.Widgets
 import Quickshell.Io
 import qs.commonwidgets
 import qs.modules
+import qs.modules.system
 import qs.theme as T
 import qs.services as S
 
@@ -129,11 +130,12 @@ HoverPopupWindow {
 
     ComponentSplitter {}
 
-    // Screen and session state, above the power actions: things you turn on and off, rather than
-    // things that end the session. Both also have a toggle in the bar drawer, which is the quick
-    // way to reach them; these rows are the ones that say what the state actually is -- the
-    // temperature the screen is held at, how long the machine has been held awake. Both read the
-    // service rather than their own last click, so the two views never disagree.
+    // How the screen looks and what the session is doing, above the power actions: things you set,
+    // rather than things that end the session. Night mode and stay awake also have a toggle in the
+    // bar drawer, which is the quick way to reach them; these rows are the ones that say what the
+    // state actually is -- the temperature the screen is held at, how long the machine has been
+    // held awake, which palette is on. Every one reads its service rather than its own last click,
+    // so the views never disagree.
     ColumnLayout {
         Layout.fillWidth: true
         spacing: T.Config.popupLayoutSpacing
@@ -160,6 +162,11 @@ HoverPopupWindow {
             function handleToggled(checked) {
                 S.StayAwake.set(checked);
             }
+        }
+
+        ThemeSelector {
+            id: themeRow
+            popup: themePanel
         }
     }
 
@@ -238,5 +245,18 @@ HoverPopupWindow {
 
     ComponentSpacer {
         bottomMargin: 6
+    }
+
+    // The picker hangs off the Theme row, so while it is up this menu must not close itself when
+    // the pointer leaves -- the pointer has gone into the picker, and closing would take the
+    // window the picker is anchored to out from under it.
+    ThemePanel {
+        id: themePanel
+        trigger: themeRow
+        parentPanel: systemMenuPopup
+        onOpenChanged: {
+            systemMenuPopup.stopHide = open;
+            if (!open) systemMenuPopup._updateHover();
+        }
     }
 }

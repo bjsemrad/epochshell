@@ -1,0 +1,27 @@
+# EpochShell theme: dracula
+#
+# High-saturation on a slate ground, with purple as the accent rather than a blue.
+#
+# Dracula has one blue-cyan rather than two, so `blue` and `cyan` are the same value and `bg_blue`
+# uses the comment colour to keep them apart where both are drawn together.
+
+background = "#21222c"
+surface = "#282a36"
+surfaceVariant = "#44475a"
+surfaceContainer = "#282a36"
+surfaceContainerHigh = "#343746"
+surfaceContainerHighest = "#44475a"
+surfaceText = "#f8f8f2"
+outline = "#6272a4"
+
+accent = "#bd93f9"
+
+purple = "#bd93f9"
+green = "#50fa7b"
+orange = "#ffb86c"
+blue = "#8be9fd"
+yellow = "#f1fa8c"
+cyan = "#8be9fd"
+red = "#ff5555"
+bg_blue = "#6272a4"
+bg_yellow = "#f1fa8c"

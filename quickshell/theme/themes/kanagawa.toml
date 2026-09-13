@@ -1,0 +1,28 @@
+# EpochShell theme: kanagawa
+#
+# Ink-dark and warm-toned, after the woodblock prints. sumiInk0 is the ground and sumiInk3 the
+# raised surface, which gives the bar a deeper black than any other theme here.
+#
+# `outline` is lifted off fujiGray (#727169), kanagawa's comment colour, which does not carry
+# enough contrast on sumiInk0 to read as hint text. Everything else is canonical.
+
+background = "#16161d"
+surface = "#1f1f28"
+surfaceVariant = "#363646"
+surfaceContainer = "#1f1f28"
+surfaceContainerHigh = "#2a2a37"
+surfaceContainerHighest = "#363646"
+surfaceText = "#dcd7ba"
+outline = "#8a887d"
+
+accent = "#7e9cd8"
+
+purple = "#957fb8"
+green = "#98bb6c"
+orange = "#ffa066"
+blue = "#7e9cd8"
+yellow = "#e6c384"
+cyan = "#7aa89f"
+red = "#e46876"
+bg_blue = "#7fb4ca"
+bg_yellow = "#c0a36e"

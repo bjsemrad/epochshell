@@ -1,0 +1,26 @@
+# EpochShell theme: catppuccin-mocha
+#
+# The most-ported palette going, and a useful contrast with the default dark: its surfaces are
+# violet-tinted and closer together, so the bar sits nearer its panels than a near-black theme
+# does. Crust is the ground, base the raised surface, surface0/1 the hover steps above it.
+
+background = "#11111b"
+surface = "#1e1e2e"
+surfaceVariant = "#45475a"
+surfaceContainer = "#1e1e2e"
+surfaceContainerHigh = "#313244"
+surfaceContainerHighest = "#45475a"
+surfaceText = "#cdd6f4"
+outline = "#9399b2"
+
+accent = "#89b4fa"
+
+purple = "#cba6f7"
+green = "#a6e3a1"
+orange = "#fab387"
+blue = "#89b4fa"
+yellow = "#f9e2af"
+cyan = "#94e2d5"
+red = "#f38ba8"
+bg_blue = "#74c7ec"
+bg_yellow = "#f9e2af"

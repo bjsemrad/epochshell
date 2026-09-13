@@ -1,0 +1,26 @@
+# EpochShell theme: everforest
+#
+# Green-grey and warm, the gentlest of the dark themes here. Its accent is green rather than blue,
+# which is worth knowing: `accent` and the `green` named colour are the same value, so a switch and
+# a "connected" dot read alike. That is everforest working as intended, not a mistake.
+
+background = "#232a2e"
+surface = "#2d353b"
+surfaceVariant = "#475258"
+surfaceContainer = "#2d353b"
+surfaceContainerHigh = "#343f44"
+surfaceContainerHighest = "#3d484d"
+surfaceText = "#d3c6aa"
+outline = "#9da9a0"
+
+accent = "#a7c080"
+
+purple = "#d699b6"
+green = "#a7c080"
+orange = "#e69875"
+blue = "#7fbbb3"
+yellow = "#dbbc7f"
+cyan = "#83c092"
+red = "#e67e80"
+bg_blue = "#7fbbb3"
+bg_yellow = "#dbbc7f"

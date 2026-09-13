@@ -1,0 +1,29 @@
+# EpochShell theme: catppuccin-latte
+#
+# Catppuccin's light member, and a second light theme to test against: where `light` is a plain
+# white ground, latte's is warm and its raised surfaces go *down* in lightness in small steps, so
+# it exercises the surface roles at much lower contrast than anything else here.
+#
+# The surface ramp is shifted one step down the palette (crust/surface0/surface1 rather than
+# mantle/crust/surface0) because mantle against base is too close to show a hover.
+
+background = "#eff1f5"
+surface = "#e6e9ef"
+surfaceVariant = "#bcc0cc"
+surfaceContainer = "#dce0e8"
+surfaceContainerHigh = "#ccd0da"
+surfaceContainerHighest = "#bcc0cc"
+surfaceText = "#4c4f69"
+outline = "#7c7f93"
+
+accent = "#1e66f5"
+
+purple = "#8839ef"
+green = "#40a02b"
+orange = "#fe640b"
+blue = "#1e66f5"
+yellow = "#df8e1d"
+cyan = "#179299"
+red = "#d20f39"
+bg_blue = "#209fb5"
+bg_yellow = "#df8e1d"

@@ -57,12 +57,19 @@ PopupWindow {
         }
     }
 
+    // Where the card sits relative to its trigger. The defaults are the bar case -- hanging below
+    // a bar module -- and are what every panel but one uses. A panel opened from inside another
+    // panel overrides them to fly out sideways instead.
+    property int anchorEdges: Edges.Left | Edges.Bottom
+    property int anchorGravity: Edges.Bottom | Edges.Middle
+    property real anchorRectY: trigger ? trigger.mapToGlobal(0, 0).y + trigger.height + 5 : 0
+
     anchor {
         item: trigger
-        edges: Edges.Left | Edges.Bottom
-        gravity: Edges.Bottom | Edges.Middle
+        edges: popup.anchorEdges
+        gravity: popup.anchorGravity
         adjustment: PopupAdjustment.Slide | PopupAdjustment.Flip
-        rect.y: trigger.mapToGlobal(0, 0).y + trigger.height + 5
+        rect.y: popup.anchorRectY
     }
 
     Item {

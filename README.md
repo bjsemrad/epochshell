@@ -29,6 +29,8 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 - Sound, media, and brightness OSDs.
 - Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
+- Eleven named themes, with a live picker in the system menu that previews a palette on hover, and
+  `epochctl theme set` for keybindings and scripts.
 - Optional external config override file at `~/.config/epochshell/config.toml`.
 
 ## Layout
@@ -46,7 +48,8 @@ quickshell/
   modules/                   # Bar modules and launcher
   popups/                    # Popup panels
   services/                  # QML singletons and backend integrations
-  theme/Config.qml           # Defaults plus optional TOML overrides
+  theme/Config.qml           # Defaults, theme selection, and optional TOML overrides
+  theme/themes/*.toml        # Shipped palettes: dark, light, and nine more
 ```
 
 ## Running Locally
@@ -196,6 +199,92 @@ pkexec ls /root
 ```
 
 The prompt supports password auth and a fingerprint waiting state when `pam_fprintd.so` is present in `/etc/pam.d/polkit-1`. It also checks laptop lid state and falls back to password when the reader is physically unavailable.
+
+## Theming
+
+The palette is a named theme file. Two ship with the shell, in `quickshell/theme/themes/`:
+
+| Theme              | What it is |
+| ------------------ | ---------- |
+| `dark`             | The default. Also mirrored as the built-in fallback in `theme/Config.qml`, so a shell that cannot find any theme file still looks right. |
+| `light`            | Plain white ground, for checking a module reads the surface roles rather than assuming a dark one. |
+| `gruvbox`          | Warm retro. The one that proves nothing assumes a cool-toned ground. |
+| `catppuccin-mocha` | Violet-tinted surfaces, close together. |
+| `catppuccin-latte` | The second light theme, warm and low-contrast. |
+| `tokyo-night`      | Deep blue-black, bright blue accent. |
+| `nord`             | Muted arctic blue-greys; the narrowest surface range here. |
+| `rose-pine`        | Soft and desaturated, iris accent. |
+| `everforest`       | Green-grey and warm, green accent. |
+| `dracula`          | High-saturation slate, purple accent. |
+| `kanagawa`         | Ink-dark and warm; the deepest black of the set. |
+
+Every one is checked for contrast: text and accent against the ground, and a visible step between
+the ground and the hover surface. Three of them needed adjusting off their canonical values to get
+there, and each says which in its own file.
+
+Switch from the **system menu**: the Theme row at the bottom of the settings group opens a picker
+beside the menu, one row per theme found on disk with a swatch strip of its actual colours.
+**Hovering a row wears the theme** -- the whole shell repaints so you can see it rather than guess
+from a name -- and only a click keeps it. Moving away puts back what you had. The row hides itself
+when there is only one theme to choose from.
+
+The same switch from a terminal, a keybinding or a script, which keeps the choice across restarts:
+
+```sh
+epochctl theme list          # every theme that can be selected, and which is current
+epochctl theme set light     # switch, and remember
+epochctl theme get           # what is in force, and the file it came from
+epochctl theme reset         # forget the pick, back to the configured default
+```
+
+The launcher reaches the same commands through the `themes` menu (see `epochoxide/examples/menus/themes.toml`).
+
+### Writing a theme
+
+A theme is the same flat key/value format as `config.toml`, so it can set any key -- colours,
+but also fonts and sizes if a theme wants a different feel. Copy one of the shipped files to
+`~/.local/share/epochshell/themes/<name>.toml` and edit it; a user theme shadows a shipped one of
+the same name, so `light.toml` there replaces the one below.
+
+Precedence, lowest first:
+
+1. Built-in defaults in `theme/Config.qml`
+2. The theme file
+3. `~/.config/epochshell/config.toml`
+
+So a key set in `config.toml` holds whatever theme is selected, which is what you want for a
+personal tweak and not what you want for a whole palette.
+
+### Where things live
+
+Themes and the selection are deliberately **not** kept beside `config.toml`. The flake installs the
+whole shell tree at `~/.config/epochshell`, which on a home-manager machine makes that directory a
+read-only symlink into the nix store -- nothing can be written there, and nothing written survives a
+rebuild. So:
+
+| What | Where |
+| ---- | ----- |
+| Shipped themes | `<shell root>/theme/themes/*.toml` |
+| Your themes | `~/.local/share/epochshell/themes/*.toml` |
+| The selected theme | `~/.local/state/epochshell/theme` |
+| Key overrides | `~/.config/epochshell/config.toml` (see the caveat below) |
+
+Both the theme files and the selection are watched, so a switch or an edit shows up without a
+reload, and a second shell instance follows along.
+
+`config.toml` can also name a starting theme, for a machine where that file is generated rather
+than edited:
+
+```toml
+theme = "light"
+```
+
+A live `epochctl theme set` beats it; `epochctl theme reset` gives it back.
+
+> **Caveat on `config.toml`:** on a home-manager install this file sits inside that read-only
+> store symlink and so cannot exist at all. Overriding individual keys there is only available on
+> an install that puts the shell somewhere other than `~/.config/epochshell`. Themes and theme
+> selection work either way, which is why they live elsewhere.
 
 ## Configuration
 
@@ -422,7 +511,7 @@ Some modules are compositor-aware. Hyprland and Niri support are represented by 
 ## Development Notes
 
 - The active shell root is `quickshell/shell.qml`.
-- Theme and sizing defaults live in `quickshell/theme/Config.qml`.
+- Theme and sizing defaults live in `quickshell/theme/Config.qml`; palettes live in `quickshell/theme/themes/`.
 - QML services are registered in `quickshell/services/qmldir`.
 - The current codebase intentionally omits older grouped bar, overview, Nix update, and Bitwarden/rbw paths.
 - Live installed config may be generated or read-only depending on the system setup; for development, run directly with `quickshell -p` from this repo.

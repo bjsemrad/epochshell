@@ -1,0 +1,31 @@
+# EpochShell theme: light
+#
+# The same shell on a light ground. Roles are what carry over, not lightness: `background` is
+# still the ground the bar and popups sit on, and `surface` and the containers are still the
+# raised things drawn on top of it -- they simply go darker than the ground here instead of
+# lighter. Anything that reads the roles rather than assuming "dark" follows along.
+#
+# Text is near-black on white rather than white on black, so the accent and named colours are
+# darker and more saturated than the dark theme's: One Light's palette rather than One Dark's,
+# which is what keeps them legible against a pale surface.
+
+background = "#ffffff"
+surface = "#f0f1f4"
+surfaceVariant = "#c9ccd3"
+surfaceContainer = "#f0f1f4"
+surfaceContainerHigh = "#e6e8ec"
+surfaceContainerHighest = "#dcdfe4"
+surfaceText = "#383a42"
+outline = "#7c8292"
+
+accent = "#4078f2"
+
+purple = "#a626a4"
+green = "#50a14f"
+orange = "#c18401"
+blue = "#4078f2"
+yellow = "#986801"
+cyan = "#0184bc"
+red = "#e45649"
+bg_blue = "#4078f2"
+bg_yellow = "#b3791a"

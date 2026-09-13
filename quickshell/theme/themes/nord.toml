@@ -1,0 +1,29 @@
+# EpochShell theme: nord
+#
+# Muted arctic blue-greys, and the lowest-contrast theme here by some way: every surface sits
+# within a narrow band, which is the point of nord and also what makes it a good check that hover
+# and selection are still visible when the steps between surfaces are small.
+#
+# `outline` is lifted off nord3 (#4c566a), which is nord's own comment colour and too dark to read
+# as hint text on nord0. Everything else is canonical.
+
+background = "#2e3440"
+surface = "#3b4252"
+surfaceVariant = "#4c566a"
+surfaceContainer = "#3b4252"
+surfaceContainerHigh = "#434c5e"
+surfaceContainerHighest = "#4c566a"
+surfaceText = "#d8dee9"
+outline = "#7b88a1"
+
+accent = "#88c0d0"
+
+purple = "#b48ead"
+green = "#a3be8c"
+orange = "#d08770"
+blue = "#81a1c1"
+yellow = "#ebcb8b"
+cyan = "#8fbcbb"
+red = "#bf616a"
+bg_blue = "#5e81ac"
+bg_yellow = "#ebcb8b"

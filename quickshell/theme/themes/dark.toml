@@ -1,0 +1,34 @@
+# EpochShell theme: dark
+#
+# The shell's own palette, and the one it falls back to: every colour here is also a built-in
+# default in Config.qml, so a shell that cannot find this file still looks right. Keep the two in
+# step when changing a colour -- this file is the one to edit, the defaults are the parachute.
+#
+# A theme may set any config key, not only colours, so a theme that wants a different font or a
+# taller bar can say so. Keys the user sets in config.toml still win over whatever a theme says.
+
+# Surfaces, darkest first. `background` is the ground the bar and popups are drawn on;
+# `surface` and the containers are raised above it, and are what hover and selection use.
+background = "#0e1013"
+surface = "#1f2329"
+surfaceVariant = "#323641"
+surfaceContainer = "#1f2329"
+surfaceContainerHigh = "#282c34"
+surfaceContainerHighest = "#30363f"
+surfaceText = "#a0a8b7"
+outline = "#8c9199"
+
+# The accent is what switches, sliders and selection are drawn in.
+accent = "#4fa6ed"
+
+# Named colours, used where a module means a particular thing by one -- orange for a warmed
+# screen, red for an error, green for connected.
+purple = "#bf68d9"
+green = "#8ebd6b"
+orange = "#cc9057"
+blue = "#4fa6ed"
+yellow = "#e2b86b"
+cyan = "#48b0bd"
+red = "#e55561"
+bg_blue = "#61afef"
+bg_yellow = "#e8c88c"

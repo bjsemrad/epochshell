@@ -1,0 +1,31 @@
+# EpochShell theme: rose-pine
+#
+# Soft and low-saturation, with iris as the accent.
+#
+# Rose Pine is a six-hue palette with no true green, so `green` is foam -- the nearest thing it
+# has -- and `yellow` and `orange` are both gold. That means a "connected" indicator reads cyan
+# here rather than green. It is the honest mapping rather than a colour invented to fill a slot.
+#
+# The hover surface is overlay rather than surface: surface and base differ by too little to see a
+# hover against.
+
+background = "#191724"
+surface = "#1f1d2e"
+surfaceVariant = "#403d52"
+surfaceContainer = "#26233a"
+surfaceContainerHigh = "#302c47"
+surfaceContainerHighest = "#403d52"
+surfaceText = "#e0def4"
+outline = "#908caa"
+
+accent = "#c4a7e7"
+
+purple = "#c4a7e7"
+green = "#9ccfd8"
+orange = "#f6c177"
+blue = "#31748f"
+yellow = "#f6c177"
+cyan = "#9ccfd8"
+red = "#eb6f92"
+bg_blue = "#31748f"
+bg_yellow = "#f6c177"
