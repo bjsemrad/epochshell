@@ -50,9 +50,7 @@ Item {
             visible: enableToggle
             Layout.alignment: Qt.AlignVCenter
             checked: checkedValue
-            onToggled: {
-                handleToggled(rSwitch.checked);
-            }
+            onToggled: requested => handleToggled(requested)
         }
         PanelHeaderIcon {
             id: settings

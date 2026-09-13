@@ -57,12 +57,10 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             checked: root.checkedValue
             opacity: root.enableToggle ? 1 : 0.4
-            onToggled: {
-                if (!root.enableToggle) {
-                    optionSwitch.checked = root.checkedValue;
-                    return;
-                }
-                root.handleToggled(optionSwitch.checked);
+            // A refused row needs no undoing: the switch shows `checked`, which never moved.
+            onToggled: requested => {
+                if (!root.enableToggle) return;
+                root.handleToggled(requested);
             }
         }
     }

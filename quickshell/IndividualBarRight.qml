@@ -42,6 +42,9 @@ RowLayout {
         // Holding the machine awake is worth seeing with the drawer shut, the way a waiting
         // Taildrop is; the control itself is a drawer tool the rest of the time.
         readonly property bool showIdleAlert: S.StayAwake.enabled || (expanded && S.StayAwake.available)
+        // Night mode reads the same way: a warmed screen explains itself with the drawer shut,
+        // and the toggle is a drawer tool the rest of the time.
+        readonly property bool showNightAlert: S.NightLight.enabled || (expanded && S.NightLight.available)
         readonly property bool showNixAlert: S.NixUpdates.hasUpdates || (expanded && S.NixUpdates.available)
         readonly property bool showTailscaleAlert: S.Tailscale.hasIncomingFiles || (expanded && S.Tailscale.available)
         // The drawer's width is measured from what is actually in it rather than counted.
@@ -238,8 +241,9 @@ RowLayout {
                 Layout.alignment: Qt.AlignVCenter
                 popup: firmwarePanel
             }
-            NightLightIndicator {
+            NightModeToggle {
                 Layout.alignment: Qt.AlignVCenter
+                visible: S.NightLight.connected && drawer.showNightAlert
             }
             IdleInhibitorToggle {
                 Layout.alignment: Qt.AlignVCenter

@@ -130,7 +130,10 @@ HoverPopupWindow {
     ComponentSplitter {}
 
     // Screen and session state, above the power actions: things you turn on and off, rather than
-    // things that end the session.
+    // things that end the session. Both also have a toggle in the bar drawer, which is the quick
+    // way to reach them; these rows are the ones that say what the state actually is -- the
+    // temperature the screen is held at, how long the machine has been held awake. Both read the
+    // service rather than their own last click, so the two views never disagree.
     ColumnLayout {
         Layout.fillWidth: true
         spacing: 0
