@@ -1,0 +1,11 @@
+# EpochShell theme: dark-cyan
+#
+# `dark` with a cyan accent. Everything else -- the near-black ground, the muted text, the named
+# colours -- is inherited from it, so this file holds the one line that differs and a colour fixed
+# in dark is fixed here too.
+#
+# The nearest neighbour to the default blue; a half-step rather than a change of mind.
+
+extends = "dark"
+
+accent = "#48b0bd"

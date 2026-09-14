@@ -1,0 +1,11 @@
+# EpochShell theme: dark-red
+#
+# `dark` with a red accent. Everything else -- the near-black ground, the muted text, the named
+# colours -- is inherited from it, so this file holds the one line that differs and a colour fixed
+# in dark is fixed here too.
+#
+# The warmest of the set, and the only accent that also means something on its own -- an error is drawn in this colour too, so a switch and a warning read alike.
+
+extends = "dark"
+
+accent = "#e55561"

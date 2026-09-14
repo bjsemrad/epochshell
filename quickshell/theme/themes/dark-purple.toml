@@ -1,0 +1,11 @@
+# EpochShell theme: dark-purple
+#
+# `dark` with a purple accent. Everything else -- the near-black ground, the muted text, the named
+# colours -- is inherited from it, so this file holds the one line that differs and a colour fixed
+# in dark is fixed here too.
+#
+# The most distinct from blue without leaving the cool half of the palette.
+
+extends = "dark"
+
+accent = "#bf68d9"

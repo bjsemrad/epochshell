@@ -1,0 +1,11 @@
+# EpochShell theme: dark-yellow
+#
+# `dark` with a yellow accent. Everything else -- the near-black ground, the muted text, the named
+# colours -- is inherited from it, so this file holds the one line that differs and a colour fixed
+# in dark is fixed here too.
+#
+# The brightest accent here at 10.3:1 -- it carries further against the ground than blue does.
+
+extends = "dark"
+
+accent = "#e2b86b"

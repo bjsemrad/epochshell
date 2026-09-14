@@ -1,0 +1,11 @@
+# EpochShell theme: dark-green
+#
+# `dark` with a green accent. Everything else -- the near-black ground, the muted text, the named
+# colours -- is inherited from it, so this file holds the one line that differs and a colour fixed
+# in dark is fixed here too.
+#
+# Quiet and slightly cool. Shares its colour with the 'connected' indicators, so a switch and a live network read alike.
+
+extends = "dark"
+
+accent = "#8ebd6b"

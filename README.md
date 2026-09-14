@@ -29,7 +29,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 - Sound, media, and brightness OSDs.
 - Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
-- Eighteen named themes, with a live picker in the system menu that previews a palette on hover, and
+- Twenty-four named themes, with a live picker in the system menu that previews a palette on hover, and
   `epochctl theme set` for keybindings and scripts.
 - Optional external config override file at `~/.config/epochshell/config.toml`.
 
@@ -49,7 +49,7 @@ quickshell/
   popups/                    # Popup panels
   services/                  # QML singletons and backend integrations
   theme/Config.qml           # Defaults, theme selection, and optional TOML overrides
-  theme/themes/*.toml        # Shipped palettes: dark, light, and sixteen more
+  theme/themes/*.toml        # Shipped palettes: dark and its accent variants, light, and more
 ```
 
 ## Running Locally
@@ -207,6 +207,7 @@ The palette is a named theme file. Two ship with the shell, in `quickshell/theme
 | Theme              | What it is |
 | ------------------ | ---------- |
 | `dark`             | The default. One Dark's palette on a near-black ground. Also mirrored as the built-in fallback in `theme/Config.qml`, so a shell that cannot find any theme file still looks right. |
+| `dark-*`           | `dark` in each of One Dark's other accents: `red`, `green`, `purple`, `orange`, `yellow`, `cyan`. One line each -- see **Extending a theme** below. |
 | `one-dark`         | The parent `dark` is derived from, on its native `#282c34`. |
 | `ayu-dark`         | The closest thing to `dark` in the wild -- same near-black ground, vivid accent. |
 | `material-ocean`   | The softest text here; deep blue-black. |
@@ -246,6 +247,24 @@ epochctl theme reset         # forget the pick, back to the configured default
 ```
 
 The launcher reaches the same commands through the `themes` menu (see `epochoxide/examples/menus/themes.toml`).
+
+### Extending a theme
+
+A theme can build on another with `extends`, which is how the `dark-*` family stays one palette:
+
+```toml
+# dark-red.toml, in full
+extends = "dark"
+
+accent = "#e55561"
+```
+
+The parent is applied first, then the child's own keys on top, so a colour fixed in `dark` is fixed
+in every variant. Inheritance is exactly one level deep -- a parent's own `extends` is ignored,
+which means there is no cycle to worry about. A theme naming itself is ignored too.
+
+The picker resolves this as well: a variant's swatch is drawn from the palette it inherits, not
+from the two lines in its own file.
 
 ### Writing a theme
 

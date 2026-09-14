@@ -54,10 +54,24 @@ Singleton {
     // moving the mouse away or closing the panel puts back whatever was actually chosen.
     property string previewThemeName: ""
 
-    // The texts the palette is built from, kept separate so either can change on its own: editing
+    // A theme may name another to build on with `extends`, which is how a family of one palette in
+    // several accents stays one palette: the variants carry the line that differs and nothing else,
+    // so a colour fixed in the parent is fixed in all of them.
+    //
+    // Exactly one level deep. A parent's own `extends` is ignored, which costs nothing real -- a
+    // chain is not a thing anyone has wanted yet -- and means there is no cycle to detect.
+    property string parentThemeName: ""
+    readonly property string parentThemePath: parentThemeName === ""
+        ? ""
+        : (parentFromUserDir ? userThemeDir : bundledThemeDir) + "/" + parentThemeName + ".toml"
+    property bool parentFromUserDir: true
+    onParentThemeNameChanged: parentFromUserDir = true
+
+    // The texts the palette is built from, kept separate so each can change on its own: editing
     // a theme file must not need config.toml re-read, or the other way round.
     property string configText: ""
     property string themeText: ""
+    property string parentThemeText: ""
 
     // The user theme dir is tried first and the bundled one second, by flipping this on a failed
     // load rather than by asking whether either file exists -- FileView answers that question by
@@ -76,6 +90,9 @@ Singleton {
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
     readonly property string themeKey: "theme"
+    // Handled the same way and for the same reason: it decides where values come from rather than
+    // being one of them.
+    readonly property string extendsKey: "extends"
     readonly property var intKeys: [
         "popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize",
         "barWeatherSize", "barModuleSpacing", "barGroupIconSpacing", "barIconTextSpacing",
@@ -235,6 +252,12 @@ Singleton {
             root.themeLoaded = true;
             root.committedThemeName = root.themeName;
             root.themeText = text();
+            // A changed parent re-points the parent FileView, which rebuilds again on load. When
+            // there is no parent the text is cleared here, so dropping an `extends` line takes
+            // effect without a reload.
+            const parent = root.readExtends(root.themeText);
+            if (parent === "") root.parentThemeText = "";
+            root.parentThemeName = parent;
             // A pick is only kept once its file has actually loaded, so a name that turns out not
             // to exist never makes it into the state file to greet the next session.
             if (root.pendingSelection !== "" && root.pendingSelection === root.themeName) {
@@ -290,6 +313,36 @@ Singleton {
         onFileChanged: reload()
     }
 
+    // The theme named by `extends`, looked up in the same two places and in the same order.
+    FileView {
+        id: parentFile
+        path: root.parentThemePath
+        watchChanges: true
+        printErrors: false
+
+        onLoaded: {
+            root.parentThemeText = text();
+            root.rebuild();
+        }
+
+        onLoadFailed: {
+            if (root.parentFromUserDir) {
+                root.parentFromUserDir = false;
+                Qt.callLater(parentFile.reload);
+                return;
+            }
+            // A theme extending something that is not there still applies its own values -- it is
+            // just missing whatever it expected to inherit, which is worth saying out loud.
+            root.parentThemeText = "";
+            if (root.parentThemeName !== "") {
+                console.warn("EpochShell theme", root.themeName, "extends unknown theme:", root.parentThemeName);
+            }
+            root.rebuild();
+        }
+
+        onFileChanged: reload()
+    }
+
     // Every theme on disk, and enough of each one's palette to draw it without wearing it.
     //
     // One pass that cats the files rather than a find for names and then a read per theme: a
@@ -323,6 +376,7 @@ Singleton {
     function applyThemeScan(raw) {
         const names = [];
         const palettes = {};
+        const parents = {};
         const lines = String(raw || "").split("\n");
         let current = "";
 
@@ -347,8 +401,26 @@ Singleton {
             if (eq < 0) continue;
 
             const key = line.slice(0, eq).trim();
+
+            if (key === root.extendsKey) {
+                parents[current] = String(root.parseTomlValue(line.slice(eq + 1))).trim();
+                continue;
+            }
+
             if (root.colorKeys.indexOf(key) === -1) continue;
             palettes[current][key] = String(root.parseTomlValue(line.slice(eq + 1)));
+        }
+
+        // A variant's file holds only what differs, so its swatch has to be drawn from the parent
+        // it inherits the rest of. Done after the loop because a parent may be read after its
+        // child -- the directory is walked alphabetically, not in dependency order.
+        for (const name in parents) {
+            const parent = palettes[parents[name]];
+            if (!parent || parents[name] === name) continue;
+            const merged = {};
+            for (const key in parent) merged[key] = parent[key];
+            for (const key in palettes[name]) merged[key] = palettes[name][key];
+            palettes[name] = merged;
         }
 
         names.sort();
@@ -530,8 +602,8 @@ Singleton {
             if (eq < 0) continue;
 
             const key = line.slice(0, eq).trim();
-            // Already acted on: it chose the file this loop is reading.
-            if (key === root.themeKey) continue;
+            // Already acted on: these chose the files this loop is reading.
+            if (key === root.themeKey || key === root.extendsKey) continue;
 
             const value = root.parseTomlValue(line.slice(eq + 1));
             root.applyOverride(key, value, overridden);
@@ -552,6 +624,23 @@ Singleton {
         }
 
         return root.defaultThemeName;
+    }
+
+    // Which theme this one builds on, read before any value is applied.
+    function readExtends(raw) {
+        const lines = String(raw || "").split("\n");
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = root.stripTomlComment(lines[i]);
+            const eq = line.indexOf("=");
+            if (eq < 0) continue;
+            if (line.slice(0, eq).trim() !== root.extendsKey) continue;
+            const parent = String(root.parseTomlValue(line.slice(eq + 1))).trim();
+            // A theme naming itself would load itself forever.
+            return parent === root.themeName ? "" : parent;
+        }
+
+        return "";
     }
 
     function acceptConfig(raw) {
@@ -590,6 +679,7 @@ Singleton {
         themeScan.running = true;
         root.resetDefaults();
         const overridden = {};
+        root.applyText(root.parentThemeText, overridden);
         root.applyText(root.themeText, overridden);
         root.applyText(root.configText, overridden);
         root.updateDerived(overridden);
