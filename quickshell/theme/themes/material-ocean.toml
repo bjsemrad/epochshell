@@ -1,0 +1,28 @@
+# EpochShell theme: material-ocean
+#
+# The softest text of any theme here -- #8f93a2 on a deep blue-black -- which is the half of
+# `dark`'s character that ayu misses. If what you like about dark is that the text does not shout,
+# this is the one that takes it further.
+#
+# `outline` is lifted off the comment colour (#464b5d), unreadable as hint text on this ground.
+
+background = "#0f111a"
+surface = "#1a1c25"
+surfaceVariant = "#2f3240"
+surfaceContainer = "#1a1c25"
+surfaceContainerHigh = "#232634"
+surfaceContainerHighest = "#2f3240"
+surfaceText = "#8f93a2"
+outline = "#717693"
+
+accent = "#82aaff"
+
+purple = "#c792ea"
+green = "#c3e88d"
+orange = "#f78c6c"
+blue = "#82aaff"
+yellow = "#ffcb6b"
+cyan = "#89ddff"
+red = "#f07178"
+bg_blue = "#89ddff"
+bg_yellow = "#ffcb6b"

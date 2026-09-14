@@ -1,0 +1,26 @@
+# EpochShell theme: one-dark
+#
+# The parent. This shell's `dark` is One Dark's palette with the ground dropped from #282c34 to
+# near-black -- put the two side by side in the picker and the difference is exactly that one
+# decision. Here #282c34 is the raised surface and the chrome grey beneath it is the ground.
+
+background = "#21252b"
+surface = "#282c34"
+surfaceVariant = "#3e4451"
+surfaceContainer = "#282c34"
+surfaceContainerHigh = "#2c313a"
+surfaceContainerHighest = "#3e4451"
+surfaceText = "#abb2bf"
+outline = "#828997"
+
+accent = "#61afef"
+
+purple = "#c678dd"
+green = "#98c379"
+orange = "#d19a66"
+blue = "#61afef"
+yellow = "#e5c07b"
+cyan = "#56b6c2"
+red = "#e06c75"
+bg_blue = "#61afef"
+bg_yellow = "#e5c07b"

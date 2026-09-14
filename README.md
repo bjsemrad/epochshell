@@ -29,7 +29,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 - Sound, media, and brightness OSDs.
 - Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
-- Eleven named themes, with a live picker in the system menu that previews a palette on hover, and
+- Eighteen named themes, with a live picker in the system menu that previews a palette on hover, and
   `epochctl theme set` for keybindings and scripts.
 - Optional external config override file at `~/.config/epochshell/config.toml`.
 
@@ -49,7 +49,7 @@ quickshell/
   popups/                    # Popup panels
   services/                  # QML singletons and backend integrations
   theme/Config.qml           # Defaults, theme selection, and optional TOML overrides
-  theme/themes/*.toml        # Shipped palettes: dark, light, and nine more
+  theme/themes/*.toml        # Shipped palettes: dark, light, and sixteen more
 ```
 
 ## Running Locally
@@ -206,21 +206,29 @@ The palette is a named theme file. Two ship with the shell, in `quickshell/theme
 
 | Theme              | What it is |
 | ------------------ | ---------- |
-| `dark`             | The default. Also mirrored as the built-in fallback in `theme/Config.qml`, so a shell that cannot find any theme file still looks right. |
-| `light`            | Plain white ground, for checking a module reads the surface roles rather than assuming a dark one. |
-| `gruvbox`          | Warm retro. The one that proves nothing assumes a cool-toned ground. |
+| `dark`             | The default. One Dark's palette on a near-black ground. Also mirrored as the built-in fallback in `theme/Config.qml`, so a shell that cannot find any theme file still looks right. |
+| `one-dark`         | The parent `dark` is derived from, on its native `#282c34`. |
+| `ayu-dark`         | The closest thing to `dark` in the wild -- same near-black ground, vivid accent. |
+| `material-ocean`   | The softest text here; deep blue-black. |
+| `flexoki-dark`     | `dark`'s darkness at a warm-neutral temperature. |
 | `catppuccin-mocha` | Violet-tinted surfaces, close together. |
-| `catppuccin-latte` | The second light theme, warm and low-contrast. |
 | `tokyo-night`      | Deep blue-black, bright blue accent. |
+| `kanagawa`         | Ink-dark and warm; the deepest black of the set. |
+| `gruvbox`          | Warm retro. The one that proves nothing assumes a cool-toned ground. |
+| `everforest`       | Green-grey and warm, green accent. |
 | `nord`             | Muted arctic blue-greys; the narrowest surface range here. |
 | `rose-pine`        | Soft and desaturated, iris accent. |
-| `everforest`       | Green-grey and warm, green accent. |
 | `dracula`          | High-saturation slate, purple accent. |
-| `kanagawa`         | Ink-dark and warm; the deepest black of the set. |
+| `monokai`          | The loudest set here: near-white text, high chroma, warm olive ground. |
+| `solarized-dark`   | Teal surfaces rather than grey; the sternest test of a role-based palette. |
+| `light`            | Plain white ground, for checking a module reads the surface roles rather than assuming a dark one. |
+| `catppuccin-latte` | Warm light, low-contrast. |
+| `solarized-light`  | Cream light, sharing solarized-dark's named colours exactly. |
 
 Every one is checked for contrast: text and accent against the ground, and a visible step between
-the ground and the hover surface. Three of them needed adjusting off their canonical values to get
-there, and each says which in its own file.
+the ground and the hover surface. Several needed adjusting off their canonical values to get
+there -- usually a comment colour too dark to serve as hint text -- and each says which in its own
+file.
 
 Switch from the **system menu**: the Theme row at the bottom of the settings group opens a picker
 beside the menu, one row per theme found on disk with a swatch strip of its actual colours.

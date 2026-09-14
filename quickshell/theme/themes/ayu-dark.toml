@@ -1,0 +1,28 @@
+# EpochShell theme: ayu-dark
+#
+# The nearest thing in the wild to this shell's own `dark`: the same near-black ground (#0b0e14
+# against #0e1013) and the same taste for a vivid accent over quiet text. Warmer and more neutral
+# in the text than dark's blue-grey.
+#
+# `outline` is lifted off ayu's UI grey (#565b66), which does not carry on a ground this dark.
+
+background = "#0b0e14"
+surface = "#0d1017"
+surfaceVariant = "#1e232b"
+surfaceContainer = "#151a23"
+surfaceContainerHigh = "#1c222c"
+surfaceContainerHighest = "#272d38"
+surfaceText = "#bfbdb6"
+outline = "#8a9199"
+
+accent = "#39bae6"
+
+purple = "#d2a6ff"
+green = "#aad94c"
+orange = "#ff8f40"
+blue = "#59c2ff"
+yellow = "#e6b450"
+cyan = "#95e6cb"
+red = "#d95757"
+bg_blue = "#39bae6"
+bg_yellow = "#e6b673"

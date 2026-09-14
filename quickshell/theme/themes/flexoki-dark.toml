@@ -1,0 +1,26 @@
+# EpochShell theme: flexoki-dark
+#
+# `dark`'s darkness at a different temperature: a warm-neutral near-black rather than a blue one,
+# with ink-on-paper text. Its named colours are printer's pigments -- lower in chroma than anything
+# else here without going grey.
+
+background = "#100f0f"
+surface = "#1c1b1a"
+surfaceVariant = "#403e3c"
+surfaceContainer = "#1c1b1a"
+surfaceContainerHigh = "#282726"
+surfaceContainerHighest = "#343331"
+surfaceText = "#cecdc3"
+outline = "#878580"
+
+accent = "#4385be"
+
+purple = "#8b7ec8"
+green = "#879a39"
+orange = "#da702c"
+blue = "#4385be"
+yellow = "#d0a215"
+cyan = "#3aa99f"
+red = "#d14d41"
+bg_blue = "#4385be"
+bg_yellow = "#d0a215"

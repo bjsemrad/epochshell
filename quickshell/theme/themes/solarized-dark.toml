@@ -1,0 +1,30 @@
+# EpochShell theme: solarized-dark
+#
+# The most-ported palette there is, and the oddest one here: its surfaces are teal rather than
+# grey, and its sixteen colours were picked for uniform perceived lightness rather than contrast.
+# That makes it the sternest test of whether a role-based palette holds up -- nothing in it is
+# neutral.
+#
+# `outline` is lifted off base01 (#586e75), which is base03's own companion and far too close to it
+# to read as hint text.
+
+background = "#002b36"
+surface = "#073642"
+surfaceVariant = "#12505f"
+surfaceContainer = "#073642"
+surfaceContainerHigh = "#0b4553"
+surfaceContainerHighest = "#12505f"
+surfaceText = "#93a1a1"
+outline = "#7d9294"
+
+accent = "#268bd2"
+
+purple = "#6c71c4"
+green = "#859900"
+orange = "#cb4b16"
+blue = "#268bd2"
+yellow = "#b58900"
+cyan = "#2aa198"
+red = "#dc322f"
+bg_blue = "#268bd2"
+bg_yellow = "#b58900"

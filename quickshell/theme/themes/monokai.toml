@@ -1,0 +1,29 @@
+# EpochShell theme: monokai
+#
+# The loudest set here by a distance: near-white text and high-chroma colours on a warm olive-grey.
+# Where `dark` keeps its text quiet and lets one accent carry, monokai turns everything up.
+#
+# Cyan is the accent rather than monokai's better-known pink or green, both of which are already
+# spoken for as the `red` and `green` roles -- an accent matching them would make those say nothing.
+# `outline` is lifted off the comment colour (#75715e).
+
+background = "#1e1f1c"
+surface = "#272822"
+surfaceVariant = "#49483e"
+surfaceContainer = "#272822"
+surfaceContainerHigh = "#34352f"
+surfaceContainerHighest = "#49483e"
+surfaceText = "#f8f8f2"
+outline = "#9d9787"
+
+accent = "#66d9ef"
+
+purple = "#ae81ff"
+green = "#a6e22e"
+orange = "#fd971f"
+blue = "#66d9ef"
+yellow = "#e6db74"
+cyan = "#66d9ef"
+red = "#f92672"
+bg_blue = "#66d9ef"
+bg_yellow = "#e6db74"

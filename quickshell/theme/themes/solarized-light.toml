@@ -1,0 +1,29 @@
+# EpochShell theme: solarized-light
+#
+# Solarized's other half, and the warmest light theme here -- a cream ground rather than a white
+# one. The named colours are identical to solarized-dark: that symmetry is the whole point of the
+# palette, and it is why the same accent works on both.
+#
+# `outline` is base00 rather than base0: on a light ground the roles invert, and base0 is the
+# muted tone meant for a *dark* background -- it does not reach 3:1 on base3.
+
+background = "#fdf6e3"
+surface = "#eee8d5"
+surfaceVariant = "#d6d0bd"
+surfaceContainer = "#eee8d5"
+surfaceContainerHigh = "#e4ddc8"
+surfaceContainerHighest = "#d6d0bd"
+surfaceText = "#586e75"
+outline = "#657b83"
+
+accent = "#268bd2"
+
+purple = "#6c71c4"
+green = "#859900"
+orange = "#cb4b16"
+blue = "#268bd2"
+yellow = "#b58900"
+cyan = "#2aa198"
+red = "#dc322f"
+bg_blue = "#268bd2"
+bg_yellow = "#b58900"
