@@ -26,7 +26,9 @@ Scope {
                 left: true
                 right: true
             }
-            color: T.Config.background
+            // Translucent by default, so the bar picks up the wallpaper behind it instead of
+            // sitting on top of it as a flat stripe. See barOpacity in theme/Config.qml.
+            color: T.Config.barBackground
             implicitHeight: T.Config.barHeight
 
             // Stay awake, at the compositor's level. The backend holds a logind inhibitor, which

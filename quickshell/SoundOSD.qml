@@ -75,7 +75,7 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 radius: 20
-                color: T.Config.background
+                color: T.Config.popupBackground
                 RowLayout {
                     anchors {
                         fill: parent

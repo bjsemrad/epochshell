@@ -414,7 +414,7 @@ PanelWindow {
             : (root.previewProvider === "files" || root.previewProvider === "clipboard") && root.previewText.length > 0 ? 900 : 520
         Behavior on height { enabled: root.panelAnimate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
         radius: T.Config.popupRadius
-        color: T.Config.background
+        color: T.Config.popupBackground
         border.width: 1
         border.color: T.Config.outline
         anchors.centerIn: parent

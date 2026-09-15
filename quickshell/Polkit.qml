@@ -255,7 +255,7 @@ Item {
             anchors.horizontalCenterOffset: root.shakeOffset
             anchors.centerIn: parent
             radius: T.Config.popupRadius
-            color: T.Config.background
+            color: T.Config.popupBackground
             border.width: 1
             border.color: root.errorFlash ? T.Config.red : T.Config.outline
             clip: true

@@ -115,8 +115,34 @@ Rectangle {
         command: ["curl", "-fsS", "--max-time", "10", "https://wttr.in/?format=j1"]
         running: true
 
+        // What curl said when it failed. `-f` makes it exit without writing a body on an HTTP
+        // error and `-S` sends the reason here, so this is the only place the actual cause shows
+        // up -- an expired certificate, a DNS failure, a timeout.
+        stderr: StdioCollector {
+            id: weatherError
+            waitForEnd: true
+        }
+
+        // Reported here rather than from the stdout handler: the two streams finish independently,
+        // and stdout usually finishes first, so anything read off stderr at that point is still
+        // empty. By the time the process has exited both are complete, and the exit code is the
+        // clearest statement of what went wrong -- 60 is a certificate that will not verify, 6 a
+        // name that will not resolve, 28 a timeout.
+        onExited: (code, status) => {
+            if (code === 0) return;
+            const reason = String(weatherError.text).trim();
+            console.warn("weather: wttr.in request failed (curl exit " + code + ")"
+                + (reason.length > 0 ? " -- " + reason.split("\n")[0] : ""));
+        }
+
         stdout: StdioCollector {
             onStreamFinished: {
+                // No body is a failed request, not bad JSON: parsing "" throws a SyntaxError and
+                // would report a provider that is unreachable as malformed output. onExited above
+                // has already said why, so this only has to not make things worse -- the last good
+                // reading stays on the bar rather than being blanked until the next tick.
+                if (String(text).trim().length === 0) return;
+
                 try {
                     const report = JSON.parse(text);
                     const current = report.current_condition && report.current_condition[0];
@@ -144,8 +170,24 @@ Rectangle {
     Process {
         id: forecastProc
 
+        stderr: StdioCollector {
+            id: forecastError
+            waitForEnd: true
+        }
+
+        onExited: (code, status) => {
+            if (code === 0) return;
+            const reason = String(forecastError.text).trim();
+            console.warn("weather: forecast request failed (curl exit " + code + ")"
+                + (reason.length > 0 ? " -- " + reason.split("\n")[0] : ""));
+        }
+
         stdout: StdioCollector {
             onStreamFinished: {
+                // Same reasoning as above: an empty body means the request failed, and onExited
+                // has already said why.
+                if (String(text).trim().length === 0) return;
+
                 try {
                     const report = JSON.parse(text);
                     const daily = report.daily;

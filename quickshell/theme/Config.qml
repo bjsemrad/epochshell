@@ -24,6 +24,12 @@ Singleton {
     readonly property string userThemeDir: dataDir + "/themes"
     readonly property string bundledThemeDir: Quickshell.shellRoot + "/theme/themes"
     readonly property string selectionPath: stateDir + "/theme"
+
+    // Settings changed from inside the shell. config.toml is the declarative answer and is often
+    // not writable -- on a home-manager install it cannot exist at all -- so anything the user
+    // adjusts through a control lands here instead, and wins over both the theme and config.toml
+    // because it is the most explicit thing anyone has said.
+    readonly property string settingsPath: stateDir + "/settings.toml"
     readonly property string defaultThemeName: "dark"
 
     // The theme in force, and whether its file was actually found: `themeLoaded` false with a
@@ -72,6 +78,7 @@ Singleton {
     property string configText: ""
     property string themeText: ""
     property string parentThemeText: ""
+    property string settingsText: ""
 
     // The user theme dir is tried first and the bundled one second, by flipping this on a failed
     // load rather than by asking whether either file exists -- FileView answers that question by
@@ -85,7 +92,7 @@ Singleton {
         "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"
     ]
     readonly property var boolKeys: ["panelAnimationsEnabled", "hideInactiveWorkspaces", "workspaceIcons"]
-    readonly property var realKeys: ["workspaceStripMaxWidthRatio"]
+    readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "popupOpacity"]
     readonly property var stringKeys: ["fontFamily"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
@@ -229,6 +236,29 @@ Singleton {
     property bool hideInactiveWorkspaces: true
     property bool workspaceIcons: true
     property real workspaceStripMaxWidthRatio: 0.45
+
+    // How much of the wallpaper shows through the bar and the panels, 0 transparent to 1 solid.
+    //
+    // This is what stops the bar reading as a stripe laid over the desktop: a fully opaque bar is
+    // its own flat colour, and against a wallpaper of a slightly different darkness the join shows
+    // as a seam. Letting a little of the picture through means the bar takes on whatever is behind
+    // it and the join disappears -- on a dark wallpaper it is nearly invisible, on a bright one it
+    // still reads as a bar because the theme's ground is doing most of the work.
+    //
+    // Solid by default. Translucency is a taste, not an improvement -- the shell should look the
+    // way it always has until someone asks otherwise -- so these ship at 1 and the sliders in the
+    // Themes panel are how you ask.
+    //
+    // Those sliders write to the settings file rather than config.toml, which matters because
+    // config.toml cannot exist at all on a home-manager install.
+    property real barOpacity: 1.0
+    property real popupOpacity: 1.0
+
+    // The ground with its opacity applied, which is what actually gets painted. Bindings rather
+    // than values written by updateDerived(): they depend on `background`, which a theme may set,
+    // and on the opacity, which config.toml may set, so they have to follow both.
+    readonly property color barBackground: Qt.rgba(background.r, background.g, background.b, barOpacity)
+    readonly property color popupBackground: Qt.rgba(background.r, background.g, background.b, popupOpacity)
 
     // config.toml says which theme to use and overrides anything it wants on top of it. Both
     // files are watched, and either changing rebuilds the palette from both -- editing a theme
@@ -549,6 +579,8 @@ Singleton {
         hideInactiveWorkspaces = true;
         workspaceIcons = true;
         workspaceStripMaxWidthRatio = 0.45;
+        barOpacity = 1.0;
+        popupOpacity = 1.0;
 
         updateDerived({});
     }
@@ -682,6 +714,7 @@ Singleton {
         root.applyText(root.parentThemeText, overridden);
         root.applyText(root.themeText, overridden);
         root.applyText(root.configText, overridden);
+        root.applyText(root.settingsText, overridden);
         root.updateDerived(overridden);
     }
 
@@ -728,6 +761,55 @@ Singleton {
         root.resolveTheme();
         selectionWriter.setText("\n");
         return true;
+    }
+
+    // Change one setting and keep it. The whole file is rewritten from a map rather than patched
+    // line by line: it is the shell's own file, nobody hand-edits it, and rewriting means a key
+    // set twice cannot end up in it twice.
+    function setSetting(key, value) {
+        const name = String(key || "").trim();
+        if (name === "") return false;
+
+        const values = {};
+        const lines = root.settingsText.split("\n");
+        for (let i = 0; i < lines.length; i++) {
+            const line = root.stripTomlComment(lines[i]);
+            const eq = line.indexOf("=");
+            if (eq < 0) continue;
+            values[line.slice(0, eq).trim()] = line.slice(eq + 1).trim();
+        }
+
+        values[name] = typeof value === "string" ? ('"' + value + '"') : String(value);
+
+        const out = ["# Written by EpochShell. Settings changed from a control in the shell land",
+                     "# here, and win over both the selected theme and config.toml.", ""];
+        for (const k in values) out.push(k + " = " + values[k]);
+        settingsWriter.setText(out.join("\n") + "\n");
+        return true;
+    }
+
+    // Settings, watched the same way the pick is, so a change made in one instance reaches the rest.
+    FileView {
+        path: root.settingsPath
+        watchChanges: true
+        printErrors: false
+        onLoaded: {
+            root.settingsText = text();
+            root.rebuild();
+        }
+        // No settings file is the ordinary state of a fresh install.
+        onLoadFailed: {
+            root.settingsText = "";
+            root.rebuild();
+        }
+        onFileChanged: reload()
+    }
+
+    FileView {
+        id: settingsWriter
+        path: root.settingsPath
+        printErrors: false
+        atomicWrites: true
     }
 
     // The pick, watched so a change made by another instance -- or by hand -- arrives here too.

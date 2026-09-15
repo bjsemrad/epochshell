@@ -49,7 +49,16 @@ Rectangle {
                 Layout.preferredWidth: visible ? innerRow.implicitWidth + padding * 2 : 0
                 Layout.preferredHeight: visible ? innerRow.implicitHeight + verticalPadding / 2 : 0
 
-                color: active ? T.Config.surfaceContainer : mwrap.containsMouse ? T.Config.activeSelection : "transparent"
+                // No pill for the active workspace. The one it had was surfaceContainer, which is
+                // the exact colour every bar icon paints on hover -- so the active workspace read
+                // as permanently hovered, and the pill was carrying almost no contrast anyway
+                // (1.21:1 against the ground). Which workspace is current is said by the numeral
+                // instead: full-strength text and bold, against 75% and regular for the rest.
+                //
+                // Deliberately not the accent. A colour here would be the brightest thing on the
+                // bar and would pull the eye every time focus moved, which is a lot of noise for
+                // something you already know you just did.
+                color: mwrap.containsMouse ? T.Config.activeSelection : "transparent"
                 radius: 10
 
                 WrapperMouseArea {

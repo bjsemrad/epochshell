@@ -14,7 +14,9 @@ Item {
     Layout.bottomMargin: 10
 
     property bool expanded: false
-    property string bgColor: T.Config.background
+    // Transparent, not the ground: this sits inside a panel that already paints one, and
+    // a second ground over a translucent card reads as a patch of the wrong opacity.
+    property string bgColor: "transparent"
 
     onVisibleChanged: {
         bluetoothSection.expanded = false;

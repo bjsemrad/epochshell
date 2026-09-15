@@ -385,6 +385,39 @@ bg_yellow = "#e8c88c"
 
 Derived colors such as `accentLightShade`, `inactive`, `active`, and `activeSelection` update automatically from their source colors unless explicitly overridden.
 
+### Opacity
+
+```toml
+barOpacity = 1.0      # how solid the bar is, 0 fully see-through to 1 solid
+popupOpacity = 1.0    # the same for every panel, OSD and overlay
+```
+
+Both ship solid: translucency is a taste rather than an improvement, so the shell looks the way it
+always has until you ask otherwise.
+
+The **Themes panel** carries a slider for each, which is the easy way to ask. Moving one applies it
+live and writes nothing; letting go writes it to `~/.local/state/epochshell/settings.toml`. That
+matters on a home-manager install, where `config.toml` cannot exist -- the settings file is
+writable and wins over both the theme and `config.toml`.
+
+The percentage counts the same way the key does: **100% is solid**, lower lets the wallpaper
+through. Both apply the theme's `background` at that alpha, so a theme that changes the ground
+changes these with it, and a theme may set either key itself.
+
+`popupOpacity` covers every floating surface: bar panels, the launcher, notification cards, the
+polkit prompt and all four OSDs. Containers drawn *inside* a panel paint no ground of their own,
+so they show the card's rather than stacking a second layer of translucency on it.
+
+Turning the bar down works best with a compositor blur behind it. On Hyprland:
+
+```lua
+hl.layer_rule({
+  name = "epochshell-blur",
+  match = { namespace = "^(quickshell)$" },
+  blur = true,
+})
+```
+
 ### Font Keys
 
 ```toml

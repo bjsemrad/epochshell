@@ -16,7 +16,9 @@ Item {
 
     property bool expanded: false
     required property var attachedPanel
-    property string bgColor: T.Config.background
+    // Transparent, not the ground: this sits inside a panel that already paints one, and
+    // a second ground over a translucent card reads as a patch of the wrong opacity.
+    property string bgColor: "transparent"
 
     Connections {
         target: attachedPanel

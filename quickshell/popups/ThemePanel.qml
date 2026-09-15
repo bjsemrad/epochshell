@@ -155,6 +155,41 @@ HoverPopupWindow {
         Layout.fillWidth: true
     }
 
+    ComponentSplitter {}
+
+    // Opacity lives here rather than in the system menu because it is the same kind of decision as
+    // the palette: how the shell looks, rather than what the machine is doing.
+    //
+    // Called opacity, not transparency, and the percentage counts the same way: 100% is solid.
+    // The config keys are barOpacity and popupOpacity, so a heading that meant the opposite of the
+    // number beneath it -- and of the key it writes -- was a good way to set the wrong value.
+    //
+    // Moving a handle applies the value at once and writes nothing; letting go writes it. A
+    // setting you can see while choosing it does not want a confirm step, and a file rewritten on
+    // every pixel of a drag is a lot of writes for no gain.
+    Text {
+        text: "Opacity"
+        color: T.Config.surfaceText
+        font.pixelSize: T.Config.fontSizeLarge
+        font.bold: true
+        Layout.fillWidth: true
+    }
+
+    SettingSlider {
+        label: "Bar"
+        hint: "100% is solid"
+        settingValue: T.Config.barOpacity
+        onMoved: value => T.Config.barOpacity = value
+        onCommitted: value => T.Config.setSetting("barOpacity", value)
+    }
+
+    SettingSlider {
+        label: "Panels"
+        settingValue: T.Config.popupOpacity
+        onMoved: value => T.Config.popupOpacity = value
+        onCommitted: value => T.Config.setSetting("popupOpacity", value)
+    }
+
     ComponentSpacer {
         bottomMargin: 2
     }
