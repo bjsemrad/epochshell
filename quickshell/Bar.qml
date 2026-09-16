@@ -26,10 +26,24 @@ Scope {
                 left: true
                 right: true
             }
-            // Translucent by default, so the bar picks up the wallpaper behind it instead of
-            // sitting on top of it as a flat stripe. See barOpacity in theme/Config.qml.
-            color: T.Config.barBackground
+            // The window itself is transparent and the ground is painted by a Rectangle inside it,
+            // which is how every panel in this shell does it -- and the reason the panels' opacity
+            // slider worked while the bar's did not.
+            //
+            // A Wayland surface's opaque region is decided when the surface is created. A window
+            // created with an opaque colour stays marked opaque, so lowering the alpha of
+            // `PanelWindow.color` afterwards changes the colour and nothing else: the compositor
+            // goes on compositing it as solid. Painting the ground as ordinary content sidesteps
+            // that entirely, because the surface is transparent from the start and the alpha lives
+            // in a Rectangle that can change whenever it likes.
+            color: "transparent"
             implicitHeight: T.Config.barHeight
+
+            // First child, so it sits behind everything else the bar draws.
+            Rectangle {
+                anchors.fill: parent
+                color: T.Config.barBackground
+            }
 
             // Stay awake, at the compositor's level. The backend holds a logind inhibitor, which
             // is what hypridle and systemd watch; this is the belt to that pair of braces, because
