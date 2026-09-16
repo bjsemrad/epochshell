@@ -4,21 +4,22 @@
 # the theme that proves nothing in the shell assumes a cold ground: brown-grey surfaces, cream
 # text, and the retro accent set gruvbox is known for.
 #
-# Surfaces follow gruvbox's own bg0..bg3 ramp, with bg0_hard as the ground so the bar reads as
-# darker than the panels sitting on it, the same relationship the default dark theme has.
+# This is gruvbox *medium*, the palette's default: bg0 as the ground, with bg1 and bg2 as the steps
+# above it. `gruvbox-hard` is the same palette on bg0_h and is nothing but a deeper ground -- which
+# is exactly what "hard contrast" means in gruvbox, since every step gains against it.
 
-background = "#1d2021"
-surface = "#282828"
+background = "#282828"
+surface = "#3c3836"
 surfaceVariant = "#504945"
-surfaceContainer = "#282828"
-surfaceContainerHigh = "#3c3836"
-surfaceContainerHighest = "#504945"
+surfaceContainer = "#3c3836"
+surfaceContainerHigh = "#504945"
+surfaceContainerHighest = "#665c54"
 surfaceText = "#ebdbb2"
 outline = "#a89984"
 
 # Blue-aqua rather than the orange gruvbox is better known for: orange is already spoken for by
 # night mode, and an accent that matches the "screen is warmed" indicator makes that indicator
-# say nothing.
+# say nothing. This is also the palette's only blue -- muted and grey-green rather than saturated.
 accent = "#83a598"
 
 purple = "#d3869b"

@@ -29,7 +29,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 - Sound, media, and brightness OSDs.
 - Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
-- Thirty named themes, with a live picker in the system menu that previews a palette on hover, and
+- Thirty-one named themes, with a live picker in the system menu that previews a palette on hover, and
   `epochctl theme set` for keybindings and scripts.
 - Optional external config override file at `~/.config/epochshell/config.toml`.
 
@@ -215,7 +215,8 @@ The palette is a named theme file. Two ship with the shell, in `quickshell/theme
 | `catppuccin-mocha` | Violet-tinted surfaces, close together. |
 | `tokyo-night`      | Deep blue-black, bright blue accent. |
 | `kanagawa`         | Ink-dark and warm; the deepest black of the set. |
-| `gruvbox`          | Warm retro. The one that proves nothing assumes a cool-toned ground. |
+| `gruvbox`          | Warm retro, on bg0. The one that proves nothing assumes a cool-toned ground. |
+| `gruvbox-hard`     | The same palette on bg0_h -- gruvbox's hard-contrast ground, and nothing else. |
 | `everforest`       | Green-grey and warm, green accent. |
 | `nord`             | Muted arctic blue-greys; the narrowest surface range here. |
 | `rose-pine`        | Soft and desaturated, iris accent. |
