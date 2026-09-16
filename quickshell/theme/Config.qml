@@ -33,15 +33,13 @@ Singleton {
     // What to wear when nobody has said otherwise. Not the same thing as the built-in palette in
     // resetDefaults(), which is `dark` and stays that way: that one is the parachute for a shell
     // that can find no theme file at all, and the two differ only in the ground.
-    readonly property string defaultThemeName: "dark-deep"
+    readonly property string defaultThemeName: "dark"
 
     // The theme in force, and whether its file was actually found: `themeLoaded` false with a
     // non-empty name means the shell is wearing the built-in defaults under a name that promised
     // something else.
     property string themeName: defaultThemeName
-    readonly property string themePath: themeName === ""
-        ? ""
-        : (themeFromUserDir ? userThemeDir : bundledThemeDir) + "/" + themeName + ".toml"
+    readonly property string themePath: themeName === "" ? "" : (themeFromUserDir ? userThemeDir : bundledThemeDir) + "/" + themeName + ".toml"
     property bool themeLoaded: false
     readonly property var availableThemes: themeScan.names
 
@@ -70,9 +68,7 @@ Singleton {
     // Exactly one level deep. A parent's own `extends` is ignored, which costs nothing real -- a
     // chain is not a thing anyone has wanted yet -- and means there is no cycle to detect.
     property string parentThemeName: ""
-    readonly property string parentThemePath: parentThemeName === ""
-        ? ""
-        : (parentFromUserDir ? userThemeDir : bundledThemeDir) + "/" + parentThemeName + ".toml"
+    readonly property string parentThemePath: parentThemeName === "" ? "" : (parentFromUserDir ? userThemeDir : bundledThemeDir) + "/" + parentThemeName + ".toml"
     property bool parentFromUserDir: true
     onParentThemeNameChanged: parentFromUserDir = true
 
@@ -88,12 +84,7 @@ Singleton {
     // loading or not.
     property bool themeFromUserDir: true
     onThemeNameChanged: themeFromUserDir = true
-    readonly property var colorKeys: [
-        "accent", "accentLightShade", "inactive", "active", "activeSelection",
-        "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh",
-        "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange",
-        "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"
-    ]
+    readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
     readonly property var boolKeys: ["panelAnimationsEnabled", "hideInactiveWorkspaces", "workspaceIcons"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "popupOpacity"]
     readonly property var stringKeys: ["fontFamily"]
@@ -103,23 +94,7 @@ Singleton {
     // Handled the same way and for the same reason: it decides where values come from rather than
     // being one of them.
     readonly property string extendsKey: "extends"
-    readonly property var intKeys: [
-        "popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize",
-        "barWeatherSize", "barModuleSpacing", "barGroupIconSpacing", "barIconTextSpacing",
-        "barModuleHorizontalPadding", "barModuleVerticalPadding", "widthPaddingLarge",
-        "widthPaddingSmall", "heightPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge",
-        "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal",
-        "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext",
-        "cardRadius", "cardHeight", "cardMargin", "cardSpacing", "networkPopupWidth",
-        "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth",
-        "systemPopupWidth", "batteryPopupWidth", "musicPlayerWidth", "controlCenterPopupWidth", "homeAssistantPopupWidth",
-        "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "selectedBorderWidth", "panelBottomMargin",
-        "panelBottomMarginMedium", "statMargin", "barHeight", "cornerRadius", "headerSize",
-        "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius",
-        "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize",
-        "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize",
-        "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"
-    ]
+    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barWeatherSize", "barModuleSpacing", "barGroupIconSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "widthPaddingLarge", "widthPaddingSmall", "heightPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardMargin", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "musicPlayerWidth", "controlCenterPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "selectedBorderWidth", "panelBottomMargin", "panelBottomMarginMedium", "statMargin", "barHeight", "cornerRadius", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
 
     property color accent: blue
     property color accentLightShade: Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10)
@@ -257,7 +232,6 @@ Singleton {
     property real barOpacity: 1.0
     property real popupOpacity: 1.0
 
-
     // The ground with its opacity applied, which is what actually gets painted. Bindings rather
     // than values written by updateDerived(): they depend on `background`, which a theme may set,
     // and on the opacity, which config.toml may set, so they have to follow both.
@@ -290,7 +264,8 @@ Singleton {
             // there is no parent the text is cleared here, so dropping an `extends` line takes
             // effect without a reload.
             const parent = root.readExtends(root.themeText);
-            if (parent === "") root.parentThemeText = "";
+            if (parent === "")
+                root.parentThemeText = "";
             root.parentThemeName = parent;
             // A pick is only kept once its file has actually loaded, so a name that turns out not
             // to exist never makes it into the state file to greet the next session.
@@ -390,10 +365,7 @@ Singleton {
         id: themeScan
         property var names: []
         property var palettes: ({})
-        command: ["sh", "-c",
-            "for f in '" + root.userThemeDir + "'/*.toml '" + root.bundledThemeDir + "'/*.toml; do "
-            + "[ -e \"$f\" ] || continue; "
-            + "echo \"@@theme $(basename \"$f\" .toml)\"; cat \"$f\"; done"]
+        command: ["sh", "-c", "for f in '" + root.userThemeDir + "'/*.toml '" + root.bundledThemeDir + "'/*.toml; do " + "[ -e \"$f\" ] || continue; " + "echo \"@@theme $(basename \"$f\" .toml)\"; cat \"$f\"; done"]
         running: true
 
         stdout: StdioCollector {
@@ -428,11 +400,13 @@ Singleton {
                 continue;
             }
 
-            if (current === "") continue;
+            if (current === "")
+                continue;
 
             const line = root.stripTomlComment(rawLine);
             const eq = line.indexOf("=");
-            if (eq < 0) continue;
+            if (eq < 0)
+                continue;
 
             const key = line.slice(0, eq).trim();
 
@@ -441,7 +415,8 @@ Singleton {
                 continue;
             }
 
-            if (root.colorKeys.indexOf(key) === -1) continue;
+            if (root.colorKeys.indexOf(key) === -1)
+                continue;
             palettes[current][key] = String(root.parseTomlValue(line.slice(eq + 1)));
         }
 
@@ -450,10 +425,13 @@ Singleton {
         // child -- the directory is walked alphabetically, not in dependency order.
         for (const name in parents) {
             const parent = palettes[parents[name]];
-            if (!parent || parents[name] === name) continue;
+            if (!parent || parents[name] === name)
+                continue;
             const merged = {};
-            for (const key in parent) merged[key] = parent[key];
-            for (const key in palettes[name]) merged[key] = palettes[name][key];
+            for (const key in parent)
+                merged[key] = parent[key];
+            for (const key in palettes[name])
+                merged[key] = palettes[name][key];
             palettes[name] = merged;
         }
 
@@ -483,8 +461,10 @@ Singleton {
                 escaped = true;
                 continue;
             }
-            if (c === '"') quoted = !quoted;
-            if (c === "#" && !quoted) return line.slice(0, i).trim();
+            if (c === '"')
+                quoted = !quoted;
+            if (c === "#" && !quoted)
+                return line.slice(0, i).trim();
         }
         return line.trim();
     }
@@ -494,10 +474,13 @@ Singleton {
         if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
             return value.slice(1, -1);
         }
-        if (value === "true") return true;
-        if (value === "false") return false;
+        if (value === "true")
+            return true;
+        if (value === "false")
+            return false;
         const numberValue = Number(value);
-        if (!Number.isNaN(numberValue)) return numberValue;
+        if (!Number.isNaN(numberValue))
+            return numberValue;
         return value;
     }
 
@@ -590,32 +573,45 @@ Singleton {
     }
 
     function updateDerived(overridden) {
-        if (!overridden.accentLightShade) accentLightShade = Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10);
-        if (!overridden.inactive) inactive = Qt.rgba(Qt.color(surfaceText).r, Qt.color(surfaceText).g, Qt.color(surfaceText).b, 0.75);
-        if (!overridden.active) active = surfaceText;
-        if (!overridden.activeSelection) activeSelection = surfaceContainerHigh;
-        if (!overridden.barClockSize) barClockSize = fontSizeSubtext;
-        if (!overridden.barWeatherSize) barWeatherSize = fontSizeNormal;
-        if (!overridden.barGroupIconSpacing) barGroupIconSpacing = barModuleVerticalPadding * 2;
-        if (!overridden.barModuleHorizontalPadding) barModuleHorizontalPadding = widthPaddingSmall;
-        if (!overridden.barModuleVerticalPadding) barModuleVerticalPadding = popupPadding;
+        if (!overridden.accentLightShade)
+            accentLightShade = Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10);
+        if (!overridden.inactive)
+            inactive = Qt.rgba(Qt.color(surfaceText).r, Qt.color(surfaceText).g, Qt.color(surfaceText).b, 0.75);
+        if (!overridden.active)
+            active = surfaceText;
+        if (!overridden.activeSelection)
+            activeSelection = surfaceContainerHigh;
+        if (!overridden.barClockSize)
+            barClockSize = fontSizeSubtext;
+        if (!overridden.barWeatherSize)
+            barWeatherSize = fontSizeNormal;
+        if (!overridden.barGroupIconSpacing)
+            barGroupIconSpacing = barModuleVerticalPadding * 2;
+        if (!overridden.barModuleHorizontalPadding)
+            barModuleHorizontalPadding = widthPaddingSmall;
+        if (!overridden.barModuleVerticalPadding)
+            barModuleVerticalPadding = popupPadding;
     }
 
     function applyOverride(key, value, overridden) {
-        if (colorKeys.indexOf(key) === -1 && boolKeys.indexOf(key) === -1 && realKeys.indexOf(key) === -1
-                && stringKeys.indexOf(key) === -1 && intKeys.indexOf(key) === -1) {
+        if (colorKeys.indexOf(key) === -1 && boolKeys.indexOf(key) === -1 && realKeys.indexOf(key) === -1 && stringKeys.indexOf(key) === -1 && intKeys.indexOf(key) === -1) {
             console.warn("Unknown EpochShell config key:", key);
             return;
         }
 
         try {
-            if (colorKeys.indexOf(key) !== -1) root[key] = Qt.color(String(value));
-            else if (boolKeys.indexOf(key) !== -1) root[key] = !!value;
-            else if (realKeys.indexOf(key) !== -1) root[key] = Number(value);
-            else if (stringKeys.indexOf(key) !== -1) root[key] = String(value);
+            if (colorKeys.indexOf(key) !== -1)
+                root[key] = Qt.color(String(value));
+            else if (boolKeys.indexOf(key) !== -1)
+                root[key] = !!value;
+            else if (realKeys.indexOf(key) !== -1)
+                root[key] = Number(value);
+            else if (stringKeys.indexOf(key) !== -1)
+                root[key] = String(value);
             else {
                 const n = Number(value);
-                if (isNaN(n)) throw "expected number";
+                if (isNaN(n))
+                    throw "expected number";
                 root[key] = Math.round(n);
             }
             overridden[key] = true;
@@ -632,14 +628,17 @@ Singleton {
 
         for (let i = 0; i < lines.length; i++) {
             const line = root.stripTomlComment(lines[i]);
-            if (!line || (line.startsWith("[") && line.endsWith("]"))) continue;
+            if (!line || (line.startsWith("[") && line.endsWith("]")))
+                continue;
 
             const eq = line.indexOf("=");
-            if (eq < 0) continue;
+            if (eq < 0)
+                continue;
 
             const key = line.slice(0, eq).trim();
             // Already acted on: these chose the files this loop is reading.
-            if (key === root.themeKey || key === root.extendsKey) continue;
+            if (key === root.themeKey || key === root.extendsKey)
+                continue;
 
             const value = root.parseTomlValue(line.slice(eq + 1));
             root.applyOverride(key, value, overridden);
@@ -654,8 +653,10 @@ Singleton {
         for (let i = 0; i < lines.length; i++) {
             const line = root.stripTomlComment(lines[i]);
             const eq = line.indexOf("=");
-            if (eq < 0) continue;
-            if (line.slice(0, eq).trim() !== root.themeKey) continue;
+            if (eq < 0)
+                continue;
+            if (line.slice(0, eq).trim() !== root.themeKey)
+                continue;
             return String(root.parseTomlValue(line.slice(eq + 1))).trim();
         }
 
@@ -669,8 +670,10 @@ Singleton {
         for (let i = 0; i < lines.length; i++) {
             const line = root.stripTomlComment(lines[i]);
             const eq = line.indexOf("=");
-            if (eq < 0) continue;
-            if (line.slice(0, eq).trim() !== root.extendsKey) continue;
+            if (eq < 0)
+                continue;
+            if (line.slice(0, eq).trim() !== root.extendsKey)
+                continue;
             const parent = String(root.parseTomlValue(line.slice(eq + 1))).trim();
             // A theme naming itself would load itself forever.
             return parent === root.themeName ? "" : parent;
@@ -689,21 +692,21 @@ Singleton {
     // A preview beats a live pick beats the configured default. Changing the answer re-points the
     // theme FileView, which rebuilds again once it has loaded.
     function resolveTheme() {
-        root.themeName = root.previewThemeName !== "" ? root.previewThemeName
-            : root.selectedThemeName !== "" ? root.selectedThemeName
-            : root.configThemeName;
+        root.themeName = root.previewThemeName !== "" ? root.previewThemeName : root.selectedThemeName !== "" ? root.selectedThemeName : root.configThemeName;
     }
 
     function previewTheme(name) {
         const wanted = String(name || "").trim();
-        if (wanted === "" || wanted === root.previewThemeName) return false;
+        if (wanted === "" || wanted === root.previewThemeName)
+            return false;
         root.previewThemeName = wanted;
         root.resolveTheme();
         return true;
     }
 
     function endPreview() {
-        if (root.previewThemeName === "") return false;
+        if (root.previewThemeName === "")
+            return false;
         root.previewThemeName = "";
         root.resolveTheme();
         return true;
@@ -730,11 +733,13 @@ Singleton {
     // built-in defaults, which looks like a theme that exists and is simply ugly.
     function selectTheme(name) {
         const wanted = String(name || "").trim();
-        if (wanted === "") return false;
+        if (wanted === "")
+            return false;
         // Checked against the snapshot so a mistyped name is refused while the caller is still
         // listening, rather than a moment later in the shell's log. The load itself is the real
         // check, and puts the old theme back if this one was wrong.
-        if (root.availableThemes.length > 0 && root.availableThemes.indexOf(wanted) === -1) return false;
+        if (root.availableThemes.length > 0 && root.availableThemes.indexOf(wanted) === -1)
+            return false;
 
         // Its file is already loaded -- it is what is on screen, either because it was previewed
         // or because it was already chosen. There is no load to wait for, so commit now: waiting
@@ -772,22 +777,24 @@ Singleton {
     // set twice cannot end up in it twice.
     function setSetting(key, value) {
         const name = String(key || "").trim();
-        if (name === "") return false;
+        if (name === "")
+            return false;
 
         const values = {};
         const lines = root.settingsText.split("\n");
         for (let i = 0; i < lines.length; i++) {
             const line = root.stripTomlComment(lines[i]);
             const eq = line.indexOf("=");
-            if (eq < 0) continue;
+            if (eq < 0)
+                continue;
             values[line.slice(0, eq).trim()] = line.slice(eq + 1).trim();
         }
 
         values[name] = typeof value === "string" ? ('"' + value + '"') : String(value);
 
-        const out = ["# Written by EpochShell. Settings changed from a control in the shell land",
-                     "# here, and win over both the selected theme and config.toml.", ""];
-        for (const k in values) out.push(k + " = " + values[k]);
+        const out = ["# Written by EpochShell. Settings changed from a control in the shell land", "# here, and win over both the selected theme and config.toml.", ""];
+        for (const k in values)
+            out.push(k + " = " + values[k]);
         settingsWriter.setText(out.join("\n") + "\n");
         return true;
     }
