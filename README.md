@@ -29,7 +29,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 - Sound, media, and brightness OSDs.
 - Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
-- Thirty-one named themes, with a live picker in the system menu that previews a palette on hover, and
+- Thirteen named themes active (eighteen more shipped disabled), with a live picker in the system menu that previews a palette on hover, and
   `epochctl theme set` for keybindings and scripts.
 - Optional external config override file at `~/.config/epochshell/config.toml`.
 
@@ -206,32 +206,19 @@ The palette is a named theme file. Two ship with the shell, in `quickshell/theme
 
 | Theme              | What it is |
 | ------------------ | ---------- |
-| `dark`             | One Dark's palette on a near-black ground. Also mirrored as the built-in fallback in `theme/Config.qml`, so a shell that cannot find any theme file still looks right. |
-| `dark-*`           | `dark` in each of One Dark's other accents: `red`, `green`, `purple`, `orange`, `yellow`, `cyan`. One line each -- see **Extending a theme** below. |
-| `one-dark`         | The parent `dark` is derived from, on its native `#282c34`. |
-| `ayu-dark`         | The closest thing to `dark` in the wild -- same near-black ground, vivid accent. |
-| `material-ocean`   | The softest text here; deep blue-black. |
-| `flexoki-dark`     | `dark`'s darkness at a warm-neutral temperature. |
+| `dark-deep`        | **The default.** `dark` on a deeper ground -- two lines, via `extends`. The built-in fallback is still `dark`, so a shell that finds no theme file at all lands one shade lighter rather than nowhere. |
+| `dark`             | One Dark's palette on a near-black ground. Also mirrored as the built-in fallback in `theme/Config.qml`. Parent of everything below it. |
+| `dark-*`           | `dark` in each of One Dark's other accents: `red`, `green`, `purple`, `orange`, `yellow`, `cyan`. One line each -- see **Extending a theme**. |
 | `catppuccin-mocha` | Violet-tinted surfaces, close together. |
-| `tokyo-night`      | Deep blue-black, bright blue accent. |
 | `kanagawa`         | Ink-dark and warm; the deepest black of the set. |
-| `gruvbox`          | Warm retro, on bg0. The one that proves nothing assumes a cool-toned ground. |
-| `gruvbox-hard`     | The same palette on bg0_h -- gruvbox's hard-contrast ground, and nothing else. |
-| `everforest`       | Green-grey and warm, green accent. |
-| `nord`             | Muted arctic blue-greys; the narrowest surface range here. |
 | `rose-pine`        | Soft and desaturated, iris accent. |
-| `dracula`          | High-saturation slate, purple accent. |
-| `monokai`          | The loudest set here: near-white text, high chroma, warm olive ground. |
-| `solarized-dark`   | Teal surfaces rather than grey; the sternest test of a role-based palette. |
-| `light`            | Plain white ground, for checking a module reads the surface roles rather than assuming a dark one. |
-| `catppuccin-latte` | Warm light, low-contrast. |
-| `solarized-light`  | Cream light, sharing solarized-dark's named colours exactly. |
-| `ghost-pastel`     | Lavender and rose pastels on a faintly pink near-black, with pale text. |
-| `batou`            | Warm greys, near-monochrome. Four colours in it carry any real chroma. |
 | `last-horizon`     | Dusty rose and cool greys, desaturated throughout. |
 | `solitude`         | Monochrome blue-greys with one saturated colour, kept for errors. |
-| `periphery`        | Cold teals on near-black green, amber reserved for warnings. |
-| `dark-deep`        | **The default.** `dark` on a deeper ground -- two lines, via `extends`. The built-in fallback is still `dark`, so a shell that finds no theme file at all lands one shade lighter rather than nowhere. |
+
+Eighteen more ship alongside these with a `.toml.disabled` extension -- ayu-dark, batou, both
+catppuccins' other half, dracula, everforest, flexoki-dark, ghost-pastel, both gruvboxes, light,
+material-ocean, monokai, nord, one-dark, periphery, both solarizeds and tokyo-night. The scan globs
+`*.toml`, so the extension is the whole mechanism: rename one back to re-enable it, no other change.
 
 Every one is checked for contrast: text and accent against the ground, and a visible step between
 the ground and the hover surface. Several needed adjusting off their canonical values to get
