@@ -51,9 +51,14 @@ Singleton {
         socket.flush();
     }
 
-    function apply(ok, data) {
+    function apply(ok, data, error) {
+        // A refusal is worth keeping the text of. The most likely one by far is a daemon older than
+        // this shell, which answers `no API group "wallpaper"` -- and a caller that only learns
+        // "unavailable" cannot tell that apart from "no images on disk".
         if (!ok) {
             available = false;
+            wallpapers = [];
+            unavailableReason = String(error || "EpochOxide cannot answer about wallpapers");
             return;
         }
         wallpapers = data.wallpapers || [];
@@ -107,7 +112,8 @@ Singleton {
                         console.log("wallpaper epochoxide parse error:", e, line);
                         return;
                     }
-                    root.apply(response.ok !== false, response.data || {});
+                    const data = response.data || {};
+                    root.apply(response.ok !== false, data, response.error || data.message || "");
                 }
             }
         }

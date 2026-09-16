@@ -87,6 +87,11 @@ Item {
             // as the control is set up, and without the flag that start-up call wrote a value
             // nobody had chosen into the settings file.
             property bool dragging: false
+            // What the handle was on when this press began. The commit guard has to compare
+            // against this, not against the setting: `moved` above has already written the live
+            // value through, so by the time the handle is released the setting always equals the
+            // slider and a guard against the setting would skip every single commit.
+            property real valueAtPress: 0
 
             onMoved: {
                 slider.dragging = true;
@@ -94,10 +99,13 @@ Item {
             }
 
             onPressedChanged: {
-                if (pressed) return;
+                if (pressed) {
+                    slider.valueAtPress = value;
+                    return;
+                }
                 if (!slider.dragging) return;
                 slider.dragging = false;
-                if (Math.abs(value - root.settingValue) < 0.0001) return;
+                if (Math.abs(value - slider.valueAtPress) < 0.0001) return;
                 root.committed(value);
             }
 

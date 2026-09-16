@@ -321,8 +321,8 @@ A live `epochctl theme set` beats it; `epochctl theme reset` gives it back.
 
 ## Wallpaper
 
-A full-screen picker over whatever images are on disk. Open it with `epochctl wallpaper toggle`, or
-bind it:
+A full-screen picker over whatever images are on disk. Reach it from the **Wallpaper row in the
+system menu**, with `epochctl wallpaper toggle`, or bind it:
 
 ```lua
 hl.bind("SUPER + SHIFT + B", exec("epochctl wallpaper toggle"))
@@ -343,14 +343,25 @@ epochctl wallpaper refresh     # after adding images
 
 ### Where it looks
 
+Set `wallpaper_dirs` in EpochOxide's `config.toml`. The default is:
+
 ```toml
-wallpaperDirs = "~/.config/hypr"              # default
-wallpaperDirs = "~/.config/hypr:~/Pictures"   # PATH-style, several directories
+wallpaper_dirs = [
+  "~/.config/hypr",
+  "~/Pictures/Wallpapers",
+  "~/Wallpapers",
+  "~/.local/share/wallpapers",
+]
 ```
 
-`~` is expanded, and each directory is searched two levels deep for jpg, jpeg, png and webp. The
-search follows symlinks, without which a home-manager wallpaper directory looks empty -- everything
-in it is a link into the nix store.
+`~` is expanded, each directory is searched two levels deep for jpg, jpeg, png and webp, and one
+that does not exist is skipped without complaint -- so dropping images into any of them just works.
+
+The search follows symlinks, without which a home-manager wallpaper directory looks empty:
+everything in it is a link into the nix store.
+
+`~/Pictures` itself is deliberately not in the list. The scan goes two levels deep, so it would pull
+in `~/Pictures/Screenshots` and bury the wallpapers under every screenshot ever taken.
 
 ### How it applies
 

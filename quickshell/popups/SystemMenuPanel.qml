@@ -168,6 +168,10 @@ HoverPopupWindow {
             id: themeRow
             popup: themePanel
         }
+
+        WallpaperRow {
+            menu: systemMenuPopup
+        }
     }
 
     ComponentSplitter {}
