@@ -59,7 +59,11 @@
         let
           qs = quickshell.packages.${system}.default;
 
+          # Same Qt environment the home-manager runner sets, for the same reason: these are read
+          # at QGuiApplication construction, so they cannot be set from inside the shell.
           epochshell = pkgs.writeShellScriptBin "epochshell" ''
+            export QT_SCALE_FACTOR_ROUNDING_POLICY=PassThrough
+            export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
             exec ${qs}/bin/quickshell "$@"
           '';
         in
@@ -92,6 +96,8 @@
               echo "note: epochshell.service is running; this preview will draw a second bar."
               echo "      stop it first with: systemctl --user stop epochshell.service"
             fi
+            export QT_SCALE_FACTOR_ROUNDING_POLICY=PassThrough
+            export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
             exec ${qs}/bin/quickshell -c "$config"
           '';
 
@@ -204,6 +210,18 @@
             set -euo pipefail
 
             export PATH="${runtimePath}:$PATH"
+
+            # Qt reads these when QGuiApplication is constructed, which is before any QML runs --
+            # so they have to be in the environment of the process, not set from inside the shell.
+            # A `//@ pragma Env` in shell.qml lands too late to affect scaling.
+            #
+            # PassThrough stops Qt rounding a fractional output scale up to the next integer. On a
+            # display at 1.33 the rounded behaviour is to render the surface at buffer scale 2 and
+            # let the compositor downsample, which costs thin borders about half their weight
+            # around a rounded corner while leaving straight edges crisp.
+            export QT_SCALE_FACTOR_ROUNDING_POLICY=PassThrough
+            export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+
             CONFIG_HOME="''${XDG_CONFIG_HOME:-''${HOME}/.config}"
             CONFIG_DIR="$CONFIG_HOME/${cfg.configDir}"
 

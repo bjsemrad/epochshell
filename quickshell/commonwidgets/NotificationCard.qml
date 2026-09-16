@@ -36,6 +36,7 @@ Rectangle {
     width: implicitWidth
     height: implicitHeight
     radius: T.Config.popupRadius
+    antialiasing: true
     color: mouseArea.containsMouse || closeArea.containsMouse ? T.Config.surfaceContainerHigh : T.Config.popupBackground
     border.width: 1
     border.color: urgency === 2 ? T.Config.red : T.Config.outline

@@ -194,6 +194,63 @@ Scope {
         }
     }
 
+    // The wallpaper switcher. `next`/`previous` exist so a keybinding can cycle without opening
+    // anything, which is the way most people actually change wallpaper.
+    IpcHandler {
+        target: "wallpaper"
+
+        function toggle(): string {
+            const overlay = S.PopupManager.wallpaperOverlay;
+            if (!overlay) return root.fail("wallpaper overlay is not loaded");
+            overlay.toggle();
+            return root.ok({ open: overlay._visible });
+        }
+
+        function open(): string {
+            const overlay = S.PopupManager.wallpaperOverlay;
+            if (!overlay) return root.fail("wallpaper overlay is not loaded");
+            overlay.open();
+            return root.ok({ open: true });
+        }
+
+        function close(): string {
+            const overlay = S.PopupManager.wallpaperOverlay;
+            if (!overlay) return root.fail("wallpaper overlay is not loaded");
+            overlay.cancel();
+            return root.ok({ open: false });
+        }
+
+        function list(): string {
+            return root.ok({
+                wallpapers: S.Wallpaper.wallpapers,
+                current: S.Wallpaper.current,
+                directories: S.Wallpaper.directories
+            });
+        }
+
+        function set(path: string): string {
+            if (!S.Wallpaper.set(path)) return root.fail("no wallpaper path given");
+            return root.ok({ wallpaper: S.Wallpaper.current });
+        }
+
+        // Kept so the overlay's own keybinding surface is complete, but epochctl talks to
+        // EpochOxide directly for these: stepping should work with the shell closed.
+        function next(): string {
+            S.Wallpaper.step(1);
+            return root.ok({ stepped: 1 });
+        }
+
+        function previous(): string {
+            S.Wallpaper.step(-1);
+            return root.ok({ stepped: -1 });
+        }
+
+        function refresh(): string {
+            S.Wallpaper.refresh();
+            return root.ok({ scanning: true });
+        }
+    }
+
     IpcHandler {
         target: "shell"
 

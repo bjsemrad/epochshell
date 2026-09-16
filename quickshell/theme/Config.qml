@@ -30,7 +30,10 @@ Singleton {
     // adjusts through a control lands here instead, and wins over both the theme and config.toml
     // because it is the most explicit thing anyone has said.
     readonly property string settingsPath: stateDir + "/settings.toml"
-    readonly property string defaultThemeName: "dark"
+    // What to wear when nobody has said otherwise. Not the same thing as the built-in palette in
+    // resetDefaults(), which is `dark` and stays that way: that one is the parachute for a shell
+    // that can find no theme file at all, and the two differ only in the ground.
+    readonly property string defaultThemeName: "dark-deep"
 
     // The theme in force, and whether its file was actually found: `themeLoaded` false with a
     // non-empty name means the shell is wearing the built-in defaults under a name that promised
@@ -253,6 +256,7 @@ Singleton {
     // config.toml cannot exist at all on a home-manager install.
     property real barOpacity: 1.0
     property real popupOpacity: 1.0
+
 
     // The ground with its opacity applied, which is what actually gets painted. Bindings rather
     // than values written by updateDerived(): they depend on `background`, which a theme may set,

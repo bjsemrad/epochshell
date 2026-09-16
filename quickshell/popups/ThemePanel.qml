@@ -73,6 +73,7 @@ HoverPopupWindow {
                 Layout.fillWidth: true
                 Layout.preferredHeight: T.Config.cardHeight - 14
                 radius: T.Config.popupRadius
+                antialiasing: true
                 color: row.current ? T.Config.accentLightShade
                      : rowMouse.containsMouse ? T.Config.surfaceContainerHigh
                      : "transparent"
@@ -94,6 +95,7 @@ HoverPopupWindow {
                         implicitWidth: swatchRow.implicitWidth + 10
                         implicitHeight: 20
                         radius: 5
+                        antialiasing: true
                         color: T.Config.themeColor(row.modelData, "background")
                         border.width: 1
                         border.color: T.Config.themeColor(row.modelData, "surfaceVariant")
@@ -111,6 +113,7 @@ HoverPopupWindow {
                                     width: 8
                                     height: 8
                                     radius: 4
+                                    antialiasing: true
                                     color: T.Config.themeColor(row.modelData, modelData)
                                 }
                             }

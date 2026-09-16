@@ -14,6 +14,7 @@ Rectangle {
     visible: S.Capture.recording
     color: mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
+    antialiasing: true
     border.width: 1
     border.color: "transparent"
     implicitWidth: contents.implicitWidth + T.Config.barModuleHorizontalPadding

@@ -39,6 +39,7 @@ Item {
             Layout.preferredWidth: 28
             Layout.preferredHeight: 24
             radius: 6
+            antialiasing: true
             color: refreshMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
 
             Text {

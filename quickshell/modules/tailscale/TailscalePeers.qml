@@ -37,6 +37,7 @@ Item {
             color: peersSection.useBackground ? T.Config.surface : "transparent"
             clip: true
             radius: T.Config.cardRadius
+            antialiasing: true
             border.width: 1
             border.color: peersSection.useBackground ? T.Config.surfaceVariant : "transparent"
             Layout.fillWidth: true
@@ -63,6 +64,7 @@ Item {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 30
                             radius: 6
+                            antialiasing: true
                             color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
                             Row {
@@ -143,6 +145,7 @@ Item {
                                     width: 24
                                     height: 24
                                     radius: 6
+                                    antialiasing: true
                                     color: sendMouse.containsMouse && sendMouse.enabled ? T.Config.activeSelection : "transparent"
                                     anchors.verticalCenter: parent.verticalCenter
 
@@ -196,6 +199,7 @@ Item {
                     contentItem: Rectangle {
                         implicitWidth: 3
                         radius: 3
+                        antialiasing: true
                         color: T.Config.surfaceText
                         opacity: 0.7
                     }

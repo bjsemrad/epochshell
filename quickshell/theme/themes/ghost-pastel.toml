@@ -1,0 +1,44 @@
+# EpochShell theme: ghost-pastel
+#
+# A pastel set on a near-black ground that is not quite neutral -- #070506 is faintly pink, and the
+# whole palette leans lavender and rose. Pale text rather than the muted grey the default dark uses:
+# that brightness is what makes it read as ghostly rather than merely dark.
+#
+# The surface ramp is not in the source palette, which is a terminal theme and has no notion of one.
+# It is built by blending the ground toward the palette's own mauve-grey (#836f79) so the raised
+# surfaces stay in the same family as everything else rather than going neutral grey.
+
+background = "#070506"
+surface = "#151113"
+surfaceVariant = "#31292d"
+# Decoupled from `surface`: on a ground this dark the next step up the ramp is nearly
+# indistinguishable from it, and a hover you cannot see is not a hover. This is far enough along the
+# ramp to read (1.19 against the ground, against 1.09 for `surface`).
+surfaceContainer = "#201a1d"
+surfaceContainerHigh = "#251e22"
+surfaceContainerHighest = "#2a2326"
+# The pale lavender the source uses for active borders, rather than its pure white. White is this
+# palette's brightest note and works better kept for the few places that want to shout.
+surfaceText = "#e4e6fb"
+outline = "#836f79"
+
+accent = "#979fec"
+
+# The source has no green, yellow or orange -- it is a lavender-and-rose palette, and its "green"
+# and "yellow" ANSI slots hold a blue and a pink. Those slots are fine in a terminal, where they
+# only ever mean "colour 2" and "colour 3", but here the roles carry meaning: green is what a
+# connected network is drawn in, orange is a warmed screen, red is an error.
+#
+# Mapping them onto the palette's blues and pinks would make a connected network indistinguishable
+# from the accent and a warmed screen indistinguishable from an error. So three pastels are added,
+# matched to the palette's own softness (roughly 30% saturation, 88% value) rather than borrowed
+# from a different theme.
+purple = "#cd9dcf"
+green = "#9adbbd"
+orange = "#e0b394"
+blue = "#648ed0"
+yellow = "#ebd7a0"
+cyan = "#a7c1e8"
+red = "#b37580"
+bg_blue = "#c3cef2"
+bg_yellow = "#f6dbe6"

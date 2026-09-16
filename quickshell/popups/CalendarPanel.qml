@@ -171,6 +171,7 @@ HoverPopupWindow {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 34
                     radius: 999
+                    antialiasing: true
                     color: currentDay ? T.Config.accentLightShade : "transparent"
 
                     Text {

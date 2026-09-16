@@ -42,6 +42,7 @@ Item {
         id: track
         anchors.fill: parent
         radius: height / 2
+        antialiasing: true
         border.width: 1
         border.color: root.displayChecked ? T.Config.accent : T.Config.surfaceVariant
 
@@ -58,6 +59,7 @@ Item {
         width: T.Config.switchKnobSize
         height: T.Config.switchKnobSize
         radius: T.Config.switchKnobRadius
+        antialiasing: true
         y: 2
         x: root.displayChecked ? (root.width - width - 2) : 2
         color: root.displayChecked ? T.Config.surface : T.Config.surfaceContainerHighest

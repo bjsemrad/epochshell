@@ -1,0 +1,18 @@
+# EpochShell theme: dark-deep
+#
+# `dark` on ghost-pastel's ground: the same One Dark palette, the same muted text and vivid accent,
+# sitting on #070506 instead of #0e1013. About two and a half times darker.
+#
+# Only the ground moves. The surfaces above it are left where they are, which widens every step
+# rather than shifting it -- the hover surface goes from 1.21 against the ground to 1.29, and text
+# from 8.0 to 8.5. A deeper ground does not want a deeper card; it wants the card to stand off it
+# further, which is what this gets for free.
+#
+# The borrowed ground is nominally pink -- hue 330 -- but at R7 G5 B6 the channels are two steps
+# apart out of 255, so what actually arrives is black. The tint does real work in ghost-pastel
+# because that palette is lavender throughout and the ground agrees with it; here it is simply the
+# darkest this shell goes.
+
+extends = "dark"
+
+background = "#070506"

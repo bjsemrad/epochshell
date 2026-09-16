@@ -39,6 +39,7 @@ HoverPopupWindow {
 
         Rectangle {
             radius: T.Config.popupRadius
+            antialiasing: true
             color: dndMouseArea.containsMouse ? T.Config.activeSelection : S.Notifications.doNotDisturb ? T.Config.surfaceContainerHigh : "transparent"
             border.width: 1
             border.color: S.Notifications.doNotDisturb ? T.Config.accent : T.Config.outline
@@ -135,6 +136,7 @@ HoverPopupWindow {
             contentItem: Rectangle {
                 implicitWidth: 3
                 radius: 3
+                antialiasing: true
                 color: T.Config.surfaceText
             }
         }

@@ -80,6 +80,7 @@ PopupWindow {
             anchors.fill: parent
             anchors.margins: popup.edgeInset
             radius: T.Config.popupRadius
+            antialiasing: true
             // Solid unless popupOpacity says otherwise -- a panel sits over windows, not over the
             // wallpaper, so what shows through is arbitrary rather than the desktop.
             color: T.Config.popupBackground

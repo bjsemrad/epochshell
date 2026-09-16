@@ -11,6 +11,7 @@ Rectangle {
     implicitWidth: T.Config.headerSize
     implicitHeight: T.Config.headerSize
     radius: T.Config.roundRadius
+    antialiasing: true
     border.width: 1
     border.color: headerMouseArea.containsMouse ? T.Config.surfaceText : "transparent"
     color: headerMouseArea.containsMouse ? T.Config.activeSelection : "transparent"

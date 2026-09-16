@@ -1,0 +1,49 @@
+# EpochShell theme: solitude
+#
+# Monochrome, and meant to be. Of the eighteen colours the source defines, exactly one has any
+# saturation: bright_red #de6145, at 69% against nothing else above 20%. Everything from "green" to
+# "magenta" is a blue-grey at a different lightness.
+#
+# So this is the one theme here where the roles are NOT filled out with added hues. In ghost-pastel
+# and last-horizon a missing green was a gap worth filling; here the absence of colour is the whole
+# design, and a green dot on this bar would be the only coloured thing on screen. The roles are
+# separated by lightness along the palette's own grey ladder instead.
+#
+# What that costs, plainly: a connected network, a bluetooth icon and a paired device are told apart
+# by brightness rather than hue. If that turns out to be too subtle in use, `green` is the one to
+# give a little chroma to -- it is the role that most often has to be noticed at a glance.
+#
+# The two places colour still does work:
+#
+#   red    is bright_red. It is the only saturated colour the palette has, and an error is the one
+#          thing that should break a monochrome scheme.
+#   orange is bright_yellow #c9c2b4 -- hue 40, the warmest grey here. Night mode means the screen
+#          has been warmed, so a warm grey says it without breaking anything.
+#
+# The surface ramp needed no inventing: the palette's own `selection` and `muted` are exactly the
+# two steps above the ground, and `selection` lands on the hover surface, which is what it is for.
+
+background = "#101315"
+surface = "#242a2d"
+surfaceVariant = "#4b4e55"
+surfaceContainer = "#343d41"
+surfaceContainerHigh = "#40464b"
+surfaceContainerHighest = "#4b4e55"
+surfaceText = "#cacccc"
+# bright_foreground, which despite the name is the palette's *dimmer* secondary -- foreground is
+# brighter. Hint text sits here.
+outline = "#a5aeb4"
+
+accent = "#798186"
+
+# Ordered along the palette's lightness ladder so they stay tellable apart without hue:
+#   cyan 3.8  ·  blue 4.7  ·  green 7.5  ·  purple 8.4  ·  orange 10.5  ·  yellow 13.4
+purple = "#aeaeae"
+green = "#9fa5a9"
+orange = "#c9c2b4"
+blue = "#798186"
+yellow = "#d9dbdc"
+cyan = "#707070"
+red = "#de6145"
+bg_blue = "#a5aeb4"
+bg_yellow = "#c9c2b4"

@@ -47,6 +47,7 @@ Item {
         Rectangle {
             id: listContainer
             radius: 6
+            antialiasing: true
             color: "transparent"
             clip: true
             Layout.fillWidth: true
@@ -64,6 +65,7 @@ Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 30
                         radius: 6
+                        antialiasing: true
                         visible: isAudioType(modelData) && modelData.description
                         color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 

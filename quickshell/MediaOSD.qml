@@ -27,6 +27,7 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 radius: T.Config.popupRadius
+                antialiasing: true
                 color: T.Config.popupBackground
                 border.width: 1
                 border.color: T.Config.outline

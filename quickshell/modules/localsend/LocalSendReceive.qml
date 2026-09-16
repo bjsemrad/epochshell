@@ -38,6 +38,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: S.LocalSend.hasIncomingFiles ? Math.min(incomingList.contentHeight + 18, 150) : 34
             radius: T.Config.roundRadius
+            antialiasing: true
             color: T.Config.surface
             border.width: 1
             border.color: S.LocalSend.hasIncomingFiles ? T.Config.accent : T.Config.outline
@@ -147,6 +148,7 @@ Item {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 26
                                         radius: T.Config.roundRadius
+                                        antialiasing: true
                                         color: acceptMouse.containsMouse ? T.Config.accentLightShade : T.Config.surfaceContainer
                                         border.width: 1
                                         border.color: T.Config.accent
@@ -171,6 +173,7 @@ Item {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 26
                                         radius: T.Config.roundRadius
+                                        antialiasing: true
                                         color: declineMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
 
                                         Text {

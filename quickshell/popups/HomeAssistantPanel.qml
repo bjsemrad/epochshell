@@ -83,6 +83,7 @@ HoverPopupWindow {
             width: entityList.width - 12
             height: 42
             radius: T.Config.cardRadius
+            antialiasing: true
             color: rowHover.hovered ? T.Config.surfaceContainerHigh : T.Config.surface
             border.width: 1
             border.color: T.Config.outline
@@ -132,6 +133,7 @@ HoverPopupWindow {
                     Layout.preferredWidth: 64
                     Layout.preferredHeight: 26
                     radius: T.Config.roundRadius
+                    antialiasing: true
                     color: toggleMouse.containsMouse ? T.Config.accentLightShade : T.Config.surfaceContainer
                     border.width: 1
                     border.color: T.Config.outline
@@ -163,6 +165,7 @@ HoverPopupWindow {
             contentItem: Rectangle {
                 implicitWidth: 3
                 radius: 3
+                antialiasing: true
                 color: T.Config.surfaceText
                 opacity: 0.7
             }

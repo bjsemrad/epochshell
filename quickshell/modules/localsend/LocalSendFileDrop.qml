@@ -23,6 +23,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 34
             radius: T.Config.roundRadius
+            antialiasing: true
             color: pickerMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surface
             border.width: 1
             border.color: T.Config.outline

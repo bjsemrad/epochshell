@@ -34,6 +34,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: S.Tailscale.hasIncomingFiles ? Math.min(incomingList.contentHeight + 18, 110) : 34
             radius: T.Config.roundRadius
+            antialiasing: true
             color: T.Config.surface
             border.width: 1
             border.color: S.Tailscale.hasIncomingFiles ? T.Config.accent : T.Config.outline
@@ -112,6 +113,7 @@ Item {
                 Layout.preferredWidth: receiveText.implicitWidth + T.Config.popupPadding * 2
                 Layout.preferredHeight: 28
                 radius: T.Config.roundRadius
+                antialiasing: true
                 color: receiveMouse.containsMouse ? T.Config.accentLightShade : T.Config.surface
                 border.width: 1
                 border.color: S.Tailscale.hasIncomingFiles ? T.Config.accent : T.Config.outline

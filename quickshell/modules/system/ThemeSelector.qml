@@ -20,6 +20,7 @@ Item {
         anchors.fill: parent
         anchors.rightMargin: T.Config.systemActionSpacing
         radius: T.Config.popupRadius
+        antialiasing: true
         color: (root.popup && root.popup.open) || rowMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
 
         RowLayout {

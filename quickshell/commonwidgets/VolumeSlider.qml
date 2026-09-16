@@ -19,6 +19,7 @@ RowLayout {
         Layout.preferredWidth: T.Config.volumeSliderSize
         Layout.preferredHeight: T.Config.volumeSliderSize
         radius: T.Config.volumeSliderRadius
+        antialiasing: true
         border.width: 2
         border.color: audioMouseArea.containsMouse ? T.Config.surfaceText : "transparent"
         color: audioMouseArea.containsMouse ? T.Config.activeSelection : "transparent"
@@ -92,6 +93,7 @@ RowLayout {
         background: Rectangle {
             anchors.fill: parent
             radius: height / 2
+            antialiasing: true
             color: T.Config.surfaceVariant
         }
 
@@ -99,6 +101,7 @@ RowLayout {
             width: 30
             height: 30
             radius: 15
+            antialiasing: true
             color: T.Config.surfaceContainerHighest
             anchors.verticalCenter: parent.verticalCenter
             x: volume.visualPosition * (volume.width - width)
@@ -117,6 +120,7 @@ RowLayout {
             width: volume.visualPosition * volume.width
             height: 10
             radius: height / 2
+            antialiasing: true
             color: T.Config.accent
         }
     }

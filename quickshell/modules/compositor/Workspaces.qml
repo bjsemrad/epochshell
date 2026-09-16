@@ -12,6 +12,7 @@ import qs.services as S
 Rectangle {
     id: workspaceFrame
     radius: 20
+    antialiasing: true
     color: "transparent"
     Layout.alignment: Qt.AlignVCenter
 
@@ -60,6 +61,7 @@ Rectangle {
                 // something you already know you just did.
                 color: mwrap.containsMouse ? T.Config.activeSelection : "transparent"
                 radius: 10
+                antialiasing: true
 
                 WrapperMouseArea {
                     id: mwrap

@@ -21,5 +21,9 @@ ShellRoot {
     // Variants { model: Quickshell.screens }, so the overlay used to be duplicated per screen.
     LauncherOverlay {}
 
+    // Also one per session rather than one per screen: it covers every output and applies to all
+    // of them at once.
+    WallpaperOverlay {}
+
     Ipc {}
 }

@@ -63,6 +63,7 @@ PopupWindow {
         width: popup.popupWidth
         implicitHeight: content.implicitHeight + T.Config.popupPadding * 3
         radius: T.Config.popupRadius
+        antialiasing: true
         color: T.Config.background
         border.width: 1
         border.color: T.Config.outline
@@ -94,6 +95,7 @@ PopupWindow {
                     Layout.preferredWidth: 72
                     Layout.preferredHeight: 72
                     radius: T.Config.cardRadius
+                    antialiasing: true
                     color: T.Config.surfaceContainer
                     clip: true
 
@@ -195,6 +197,7 @@ PopupWindow {
                         Layout.fillWidth: true
                         implicitHeight: sourceContent.implicitHeight + 10
                         radius: T.Config.cardRadius
+                        antialiasing: true
                         color: selected ? T.Config.accentLightShade : sourceMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
                         border.width: selected ? 1 : 0
                         border.color: selected ? T.Config.accent : "transparent"
@@ -269,6 +272,7 @@ PopupWindow {
         Layout.preferredWidth: size
         Layout.preferredHeight: size
         radius: size / 2
+        antialiasing: true
         color: accent ? T.Config.accent : mouseArea.containsMouse ? T.Config.surfaceContainerHighest : T.Config.surfaceContainer
         opacity: enabled ? 1 : 0.35
         border.width: accent ? 0 : 1

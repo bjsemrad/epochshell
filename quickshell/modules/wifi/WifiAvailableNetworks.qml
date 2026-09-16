@@ -77,6 +77,7 @@ Item {
         Rectangle {
             id: listContainer
             radius: 6
+            antialiasing: true
             color: bgColor
             clip: true
             border.width: 2
@@ -95,6 +96,7 @@ Item {
                     width: ListView.view.width * .95
                     implicitHeight: 30
                     radius: 6
+                    antialiasing: true
                     color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
                     RowLayout {

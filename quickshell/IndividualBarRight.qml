@@ -138,6 +138,7 @@ RowLayout {
                     implicitHeight: T.Config.barIconSize + T.Config.barModuleVerticalPadding
                     color: trayMouse.containsMouse ? T.Config.surfaceContainer : "transparent"
                     radius: T.Config.popupRadius
+                    antialiasing: true
 
                     QsMenuAnchor {
                         id: trayMenu
@@ -269,6 +270,7 @@ RowLayout {
             anchors.verticalCenter: parent.verticalCenter
             color: chevronMouse.containsMouse ? T.Config.surfaceContainer : "transparent"
             radius: T.Config.popupRadius
+            antialiasing: true
             implicitWidth: chevronInner.implicitWidth + T.Config.barModuleHorizontalPadding
             implicitHeight: chevronInner.implicitHeight + T.Config.barModuleVerticalPadding
             z: 1

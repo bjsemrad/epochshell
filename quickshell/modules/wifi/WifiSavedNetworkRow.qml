@@ -12,6 +12,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.preferredHeight: 30
     radius: 6
+    antialiasing: true
     color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
     property string ssid: ""

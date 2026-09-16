@@ -106,12 +106,14 @@ Item {
                 width: parent.width
                 height: 6
                 radius: height / 2
+                antialiasing: true
                 color: T.Config.surfaceVariant
 
                 Rectangle {
                     width: slider.visualPosition * parent.width
                     height: parent.height
                     radius: height / 2
+                    antialiasing: true
                     color: T.Config.accent
                 }
             }
@@ -122,6 +124,7 @@ Item {
                 width: 14
                 height: 14
                 radius: 7
+                antialiasing: true
                 color: slider.pressed ? T.Config.accent : T.Config.surfaceContainerHighest
                 border.width: 1
                 border.color: T.Config.accent

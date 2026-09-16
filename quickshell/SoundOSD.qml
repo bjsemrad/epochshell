@@ -75,6 +75,7 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 radius: 20
+                antialiasing: true
                 color: T.Config.popupBackground
                 RowLayout {
                     anchors {
@@ -97,6 +98,7 @@ Scope {
 
                         implicitHeight: 10
                         radius: 20
+                        antialiasing: true
                         color: T.Config.surfaceVariant
 
                         Rectangle {
@@ -109,6 +111,7 @@ Scope {
 
                             implicitWidth: parent.width * (Pipewire.defaultAudioSink?.audio.volume ?? 0)
                             radius: parent.radius
+                            antialiasing: true
                         }
                     }
                 }

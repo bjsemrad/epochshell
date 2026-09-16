@@ -24,6 +24,9 @@ Singleton {
     // The launcher is a single full-screen overlay owned by the shell root rather than one per
     // bar, so it is held on its own instead of in the per-screen entries list.
     property var launcher: null
+    // The wallpaper switcher, held here for the same reason the launcher is: one per session,
+    // owned by the shell root, reached from a bar module and from IPC.
+    property var wallpaperOverlay: null
 
     function register(popup, name) {
         if (openPopups.indexOf(popup) === -1) {
@@ -47,6 +50,10 @@ Singleton {
 
     function registerLauncher(overlay) {
         root.launcher = overlay;
+    }
+
+    function registerWallpaperOverlay(overlay) {
+        root.wallpaperOverlay = overlay;
     }
 
     function popupsFor(name) {

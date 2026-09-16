@@ -44,6 +44,7 @@ Item {
                 Layout.preferredHeight: 25
                 Layout.alignment: Qt.AlignLeft
                 radius: 10
+                antialiasing: true
                 color: S.Bluetooth.discovering ? T.Config.accent : T.Config.surfaceVariant
                 Text {
                     anchors.centerIn: parent
@@ -79,6 +80,7 @@ Item {
         Rectangle {
             id: listContainer
             radius: 6
+            antialiasing: true
             color: bgColor
             clip: true
             border.width: 2
@@ -104,6 +106,7 @@ Item {
                     width: ListView.view.width * .95
                     implicitHeight: 30
                     radius: 6
+                    antialiasing: true
                     color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
 
                     RowLayout {

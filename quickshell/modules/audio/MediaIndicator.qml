@@ -15,6 +15,7 @@ Rectangle {
     visible: active
     color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
+    antialiasing: true
     implicitWidth: Math.min(content.implicitWidth + T.Config.barModuleHorizontalPadding, 220)
     implicitHeight: content.implicitHeight + T.Config.barModuleVerticalPadding
 

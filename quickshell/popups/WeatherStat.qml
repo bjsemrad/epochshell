@@ -6,6 +6,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.preferredHeight: 58
     radius: T.Config.cardRadius
+    antialiasing: true
     color: "transparent"
 
     required property string label

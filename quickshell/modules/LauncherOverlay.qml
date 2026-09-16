@@ -414,6 +414,7 @@ PanelWindow {
             : (root.previewProvider === "files" || root.previewProvider === "clipboard") && root.previewText.length > 0 ? 900 : 520
         Behavior on height { enabled: root.panelAnimate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
         radius: T.Config.popupRadius
+        antialiasing: true
         color: T.Config.popupBackground
         border.width: 1
         border.color: T.Config.outline
@@ -443,6 +444,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 implicitHeight: inputRow.implicitHeight + T.Config.barModuleVerticalPadding * 2
                 radius: T.Config.cardRadius
+                antialiasing: true
                 color: T.Config.surfaceContainer
                 border.width: 1
                 border.color: inputField.activeFocus ? T.Config.accent : T.Config.outline
@@ -561,12 +563,14 @@ PanelWindow {
                             width: 10
                             height: 10
                             radius: 5
+                            antialiasing: true
                             border.width: 2
                             border.color: T.Config.accent
                             Rectangle {
                                 width: 3
                                 height: 3
                                 radius: 1.5
+                                antialiasing: true
                                 color: T.Config.accent
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 anchors.top: parent.top
@@ -622,6 +626,7 @@ PanelWindow {
                         width: listView.width - 2
                         implicitHeight: 48
                         radius: T.Config.cardRadius
+                        antialiasing: true
                         color: isCurrent ? T.Config.accentLightShade
                                : mouseArea.containsMouse ? T.Config.surfaceContainerHigh
                                : "transparent"
@@ -642,6 +647,7 @@ PanelWindow {
                                 Layout.preferredWidth: 32
                                 Layout.preferredHeight: 32
                                 radius: T.Config.cardRadius
+                                antialiasing: true
                                 color: delegateRoot.isCurrent ? T.Config.surfaceContainerHigh : T.Config.surface
                                 clip: true
 
@@ -701,6 +707,7 @@ PanelWindow {
                                 Layout.preferredWidth: kbdText.implicitWidth + 14
                                 Layout.preferredHeight: 18
                                 radius: 4
+                                antialiasing: true
                                 color: T.Config.surface
                                 border.width: 1
                                 border.color: T.Config.surfaceVariant

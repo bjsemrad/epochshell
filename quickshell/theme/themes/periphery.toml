@@ -1,0 +1,39 @@
+# EpochShell theme: periphery
+#
+# Cold teals on an almost black-green ground, with amber kept back for things that need noticing.
+#
+# The first palette here that maps straight across. Every role the shell has a name for, this has a
+# colour for -- and each one's actual hue matches its name, which is not a given: earlier themes in
+# this set call a cyan "green" and a purple "yellow". Nothing is added, lifted or reassigned.
+#
+# Its own note says the cold governs and amber only warns, and the shell happens to honour that
+# without being asked: `orange` is drawn only by the night-mode indicator, a state worth noticing,
+# and `red` only by errors and urgent workspaces. Nothing here uses either decoratively, so amber
+# appears exactly when something wants attention and not otherwise.
+#
+# The surface ramp needed no inventing either. `lighter_background` and `selection` are the first
+# two steps above the ground, and `selection` lands on the hover surface -- which is what a
+# selection colour is. Only the two steps above that are interpolated, between selection and muted.
+
+background = "#060f12"
+surface = "#0f2129"
+# muted: light enough to read as a border rather than a smudge, which the darker steps would.
+surfaceVariant = "#5c7876"
+surfaceContainer = "#17333a"
+surfaceContainerHigh = "#284449"
+surfaceContainerHighest = "#334f52"
+surfaceText = "#a9c0bf"
+# dark_foreground, the palette's own de-emphasised text. Hint lines sit here.
+outline = "#587473"
+
+accent = "#7fc9c4"
+
+purple = "#b587a0"
+green = "#7fae8e"
+orange = "#dd8b57"
+blue = "#6f9cb5"
+yellow = "#c9a06a"
+cyan = "#7fc9c4"
+red = "#d4644a"
+bg_blue = "#8bb2c9"
+bg_yellow = "#dcb684"

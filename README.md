@@ -29,7 +29,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 - Sound, media, and brightness OSDs.
 - Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
-- Twenty-four named themes, with a live picker in the system menu that previews a palette on hover, and
+- Thirty named themes, with a live picker in the system menu that previews a palette on hover, and
   `epochctl theme set` for keybindings and scripts.
 - Optional external config override file at `~/.config/epochshell/config.toml`.
 
@@ -206,7 +206,7 @@ The palette is a named theme file. Two ship with the shell, in `quickshell/theme
 
 | Theme              | What it is |
 | ------------------ | ---------- |
-| `dark`             | The default. One Dark's palette on a near-black ground. Also mirrored as the built-in fallback in `theme/Config.qml`, so a shell that cannot find any theme file still looks right. |
+| `dark`             | One Dark's palette on a near-black ground. Also mirrored as the built-in fallback in `theme/Config.qml`, so a shell that cannot find any theme file still looks right. |
 | `dark-*`           | `dark` in each of One Dark's other accents: `red`, `green`, `purple`, `orange`, `yellow`, `cyan`. One line each -- see **Extending a theme** below. |
 | `one-dark`         | The parent `dark` is derived from, on its native `#282c34`. |
 | `ayu-dark`         | The closest thing to `dark` in the wild -- same near-black ground, vivid accent. |
@@ -225,6 +225,12 @@ The palette is a named theme file. Two ship with the shell, in `quickshell/theme
 | `light`            | Plain white ground, for checking a module reads the surface roles rather than assuming a dark one. |
 | `catppuccin-latte` | Warm light, low-contrast. |
 | `solarized-light`  | Cream light, sharing solarized-dark's named colours exactly. |
+| `ghost-pastel`     | Lavender and rose pastels on a faintly pink near-black, with pale text. |
+| `batou`            | Warm greys, near-monochrome. Four colours in it carry any real chroma. |
+| `last-horizon`     | Dusty rose and cool greys, desaturated throughout. |
+| `solitude`         | Monochrome blue-greys with one saturated colour, kept for errors. |
+| `periphery`        | Cold teals on near-black green, amber reserved for warnings. |
+| `dark-deep`        | **The default.** `dark` on a deeper ground -- two lines, via `extends`. The built-in fallback is still `dark`, so a shell that finds no theme file at all lands one shade lighter rather than nowhere. |
 
 Every one is checked for contrast: text and accent against the ground, and a visible step between
 the ground and the hover surface. Several needed adjusting off their canonical values to get
@@ -312,6 +318,55 @@ A live `epochctl theme set` beats it; `epochctl theme reset` gives it back.
 > store symlink and so cannot exist at all. Overriding individual keys there is only available on
 > an install that puts the shell somewhere other than `~/.config/epochshell`. Themes and theme
 > selection work either way, which is why they live elsewhere.
+
+## Wallpaper
+
+A full-screen picker over whatever images are on disk. Open it with `epochctl wallpaper toggle`, or
+bind it:
+
+```lua
+hl.bind("SUPER + SHIFT + B", exec("epochctl wallpaper toggle"))
+```
+
+Arrow keys or hjkl to browse, Enter to keep, Escape to put back what was there. **Moving the
+selection applies the wallpaper immediately** -- switching is a single call and the thing being
+chosen is the whole screen, so there is no preview smaller or more honest than the real one.
+
+Without opening anything:
+
+```sh
+epochctl wallpaper list        # every image found, current marked with *
+epochctl wallpaper set <path>
+epochctl wallpaper next        # cycle, for a keybinding
+epochctl wallpaper refresh     # after adding images
+```
+
+### Where it looks
+
+```toml
+wallpaperDirs = "~/.config/hypr"              # default
+wallpaperDirs = "~/.config/hypr:~/Pictures"   # PATH-style, several directories
+```
+
+`~` is expanded, and each directory is searched two levels deep for jpg, jpeg, png and webp. The
+search follows symlinks, without which a home-manager wallpaper directory looks empty -- everything
+in it is a link into the nix store.
+
+### How it applies
+
+Through `hyprctl hyprpaper wallpaper ",<path>"`, which switches with no reload. Two things about
+hyprpaper shape this:
+
+- Its `listactive` reports what was loaded at startup and does **not** follow a live switch, so it
+  cannot answer "what is set now". The shell remembers instead.
+- Its config lives in `~/.config/hypr`, which on a home-manager machine is a read-only symlink into
+  the nix store, so the choice cannot be written back there.
+
+So the choice is kept in `~/.local/state/epochshell/wallpaper` and re-applied at startup. That is
+what makes a switch outlive a reboot; without it hyprpaper would start from its own config again.
+
+Paths are used exactly as found -- `~/.config/hypr/foo.jpg`, not the `/nix/store` path it resolves
+to. hyprpaper matches on the path it was given.
 
 ## Configuration
 

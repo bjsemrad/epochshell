@@ -10,6 +10,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.preferredHeight: T.Config.systemActionSize
     radius: T.Config.systemActionRadius
+    antialiasing: true
     color: "transparent"
     required property string icon
     required property string description
@@ -22,6 +23,7 @@ Rectangle {
         implicitHeight: T.Config.systemActionSize
         width: parent.width
         radius: T.Config.systemActionRadius
+        antialiasing: true
         color: actionMouseArea.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
 
         // Anchored on both sides, so a label longer than the row elides inside the highlight

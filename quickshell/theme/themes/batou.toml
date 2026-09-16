@@ -1,0 +1,50 @@
+# EpochShell theme: batou
+#
+# Warm greys, almost monochrome. Four colours in the whole palette carry any real chroma -- a tan,
+# a burnt orange, a muted red and one blue-grey -- and everything else is a shade of warm ash. That
+# restraint is the theme, so this leans into it rather than borrowing hues from elsewhere to fill
+# the roles out.
+#
+# Two things had to move, both for legibility rather than taste:
+#
+# `accent` is not the palette's declared #605d5b. In this shell the accent is a *fill* with
+# background-coloured text on top of it -- switch knobs, the volume slider, a selected launcher row
+# -- and #605d5b is 2.87:1 against the ground both ways, so the fill would be invisible and the text
+# on it unreadable. The nearest usable member of the same grey family is used instead, and #605d5b
+# keeps a job as `surfaceVariant`, where a dark grey border is exactly what is wanted.
+#
+# `red` is c11 (#8f4445) lifted from 2.77:1 to 4.30:1, same hue and saturation. An error indicator
+# that cannot be seen against the bar is not an indicator.
+
+background = "#121212"
+surface = "#272625"
+surfaceVariant = "#605d5b"
+# Further along the ramp than `surface`: on a ground this flat the first step barely registers, and
+# a hover you cannot see is not a hover.
+surfaceContainer = "#323130"
+surfaceContainerHigh = "#383735"
+surfaceContainerHighest = "#4a4845"
+surfaceText = "#a4a4a4"
+outline = "#8a8575"
+
+# The palette's own selection pairing is #a4a4a4 on #121212, so a pale warm grey is what it means by
+# a highlighted fill. This is that, one step brighter than the body text so selection reads as
+# lifted rather than merely coloured.
+accent = "#c6c4b0"
+
+# Where the palette has no colour for a role, the nearest thing in its own register is used rather
+# than a hue imported from somewhere warmer or brighter.
+#
+#   green  is c14, an olive -- the greenest thing here
+#   yellow is c12, a tan; there is no yellow
+#   purple is c13, a neutral grey; there is no purple
+#   cyan   is c10 lightened, so it stays distinguishable from blue rather than duplicating it
+purple = "#b3adad"
+green = "#90947a"
+orange = "#e19e74"
+blue = "#637380"
+yellow = "#b7a798"
+cyan = "#7a8e9e"
+red = "#bd5b5c"
+bg_blue = "#7a8e9e"
+bg_yellow = "#c6c4b0"

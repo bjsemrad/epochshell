@@ -1,0 +1,49 @@
+# EpochShell theme: last-horizon
+#
+# Dusty rose and cool greys on a near-black ground. Desaturated throughout -- nothing in it goes
+# above about 37% saturation -- which is what gives it its washed, end-of-day feel.
+#
+# The source is mapped by hue rather than by slot name, because in this palette the two barely
+# relate: its "yellow" is a purple, its "green" is a cyan, its "cyan" is a blue, and its "blue" is
+# the same dusty red as the accent. Those names are fine in a terminal, where a slot only ever means
+# "colour 3" -- but here the roles carry meaning, and a `green` that is really cyan would leave a
+# connected network drawn in the same colour as everything else cool.
+#
+# So each source colour went to the role its actual hue fits:
+#
+#   #c38b7b  hue 13   -> red        (the one slot that was already right)
+#   #a5a0b6  hue 254  -> blue       (the palette calls this cyan)
+#   #87a9b0  hue 190  -> cyan       (the palette calls this green)
+#   #6b5e73  hue 277  -> purple     (the palette calls this yellow)
+#   #c4d8e2  hue 200  -> bg_blue    (the palette calls this magenta)
+#
+# That leaves green, orange and yellow with nothing -- the palette has no warm mid-tones and no
+# green at all. Three are added, matched to its own restraint (22-32% saturation) rather than
+# borrowed from a brighter theme, so a connected network, a warmed screen and an error stay
+# distinguishable from each other without any of them shouting.
+
+background = "#0c0b0c"
+surface = "#231f21"
+# The palette's own muted tone, which is also what it uses for inactive window borders.
+surfaceVariant = "#584e51"
+# Further along the ramp than `surface`: a ground this dark needs a bigger step before a hover reads.
+surfaceContainer = "#302b2d"
+surfaceContainerHigh = "#3b3537"
+surfaceContainerHighest = "#494143"
+# light_foreground rather than foreground. #fafcfb is this palette's brightest note at 19:1, which
+# is a lot of glare for body text; keeping it in reserve leaves somewhere for emphasis to go.
+surfaceText = "#cfd3cd"
+# The colour the source uses for an active window border -- already the right weight for hint text.
+outline = "#8a8588"
+
+accent = "#b59790"
+
+purple = "#6b5e73"
+green = "#8bb29c"
+orange = "#c7a587"
+blue = "#a5a0b6"
+yellow = "#c7bc97"
+cyan = "#87a9b0"
+red = "#c38b7b"
+bg_blue = "#c4d8e2"
+bg_yellow = "#d6d3de"

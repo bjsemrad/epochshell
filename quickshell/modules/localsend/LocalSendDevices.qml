@@ -50,6 +50,7 @@ Item {
             color: "transparent"
             clip: true
             radius: T.Config.cardRadius
+            antialiasing: true
             Layout.fillWidth: true
             Layout.preferredHeight: Math.min(deviceFlick.contentHeight, 260)
 
@@ -79,6 +80,7 @@ Item {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 38
                             radius: 6
+                            antialiasing: true
                             color: deviceMouse.containsMouse && sendable ? T.Config.activeSelection : "transparent"
 
                             RowLayout {

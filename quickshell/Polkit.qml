@@ -255,6 +255,7 @@ Item {
             anchors.horizontalCenterOffset: root.shakeOffset
             anchors.centerIn: parent
             radius: T.Config.popupRadius
+            antialiasing: true
             color: T.Config.popupBackground
             border.width: 1
             border.color: root.errorFlash ? T.Config.red : T.Config.outline
@@ -353,6 +354,7 @@ Item {
                         ? fpMeasure.height + T.Config.barModuleVerticalPadding * 2
                         : fieldRow.implicitHeight + T.Config.barModuleVerticalPadding * 2
                     radius: T.Config.cardRadius
+                    antialiasing: true
                     color: T.Config.surfaceContainer
                     border.width: 1
                     border.color: root.errorFlash ? T.Config.red

@@ -101,6 +101,7 @@ Scope {
             Rectangle {
                 anchors.fill: parent
                 radius: 20
+                antialiasing: true
                 color: T.Config.popupBackground
 
                 RowLayout {
@@ -122,6 +123,7 @@ Scope {
                         Layout.fillWidth: true
                         implicitHeight: 10
                         radius: 20
+                        antialiasing: true
                         color: T.Config.surfaceVariant
 
                         Rectangle {
@@ -133,6 +135,7 @@ Scope {
 
                             implicitWidth: parent.width * root.level
                             radius: parent.radius
+                            antialiasing: true
                             color: T.Config.surfaceText
                         }
                     }
