@@ -1,0 +1,44 @@
+# EpochShell theme: gruvbox-hard
+#
+# The warm one, and the only warm one here. Everything else in this set is cool -- near-black blues
+# and grey text -- so this is the theme that proves nothing in the shell assumes a cold ground:
+# brown-grey surfaces, cream text, and the retro accent set gruvbox is known for.
+#
+# This is gruvbox on bg0_h, its hard-contrast ground. In gruvbox, "hard", "medium" and "soft" name a
+# background and only a background -- the palette above it is the same one -- so the ramp here is
+# medium's ramp, left where it sits deliberately rather than by oversight. Dropping the ground while
+# the surfaces stay put widens every step against it: hover 1.27 to 1.41, text 10.8 to 12.0. That
+# extra separation *is* the hard contrast; matching the medium ratios back up, the way dark-deep
+# does, would undo the thing being asked for.
+#
+# Written out in full rather than as `extends = "gruvbox"`: the medium theme is disabled, and the
+# parent of an `extends` has to be an enabled file to be found at all.
+
+background = "#1d2021"
+surface = "#3c3836"
+surfaceVariant = "#504945"
+surfaceContainer = "#3c3836"
+surfaceContainerHigh = "#504945"
+surfaceContainerHighest = "#665c54"
+surfaceText = "#ebdbb2"
+outline = "#a89984"
+
+# Yellow, not the blue-aqua gruvbox themes usually reach for. It is the brightest thing in the
+# palette after the cream text, so on this darker ground it reads as 9.7 where blue-aqua reads 6.1 --
+# the accent stops being one more mid-tone among the surfaces and becomes the loudest colour on
+# screen, which is rather the point of picking the hard ground.
+#
+# It does land near the orange night mode uses, so a bar showing both has two warm dots on it rather
+# than two obviously different ones. Yellow is much the lighter of the pair, so they stay apart, but
+# that is the one place this accent costs something.
+accent = "#fabd2f"
+
+purple = "#d3869b"
+green = "#b8bb26"
+orange = "#fe8019"
+blue = "#83a598"
+yellow = "#fabd2f"
+cyan = "#8ec07c"
+red = "#fb4934"
+bg_blue = "#83a598"
+bg_yellow = "#fabd2f"

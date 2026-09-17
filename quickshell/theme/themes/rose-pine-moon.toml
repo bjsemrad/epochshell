@@ -1,0 +1,30 @@
+# EpochShell theme: rose-pine-moon
+#
+# Rose Pine's middle variant: the same soft, desaturated palette on a lighter, bluer ground than the
+# main one. Iris still carries the accent.
+#
+# Same two compromises the main variant makes, for the same reason -- the palette has six hues and
+# no true green, so `green` is foam and `yellow` and `orange` are both gold. And `surfaceContainer`
+# is overlay rather than surface: surface and base differ by too little to see a hover against
+# (1.09 against the ground, where overlay gives 1.34).
+
+background = "#232136"
+surface = "#2a273f"
+surfaceVariant = "#44415a"
+surfaceContainer = "#393552"
+surfaceContainerHigh = "#44415a"
+surfaceContainerHighest = "#56526e"
+surfaceText = "#e0def4"
+outline = "#908caa"
+
+accent = "#c4a7e7"
+
+purple = "#c4a7e7"
+green = "#9ccfd8"
+orange = "#f6c177"
+blue = "#3e8fb0"
+yellow = "#f6c177"
+cyan = "#9ccfd8"
+red = "#eb6f92"
+bg_blue = "#3e8fb0"
+bg_yellow = "#f6c177"

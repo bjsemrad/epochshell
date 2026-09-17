@@ -1,0 +1,29 @@
+# EpochShell theme: matte-black-blue
+#
+# matte-black with the amber swapped for blue. Everything else -- the neutral grey ladder, the text,
+# the warning and error colours -- is inherited unchanged, so this is the same theme wearing a
+# different accent rather than a second theme that resembles it.
+#
+# The source palette has no blue to borrow. It has a `blue` key, but it holds #e68e0d -- hue 36, and
+# the same string as its `accent` -- because a warm monochrome terminal palette re-points the ANSI
+# slots at the colours it actually has. Using it verbatim would have rebuilt matte-black exactly.
+#
+# So the blue is `dark`'s, which makes this the same accent the shell's original theme uses, on a
+# neutral ground instead of a blue-black one. It also lands almost exactly where the amber sat --
+# 7.15 against the ground against the amber's 7.35 -- so the accent carries the same weight on a bar
+# and nothing else needs re-balancing.
+#
+# It also fixes the one compromise matte-black makes: there, the accent and the night-mode/warning
+# orange are both amber, and telling a warmed screen from an active icon means reading a hue
+# difference that is not really there. Note this is not a contrast win -- the two sit 1.18 apart
+# here against 1.19 there, essentially unchanged, because they are about equally bright. What
+# changes is hue, which that ratio cannot express: a blue accent and an amber warning are two
+# obviously different colours at the same luminance, where two ambers are not.
+
+extends = "matte-black"
+
+accent = "#4fa6ed"
+
+# Kept in step with the accent, though the shell reads neither today.
+blue = "#4fa6ed"
+bg_blue = "#61afef"

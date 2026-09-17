@@ -1,0 +1,28 @@
+# EpochShell theme: catppuccin-frappe
+#
+# Catppuccin's lightest dark flavour: a blue-grey ground rather than mocha's near-black, with the
+# whole ramp lifted to match. The palette's own crust/base/surface0/surface1 are the four steps, so
+# nothing here is interpolated.
+#
+# Roles are mapped the same way mocha's are, so the two read as the same theme at different depths.
+
+background = "#232634"
+surface = "#303446"
+surfaceVariant = "#51576d"
+surfaceContainer = "#303446"
+surfaceContainerHigh = "#414559"
+surfaceContainerHighest = "#51576d"
+surfaceText = "#c6d0f5"
+outline = "#949cbb"
+
+accent = "#8caaee"
+
+purple = "#ca9ee6"
+green = "#a6d189"
+orange = "#ef9f76"
+blue = "#8caaee"
+yellow = "#e5c890"
+cyan = "#81c8be"
+red = "#e78284"
+bg_blue = "#85c1dc"
+bg_yellow = "#e5c890"

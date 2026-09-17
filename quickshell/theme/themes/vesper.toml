@@ -1,0 +1,57 @@
+# EpochShell theme: vesper
+#
+# Near-black, neutral, and peach. Vesper's whole idea is a ground with no hue in it at all and one
+# warm colour laid over it, so it sits next to matte-black as the other monochrome theme here --
+# matte-black answers with amber, this one with the softer peach and a mint that matte-black has no
+# equivalent for.
+#
+# The source is a Neovim colorscheme, so four of its colours arrive as mix() calls rather than hex.
+# They are resolved here: fg is white at 80% (#CCCCCC), green is #99FFE4 at 85% (#82D9C2), comment
+# is #8b8b8b at 90% (#7D7D7D), purpleDark is #65737E at 80% (#515C65).
+#
+# Its diagnostic block maps onto the shell almost exactly as written -- error, warn and hint are the
+# same three roles the shell calls red, orange and outline -- so most of this file is transcription
+# rather than judgement. The exceptions are noted where they happen.
+
+# Every grey is the palette's own: bg, bgDark, bgDarker, bgFloat, bgOption, border. Six tones for
+# six slots, nothing interpolated.
+background = "#101010"
+surface = "#161616"
+surfaceVariant = "#505050"
+surfaceContainer = "#232323"
+surfaceContainerHigh = "#282828"
+surfaceContainerHighest = "#343434"
+surfaceText = "#CCCCCC"
+
+# `hint`, which is also borderFocus and symbol. The palette's actual `border` is #505050 and sits at
+# 2.36 against this ground -- under the 3.0 an outline needs -- so it is kept for surfaceVariant,
+# which draws inactive borders and can afford to recede, while the outline proper takes the one
+# colour Vesper has that is visible at border weight. It is faintly blue where everything else here
+# is neutral; on a ground this dark that reads as cool grey rather than as a colour.
+outline = "#65737E"
+
+# The peach Vesper is known for -- `yellowDark`, and also its `warn`.
+accent = "#FFC799"
+
+# Vesper has exactly one warm hue, and this is the same peach one step lighter: #FFCFA8 against
+# #FFC799 is 1.06, which is not a difference anyone can see. So the night-mode icon and the three
+# degraded-state warnings come out the same colour as the accent, and night mode reads as one more
+# active icon rather than as its own state.
+#
+# Left this way on purpose. The alternatives are worse: `red` would make a warmed screen look like a
+# failed password, and the only other option is moving the accent off the peach onto the mint, which
+# would mean the theme is no longer recognisably Vesper. If the night-mode icon standing out matters
+# more than that, `accent = "#82D9C2"` is the one-line version.
+orange = "#FFCFA8"
+
+red = "#FF8080"
+green = "#82D9C2"
+
+# Decorative -- the shell reads none of these today. Kept as the palette defines them, including its
+# `purple`, which is peach.
+purple = "#FFCFA8"
+blue = "#65737E"
+yellow = "#FFC799"
+cyan = "#99FFE4"
+bg_blue = "#65737E"
+bg_yellow = "#FFCFA8"

@@ -1,0 +1,32 @@
+# EpochShell theme: kanagawa-dragon
+#
+# Kanagawa's other dark variant. Where wave is ink-blue, dragon is neutral and desaturated -- warm
+# greys and dusty colours on the darkest ground of the pair.
+#
+# `surfaceContainer` is dragonBlack4 rather than dragonBlack3: black3 sits only 1.08 above the
+# ground, which is below the point where a hover is visible at all. black4 gives 1.31.
+#
+# `outline` is dragonGray at 7.96, brighter than most hint text here. That is the palette's own
+# secondary and dragon has nothing between it and the near-black ramp, so lifting it would have
+# meant inventing a tone the palette does not contain.
+
+background = "#0d0c0c"
+surface = "#181616"
+surfaceVariant = "#393836"
+surfaceContainer = "#282727"
+surfaceContainerHigh = "#393836"
+surfaceContainerHighest = "#625e5a"
+surfaceText = "#c5c9c5"
+outline = "#a6a69c"
+
+accent = "#8ba4b0"
+
+purple = "#a292a3"
+green = "#8a9a7b"
+orange = "#b6927b"
+blue = "#8ba4b0"
+yellow = "#c4b28a"
+cyan = "#8ea4a2"
+red = "#c4746e"
+bg_blue = "#8ea4a2"
+bg_yellow = "#c4b28a"

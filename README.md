@@ -29,7 +29,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 - Sound, media, and brightness OSDs.
 - Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
-- Thirteen named themes active (eighteen more shipped disabled), with a live picker in the system menu that previews a palette on hover, and
+- Seventeen named themes active (eighteen more shipped disabled), with a live picker in the system menu that previews a palette on hover, and
   `epochctl theme set` for keybindings and scripts.
 - Optional external config override file at `~/.config/epochshell/config.toml`.
 
@@ -209,9 +209,13 @@ The palette is a named theme file. Two ship with the shell, in `quickshell/theme
 | `dark-deep`        | **The default.** `dark` on a deeper ground -- two lines, via `extends`. The built-in fallback is still `dark`, so a shell that finds no theme file at all lands one shade lighter rather than nowhere. |
 | `dark`             | One Dark's palette on a near-black ground. Also mirrored as the built-in fallback in `theme/Config.qml`. Parent of everything below it. |
 | `dark-*`           | `dark` in each of One Dark's other accents: `red`, `green`, `purple`, `orange`, `yellow`, `cyan`. One line each -- see **Extending a theme**. |
-| `catppuccin-mocha` | Violet-tinted surfaces, close together. |
-| `kanagawa`         | Ink-dark and warm; the deepest black of the set. |
+| `catppuccin-mocha` | Violet-tinted surfaces, close together. Catppuccin's darkest flavour. |
+| `catppuccin-macchiato` | The same, one step lighter -- deep blue-black. |
+| `catppuccin-frappe` | Lighter still: a blue-grey ground rather than a near-black one. |
+| `kanagawa`         | Ink-dark and warm. Kanagawa's `wave`. |
+| `kanagawa-dragon`  | Kanagawa's other dark variant: neutral and desaturated, darker ground. |
 | `rose-pine`        | Soft and desaturated, iris accent. |
+| `rose-pine-moon`   | The same palette on a lighter, bluer ground. |
 | `last-horizon`     | Dusty rose and cool greys, desaturated throughout. |
 | `solitude`         | Monochrome blue-greys with one saturated colour, kept for errors. |
 
