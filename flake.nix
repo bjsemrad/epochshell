@@ -576,15 +576,30 @@ os.replace(tmp, path)
           };
         };
 
-      # Optional: a simple dev shell
+      # Dev shell: the whole stack, since the QML is only half of it. The bar talks to
+      # EpochOxide over its socket and epochctl drives the running shell over IPC, so a shell
+      # with Quickshell alone can draw this config but not exercise it.
       devShells = forAllSystems (
-        { pkgs, system }: {
+        { pkgs, system }:
+        {
           default = pkgs.mkShell {
             packages = [
               self.packages.${system}.epochshell
               self.packages.${system}.quickshell
+              epochoxide.packages.${system}.default
+              epochctl.packages.${system}.default
+              # qmllint, qmlformat and qmlls: the only static checking QML gets, and the
+              # language server an editor needs to say anything useful about it.
+              pkgs.qt6.qtdeclarative
               pkgs.git
             ];
+
+            shellHook = ''
+              echo "EpochShell dev shell. Run this checkout without touching the running session:"
+              echo "  quickshell -c $PWD/quickshell     (a second bar; stop epochshell.service first)"
+              echo "  nix run .#preview                 (same, with that warning built in)"
+              echo "  qmllint quickshell/**/*.qml"
+            '';
           };
         }
       );
