@@ -1,17 +1,9 @@
 # EpochShell theme: matte-black
 #
 # A true matte black -- #121212, no blue in it at all -- with a single amber accent and a grey text
-# ramp. The darkest-feeling theme here even though kanagawa-dragon's ground is numerically lower:
-# dragon is warm-black, dark-deep is near-black with a red cast, and this one is dead neutral, so
-# nothing on it reads as tinted and the amber is the only colour on screen.
-#
-# The source palette is a terminal palette, where `green`, `blue` and `orange` name ANSI slots
-# rather than colours -- its `green` is amber, its `blue` is the accent orange, its `cyan` is grey.
-# The shell reads those keys as roles instead, so they are mapped by what each one has to *do*
-# rather than by the name it arrived under. Where that changes something, it is noted below.
-
-# The grey ladder, taken straight from the palette: background, lighter_background, selection,
-# muted, dark_foreground. Five real tones, so nothing here is invented.
+# The grey ladder, unchanged. One Dark's own base (#282c34) is blue-tinted, which is the
+# one thing this theme exists to avoid -- so the ladder stays neutral and only the hues
+# below come from One Dark.
 background = "#121212"
 surface = "#1e1e1e"
 surfaceVariant = "#333333"
@@ -19,33 +11,32 @@ surfaceContainer = "#2a2a2a"
 surfaceContainerHigh = "#333333"
 surfaceContainerHighest = "#555555"
 surfaceText = "#bebebe"
-outline = "#8a8a8d"
+outline = "#8a8a8a"
 
 # `selection` is what surfaceContainer draws, which is exactly the job the name promises: it is the
 # hover and selected-row ground. It also has to be the one that carries -- lighter_background sits
 # only 1.12 above this ground, which is under the point a hover is visible on a matte black, while
 # selection gives 1.31.
 
-accent = "#e68e0d"
+accent = "#61afef"
 
-# Warnings and errors have to stay apart: `orange` marks night mode and three degraded states, while
-# `red` marks polkit failures and urgent notifications in nineteen places. The palette's own
-# `orange` is #c63d3d, a brick red a hair off its `red` -- slot-faithful, but it would make a warmed
-# screen and a failed password the same colour. bright_blue is the palette's other amber and is what
-# the role actually wants: warm, clearly not an error, and a step brighter than the accent.
-orange = "#f59e0b"
-red = "#D35F5F"
+# Warnings and errors stay apart, and One Dark makes this easy: it ships a real amber
+# (#d19a66) distinct from its red, so night mode and a failed password can no longer be
+# confused. No substitution needed here -- unlike the original palette, which had to
+# borrow its second amber to keep the two roles apart.
+orange = "#d19a66"
+red = "#e06c75"
 
-# `green` is drawn in the theme picker's swatch row and nowhere else. Kept as the palette has it,
-# which does mean the swatch shows two ambers side by side -- correct for a palette with no green in
-# it, and the honest preview of what this theme looks like.
-green = "#FFC107"
+# `green` is drawn in the theme picker's swatch row and nowhere else. One Dark has an
+# actual green, so the swatch row now shows a real spread instead of two ambers side by
+# side. This is the one slot the swap straightforwardly improves.
+green = "#98c379"
 
-# Decorative only -- the shell reads none of these today. Left as the palette defines them so the
-# file stays a faithful record of it.
-purple = "#D35F5F"
-blue = "#e68e0d"
-yellow = "#b91c1c"
-cyan = "#bebebe"
-bg_blue = "#f59e0b"
-bg_yellow = "#FFC107"
+# Decorative only -- the shell reads none of these today. Now faithful to One Dark rather
+# than to a palette that had no hue in these slots to give.
+purple = "#c678dd"
+blue = "#61afef"
+yellow = "#e5c07b"
+cyan = "#56b6c2"
+bg_blue = "#3d6b94"
+bg_yellow = "#8a6a3c"
