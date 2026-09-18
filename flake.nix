@@ -581,8 +581,84 @@ os.replace(tmp, path)
       # with Quickshell alone can draw this config but not exercise it.
       devShells = forAllSystems (
         { pkgs, system }:
+        let
+          # Every import in this config, from QtQuick down to Quickshell's own modules, lives
+          # under some store path's lib/qt-6/qml. A tool that cannot see these reports the whole
+          # file as unresolvable imports, which reads as "the linter is broken" rather than
+          # "the linter can't see Qt".
+          qmlImportDirs = map (p: "${p}/lib/qt-6/qml") [
+            pkgs.qt6.qtbase
+            pkgs.qt6.qtdeclarative
+            pkgs.qt6.qt5compat
+            self.packages.${system}.quickshell
+          ];
+          qmlImportPath = pkgs.lib.concatStringsSep ":" qmlImportDirs;
+
+          # qmllint takes its import paths as -I arguments and ignores QML_IMPORT_PATH, and it
+          # needs one more path than the environment can express: `import qs.services` resolves
+          # against a directory literally named `qs`, which is the module name Quickshell gives
+          # the config root at runtime. A symlink in a temp dir supplies that without renaming
+          # the checkout's quickshell/ directory to suit a linter.
+          qsLint = pkgs.writeShellScriptBin "qs-lint" ''
+            set -euo pipefail
+            # The checkout, deliberately, not $EPOCHSHELL_CONFIG_DIR: that one points at the
+            # installed config, which is the copy a dev shell is least interested in.
+            root=$PWD/quickshell
+            if [ ! -d "$root" ]; then
+              echo "qs-lint: no quickshell/ directory here; run this from the repo root" >&2
+              exit 1
+            fi
+            shim=$(mktemp -d)
+            trap 'rm -rf "$shim"' EXIT
+            # Real directories holding symlinks to the real files, so the generated qmldir
+            # files below land in the shim and never in the checkout.
+            cp -rs "$root" "$shim/qs"
+
+            # Quickshell registers the types in a config directory itself; qmllint only knows
+            # the qmldir convention, and without one it treats every `qs.theme`/`qs.commonwidgets`
+            # import as unresolvable, which turns each T.Config or widget reference into a
+            # spurious "unqualified access". Generating the missing ones is the difference
+            # between ~1900 warnings and the handful that mean something.
+            find "$shim/qs" -type d -print0 | while IFS= read -r -d "" dir; do
+              if [ -e "$dir/qmldir" ]; then
+                continue
+              fi
+              for file in "$dir"/*.qml; do
+                [ -e "$file" ] || continue
+                base=$(basename "$file" .qml)
+                # A type is a file whose name starts uppercase; anything else is not importable.
+                case "$base" in
+                  [A-Z]*) ;;
+                  *) continue ;;
+                esac
+                if grep -q "^pragma Singleton" "$file"; then
+                  echo "singleton $base 1.0 $(basename "$file")"
+                else
+                  echo "$base 1.0 $(basename "$file")"
+                fi
+              done > "$dir/qmldir"
+            done
+
+            args=()
+            for dir in ${pkgs.lib.escapeShellArgs qmlImportDirs} "$shim"; do
+              args+=(-I "$dir")
+            done
+            if [ "$#" -eq 0 ]; then
+              while IFS= read -r file; do
+                args+=("$file")
+              done < <(find -L "$root" -name '*.qml' | sort)
+            else
+              args+=("$@")
+            fi
+            exec ${pkgs.qt6.qtdeclarative}/bin/qmllint "''${args[@]}"
+          '';
+        in
         {
           default = pkgs.mkShell {
+            # qmlls and Quickshell itself read this; qmllint does not, which is why qs-lint
+            # passes the same directories as -I arguments.
+            QML_IMPORT_PATH = qmlImportPath;
+
             packages = [
               self.packages.${system}.epochshell
               self.packages.${system}.quickshell
@@ -591,14 +667,16 @@ os.replace(tmp, path)
               # qmllint, qmlformat and qmlls: the only static checking QML gets, and the
               # language server an editor needs to say anything useful about it.
               pkgs.qt6.qtdeclarative
+              qsLint
               pkgs.git
             ];
 
             shellHook = ''
-              echo "EpochShell dev shell. Run this checkout without touching the running session:"
-              echo "  quickshell -c $PWD/quickshell     (a second bar; stop epochshell.service first)"
-              echo "  nix run .#preview                 (same, with that warning built in)"
-              echo "  qmllint quickshell/**/*.qml"
+              echo "EpochShell dev shell."
+              echo "  nix run .#preview            run this checkout (a second bar; stop"
+              echo "                               epochshell.service first)"
+              echo "  qs-lint                      qmllint the config, imports resolved"
+              echo "  epochctl doctor              check the running session"
             '';
           };
         }

@@ -357,13 +357,22 @@ in `~/Pictures/Screenshots` and bury the wallpapers under every screenshot ever 
 
 ### How it applies
 
-Through `hyprctl hyprpaper wallpaper ",<path>"`, which switches with no reload. Two things about
-hyprpaper shape this:
+Through `hyprctl hyprpaper wallpaper ",<path>,<fit_mode>"`, which switches with no reload. Three
+things about hyprpaper shape this:
 
 - Its `listactive` reports what was loaded at startup and does **not** follow a live switch, so it
   cannot answer "what is set now". The shell remembers instead.
 - Its config lives in `~/.config/hypr`, which on a home-manager machine is a read-only symlink into
   the nix store, so the choice cannot be written back there.
+- A switch made this way inherits nothing from that config, fit mode included, so the mode has to
+  travel with every switch. It comes from EpochOxide's `wallpaper_fit_mode`, which defaults to
+  `stretch`.
+
+The two ends spell that last setting differently, which is worth knowing before debugging it:
+`hyprpaper.conf` takes `cover`, `contain`, `tile` and `fill`, while `hyprctl` takes `cover`,
+`contain`, `tile` and `stretch`/`fit` -- and `fill` and `stretch` are the *same mode*. `hyprctl`
+quietly reads anything it does not recognise as `cover`, so copying `fit_mode = fill` out of
+`hyprpaper.conf` gives you a silently different wallpaper rather than an error.
 
 So the choice is kept in `~/.local/state/epochshell/wallpaper` and re-applied at startup. That is
 what makes a switch outlive a reboot; without it hyprpaper would start from its own config again.
@@ -633,3 +642,10 @@ Some modules are compositor-aware. Hyprland and Niri support are represented by 
 - QML services are registered in `quickshell/services/qmldir`.
 - The current codebase intentionally omits older grouped bar, overview, Nix update, and Bitwarden/rbw paths.
 - Live installed config may be generated or read-only depending on the system setup; for development, run directly with `quickshell -p` from this repo.
+- `nix develop` gives you the whole stack rather than just Quickshell: EpochOxide and epochctl too,
+  since the QML talks to one over a socket and is driven by the other over IPC. It also brings
+  `qmllint`, `qmlformat` and `qmlls`.
+- `qs-lint` (in that shell) runs qmllint over `quickshell/` with the imports resolved. QML tooling
+  cannot see Quickshell's `qs.*` modules on its own, so it is run against a throwaway tree of
+  symlinks with generated `qmldir` files; the checkout is never written to. Without that, every
+  `T.Config.*` reference is reported as unqualified access and the real findings are lost in them.
