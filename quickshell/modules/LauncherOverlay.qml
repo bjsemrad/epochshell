@@ -20,6 +20,10 @@ PanelWindow {
     screen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
 
     property int currentIndex: -1
+    // Keyboard navigation moves rows under a resting cursor, which would other-
+    // wise bounce the selection back to whatever landed beneath it. Hover only
+    // takes the selection again once the mouse itself has actually moved.
+    property bool hoverSelects: true
     property bool _visible: false
     property bool showingProviders: false
     readonly property bool backendDown: S.LauncherService.backendError.length > 0
@@ -627,9 +631,7 @@ PanelWindow {
                         implicitHeight: 48
                         radius: T.Config.cardRadius
                         antialiasing: true
-                        color: isCurrent ? T.Config.accentLightShade
-                               : mouseArea.containsMouse ? T.Config.surfaceContainerHigh
-                               : "transparent"
+                        color: isCurrent ? T.Config.accentLightShade : "transparent"
                         border.width: isCurrent ? 1 : 0
                         border.color: isCurrent ? T.Config.accent : "transparent"
 
@@ -731,15 +733,22 @@ PanelWindow {
                             }
                         }
 
+                        function select() {
+                            if (root.currentIndex === index) return;
+                            root.currentIndex = index;
+                            listView.currentIndex = index;
+                        }
+
                         MouseArea {
-                            id: mouseArea
                             anchors.fill: parent
                             hoverEnabled: true
-                            onClicked: {
-                                root.currentIndex = delegateRoot.index;
-                                listView.currentIndex = delegateRoot.index;
-                                listView.positionViewAtIndex(delegateRoot.index, ListView.Center);
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: if (root.hoverSelects) delegateRoot.select()
+                            onPositionChanged: {
+                                root.hoverSelects = true;
+                                delegateRoot.select();
                             }
+                            onClicked: delegateRoot.select()
                             onDoubleClicked: {
                                 root.currentIndex = delegateRoot.index;
                                 root.activateCurrent();
@@ -983,6 +992,7 @@ PanelWindow {
             currentIndex = -1;
             return;
         }
+        hoverSelects = false;
         currentIndex = (currentIndex + delta + count) % count;
         listView.currentIndex = currentIndex;
         listView.positionViewAtIndex(currentIndex, ListView.Center);
