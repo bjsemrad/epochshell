@@ -20,10 +20,44 @@ PanelWindow {
     screen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
 
     property int currentIndex: -1
-    // Keyboard navigation moves rows under a resting cursor, which would other-
-    // wise bounce the selection back to whatever landed beneath it. Hover only
-    // takes the selection again once the mouse itself has actually moved.
-    property bool hoverSelects: true
+    // Keyboard navigation moves rows under a resting cursor, and so does every result batch that
+    // lands while the query is still being typed. Either would otherwise bounce the selection to
+    // whatever ended up beneath the pointer, so hover only takes the selection once the mouse
+    // itself has actually moved: a hover event whose window position differs from the last one.
+    property bool hoverSelects: false
+    property point hoverPoint: Qt.point(-1, -1)
+    property bool hoverPointKnown: false
+    // While the query is being typed the first row stays selected however the list is rebuilt
+    // underneath -- results stream in a batch per provider and are re-sorted on each one. Moving
+    // the selection by hand, with the keys or a real mouse move, releases it.
+    property bool selectionAtTop: true
+
+    /// Pins the selection back to the first row and stops hover taking it until the pointer is
+    /// seen to move again. Every path that starts a new query calls this.
+    function resetSelection() {
+        root.hoverSelects = false;
+        root.hoverPointKnown = false;
+        root.selectionAtTop = true;
+    }
+
+    /// Records a hover position and reports whether the pointer actually moved to reach it. Rows
+    /// appearing or shifting under a resting pointer make Qt deliver hover events that carry the
+    /// same window position as the last one; only a different position is the mouse itself.
+    function hoverMoved(point) {
+        const moved = root.hoverPointKnown
+            && (point.x !== root.hoverPoint.x || point.y !== root.hoverPoint.y);
+        root.hoverPoint = point;
+        root.hoverPointKnown = true;
+        return moved;
+    }
+
+    /// Selects a row, and releases the pin that holds the selection at the top of the list.
+    function selectRow(index) {
+        root.selectionAtTop = false;
+        if (root.currentIndex === index) return;
+        root.currentIndex = index;
+        listView.currentIndex = index;
+    }
     property bool _visible: false
     property bool showingProviders: false
     readonly property bool backendDown: S.LauncherService.backendError.length > 0
@@ -74,6 +108,7 @@ PanelWindow {
             root.appendProviderRow(S.LauncherService.allPrefix, S.LauncherService.allPrefix, "All providers", "Search across every provider", "");
         }
         // Whatever was selected before is meaningless against a different list.
+        root.resetSelection();
         root.currentIndex = providerModel.count > 0 ? 0 : -1;
         listView.currentIndex = root.currentIndex;
     }
@@ -85,6 +120,7 @@ PanelWindow {
         inputField.text = "";
         S.LauncherService.setScope("");
         showingProviders = false;
+        resetSelection();
         currentIndex = -1;
         previewVisible = false;
         previewText = "";
@@ -110,6 +146,7 @@ PanelWindow {
         inputField.text = "";
         S.LauncherService.setScope("");
         showingProviders = false;
+        resetSelection();
         currentIndex = -1;
         listView.currentIndex = -1;
     }
@@ -140,6 +177,7 @@ PanelWindow {
 
     function scopeTo(name) {
         root.showingProviders = false;
+        root.resetSelection();
         S.LauncherService.setScope(name);
         inputField.text = "";
         inputField.forceActiveFocus();
@@ -519,6 +557,7 @@ PanelWindow {
                         }
 
                         onTextChanged: {
+                            root.resetSelection();
                             // ";" as the first character opens the provider list, and is not left
                             // sitting in the box: the list is a mode, and what is typed after it
                             // filters that list rather than being part of a query.
@@ -733,24 +772,22 @@ PanelWindow {
                             }
                         }
 
-                        function select() {
-                            if (root.currentIndex === index) return;
-                            root.currentIndex = index;
-                            listView.currentIndex = index;
-                        }
-
                         MouseArea {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onEntered: if (root.hoverSelects) delegateRoot.select()
-                            onPositionChanged: {
+                            // A row drawn under a resting pointer raises `entered` exactly as one
+                            // the pointer was moved onto, so entering only takes the selection
+                            // when a real move has already armed hover.
+                            onEntered: if (root.hoverSelects) root.selectRow(delegateRoot.index)
+                            onPositionChanged: mouse => {
+                                if (!root.hoverMoved(delegateRoot.mapToItem(null, mouse.x, mouse.y))) return;
                                 root.hoverSelects = true;
-                                delegateRoot.select();
+                                root.selectRow(delegateRoot.index);
                             }
-                            onClicked: delegateRoot.select()
+                            onClicked: root.selectRow(delegateRoot.index)
                             onDoubleClicked: {
-                                root.currentIndex = delegateRoot.index;
+                                root.selectRow(delegateRoot.index);
                                 root.activateCurrent();
                             }
                         }
@@ -760,12 +797,14 @@ PanelWindow {
                         if (listView.count === 0) {
                             root.previewVisible = false;
                             root.currentIndex = -1;
-                        } else if (root.currentIndex < 0 || root.currentIndex >= listView.count) {
+                            return;
+                        }
+                        if (root.selectionAtTop || root.currentIndex < 0 || root.currentIndex >= listView.count) {
                             root.currentIndex = 0;
                             listView.currentIndex = 0;
-                        } else {
-                            previewTimer.restart();
+                            listView.positionViewAtBeginning();
                         }
+                        previewTimer.restart();
                     }
                 }
 
@@ -993,6 +1032,8 @@ PanelWindow {
             return;
         }
         hoverSelects = false;
+        hoverPointKnown = false;
+        selectionAtTop = false;
         currentIndex = (currentIndex + delta + count) % count;
         listView.currentIndex = currentIndex;
         listView.positionViewAtIndex(currentIndex, ListView.Center);
@@ -1010,13 +1051,14 @@ PanelWindow {
                 root.previewVisible = false;
                 root.currentIndex = -1;
                 listView.currentIndex = -1;
-            } else if (root.currentIndex < 0 || root.currentIndex >= listView.count) {
+                return;
+            }
+            if (root.selectionAtTop || root.currentIndex < 0 || root.currentIndex >= listView.count) {
                 root.currentIndex = 0;
                 listView.currentIndex = 0;
-                previewTimer.restart();
-            } else {
-                previewTimer.restart();
+                listView.positionViewAtBeginning();
             }
+            previewTimer.restart();
         }
     }
 

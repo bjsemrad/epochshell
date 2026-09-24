@@ -368,11 +368,20 @@ things about hyprpaper shape this:
   travel with every switch. It comes from EpochOxide's `wallpaper_fit_mode`, which defaults to
   `stretch`.
 
-The two ends spell that last setting differently, which is worth knowing before debugging it:
-`hyprpaper.conf` takes `cover`, `contain`, `tile` and `fill`, while `hyprctl` takes `cover`,
-`contain`, `tile` and `stretch`/`fit` -- and `fill` and `stretch` are the *same mode*. `hyprctl`
-quietly reads anything it does not recognise as `cover`, so copying `fit_mode = fill` out of
-`hyprpaper.conf` gives you a silently different wallpaper rather than an error.
+Only `cover`, `contain` and `tile` actually work over IPC. Stretch cannot be reached at all in
+hyprpaper 0.8.4: `hyprctl` parses `stretch`/`fit` into its STRETCH enum, hyprpaper serialises that
+enum back to the string `"fit"` (`src/ipc/IPC.cpp`), and its own parser only accepts `"fill"` for
+stretch (`src/ui/UI.cpp`), so it falls through and renders as `cover`. `fill` does no better --
+`hyprctl` does not know that word and defaults it to `cover` too. Measured on 0.8.4: `stretch`,
+`fit` and `fill` all render pixel-identical to `cover`, while `contain` and `tile` differ.
+
+This is why `hyprpaper.conf` and a switch can disagree with nothing looking wrong: that file's own
+`fit_mode = fill` *does* stretch, and no switch can reproduce it. Matching the two means either
+setting the config to `cover` as well, or patching hyprpaper's `toFitMode` to accept `fit`.
+
+One more trap when testing by hand: hyprpaper only re-fits when the target changes. Re-sending the
+same image with a different mode does nothing at all, so a mode that works looks broken if the
+image did not also change.
 
 So the choice is kept in `~/.local/state/epochshell/wallpaper` and re-applied at startup. That is
 what makes a switch outlive a reboot; without it hyprpaper would start from its own config again.
