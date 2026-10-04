@@ -366,6 +366,54 @@
               description = "Home Assistant panel configuration.";
             };
 
+            idle = lib.mkOption {
+              type = lib.types.submodule {
+                options = {
+                  enable = lib.mkEnableOption ''
+                    idle handling in the shell: lock, screen off and suspend after inactivity, locking
+                    for `loginctl lock-session`, and locking before sleep. Replaces hypridle; turn
+                    that off when enabling this, or both will act
+                  '';
+
+                  lockAfter = lib.mkOption {
+                    type = lib.types.ints.unsigned;
+                    default = 300;
+                    description = "Seconds idle before the screen locks. 0 never locks on idle.";
+                  };
+
+                  screenOffAfter = lib.mkOption {
+                    type = lib.types.ints.unsigned;
+                    default = 0;
+                    description = "Seconds idle before the screens are powered off. 0 leaves them on.";
+                  };
+
+                  suspendAfter = lib.mkOption {
+                    type = lib.types.ints.unsigned;
+                    default = 0;
+                    description = "Seconds idle before the machine suspends. 0 never suspends on idle.";
+                  };
+
+                  lockBeforeSleep = lib.mkOption {
+                    type = lib.types.bool;
+                    default = true;
+                    description = ''
+                      Lock whenever the machine is about to sleep, however it was put to sleep (lid,
+                      power key, systemctl suspend), and hold the sleep until the lock is confirmed.
+                    '';
+                  };
+
+                  afterSleepCommand = lib.mkOption {
+                    type = lib.types.str;
+                    default = "";
+                    example = "openrgb -p Blue";
+                    description = "Shell command run after waking from sleep.";
+                  };
+                };
+              };
+              default = { };
+              description = "Idle handling: hypridle's job, done by the shell that owns the lock screen.";
+            };
+
             wallpaper = lib.mkOption {
               type = lib.types.submodule {
                 options = {
@@ -506,9 +554,27 @@
           config = lib.mkIf cfg.enable {
             # Two wallpapers drawn at once is never what anyone meant, and nothing on screen says
             # which one is on top.
-            warnings = lib.optional (
-              cfg.wallpaper.backend == "shell" && (config.services.hyprpaper.enable or false)
-            ) "programs.epochshell.wallpaper.backend is \"shell\" but services.hyprpaper is enabled; both will draw a wallpaper.";
+            warnings =
+              lib.optional (
+                cfg.wallpaper.backend == "shell" && (config.services.hyprpaper.enable or false)
+              ) "programs.epochshell.wallpaper.backend is \"shell\" but services.hyprpaper is enabled; both will draw a wallpaper."
+              ++ lib.optional (cfg.idle.enable && (config.services.hypridle.enable or false))
+                "programs.epochshell.idle is enabled but so is services.hypridle; both will lock, blank and suspend.";
+
+            # Read by modules/idle/Idle.qml, which watches it, so a rebuild applies without restarting
+            # the shell. Outside the shell's config directory, which is a read-only store path here.
+            # Absent when disabled, which is what keeps the shell's idle handling off.
+            xdg.configFile."epochshell-idle.json" = lib.mkIf cfg.idle.enable {
+              text = builtins.toJSON {
+                inherit (cfg.idle)
+                  lockAfter
+                  screenOffAfter
+                  suspendAfter
+                  lockBeforeSleep
+                  afterSleepCommand
+                  ;
+              };
+            };
 
             # Install quickshell runtime and your flake package (optional but nice to have)
             home.packages = [

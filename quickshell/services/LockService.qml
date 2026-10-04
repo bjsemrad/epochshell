@@ -218,7 +218,9 @@ Singleton {
     Process {
         id: fingerprint
         property bool matched: false
-        command: ["fprintd-verify"]
+        // Dies with the shell (see Idle.qml's orphanSafe): an orphaned verify would keep the
+        // reader claimed, and the restarted shell's own verify would then fail to get it.
+        command: ["setpriv", "--pdeathsig", "TERM", "--", "fprintd-verify"]
 
         onRunningChanged: root.fingerprintActive = fingerprint.running
 

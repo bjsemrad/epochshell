@@ -67,30 +67,52 @@ Scope {
 
     // --- Actions -----------------------------------------------------------------------------
 
-    // Screens off and on, per compositor. The backend comes from EpochOxide; the environment is the
-    // fallback for a daemon that is not answering. Hyprland's Lua dispatcher is tried before the
-    // classic one, since which of the two a given Hyprland speaks depends on its config.
+    // Screens off and on, per compositor. The backend comes from EpochOxide, which knows what is
+    // actually running. Without it (the daemon not answering), each compositor is tried in turn and
+    // the first that accepts the command wins -- not decided from environment variables, which
+    // outlive their session: a terminal opened under Hyprland keeps HYPRLAND_INSTANCE_SIGNATURE
+    // long after the session moved to niri, and trusting it sent the command to a dead Hyprland.
+    // Hyprland's Lua dispatcher is tried before the classic one, since which a given Hyprland speaks
+    // depends on its config.
     function screens(on) {
         screensProcess.command = ["sh", "-c", `
             backend="$1"; on="$2"
-            [ -n "$backend" ] || { [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] && backend=hypr; }
-            [ -n "$backend" ] || { [ -n "$NIRI_SOCKET" ] && backend=niri; }
-            [ -n "$backend" ] || { [ -n "$SWAYSOCK" ] && backend=sway; }
-            case "$backend" in
-              hypr)
+            niri_() {
+                if [ "$on" = 1 ]; then niri msg action power-on-monitors; else niri msg action power-off-monitors; fi
+            }
+            hypr_() {
                 if [ "$on" = 1 ]; then lua=enable; classic=on; else lua=disable; classic=off; fi
-                out=$(hyprctl dispatch "hl.dsp.dpms({ action = \\"$lua\\" })" 2>/dev/null)
-                [ "$out" = ok ] || hyprctl dispatch dpms "$classic" ;;
-              niri)
-                if [ "$on" = 1 ]; then niri msg action power-on-monitors; else niri msg action power-off-monitors; fi ;;
-              sway)
-                if [ "$on" = 1 ]; then swaymsg 'output * power on'; else swaymsg 'output * power off'; fi ;;
-            esac`, "screens", S.CompositorService.backend, on ? "1" : "0"];
+                out=$(hyprctl dispatch "hl.dsp.dpms({ action = \"$lua\" })" 2>/dev/null)
+                [ "$out" = ok ] || [ "$(hyprctl dispatch dpms "$classic" 2>/dev/null)" = ok ]
+            }
+            sway_() {
+                if [ "$on" = 1 ]; then swaymsg 'output * power on'; else swaymsg 'output * power off'; fi
+            }
+            case "$backend" in
+              niri) niri_ ;;
+              hypr) hypr_ ;;
+              sway) sway_ ;;
+              *) niri_ 2>/dev/null || hypr_ || sway_ ;;
+            esac`, "screens", root.compositor, on ? "1" : "0"];
         screensProcess.running = true;
     }
 
+    // Read here so the compositor service starts with this module, and its answer is in hand before
+    // the first stage fires rather than being asked for at that moment.
+    readonly property string compositor: S.CompositorService.backend
+
     Process {
         id: screensProcess
+        stderr: StdioCollector {
+            onStreamFinished: if (this.text.trim().length > 0) console.log("idle: screens:", this.text.trim())
+        }
+    }
+
+    // Long-running helpers are started through `setpriv --pdeathsig TERM`, which has the kernel
+    // kill them when this shell dies. Without it a killed or crashed shell leaves them behind:
+    // measured, an orphaned sleep-delay inhibitor that went on delaying every suspend.
+    function orphanSafe(command) {
+        return ["setpriv", "--pdeathsig", "TERM", "--"].concat(command);
     }
 
     function suspend() {
@@ -132,6 +154,7 @@ Scope {
     function fire(stage) {
         root.unlessInhibited(function (blocked) {
             if (!stage.isIdle) return;
+            if (blocked && !stage.held) console.log("idle: held back by a logind idle inhibitor (" + stage.timeout + "s stage)");
             stage.held = blocked;
             if (!blocked) root.stageIdle(stage);
         });
@@ -228,7 +251,7 @@ Scope {
     Process {
         id: logind
         running: root.configured
-        command: ["gdbus", "monitor", "--system", "--dest", "org.freedesktop.login1"]
+        command: root.orphanSafe(["gdbus", "monitor", "--system", "--dest", "org.freedesktop.login1"])
         stdout: SplitParser {
             onRead: function (line) {
                 if (line.indexOf("org.freedesktop.login1.Session.Lock ") >= 0) {
@@ -263,8 +286,8 @@ Scope {
     Process {
         id: sleepDelay
         running: root.configured && root.lockBeforeSleep && !root.delayReleased
-        command: ["systemd-inhibit", "--what=sleep", "--mode=delay", "--who=epochshell",
-            "--why=Lock the screen before sleeping", "sleep", "infinity"]
+        command: root.orphanSafe(["systemd-inhibit", "--what=sleep", "--mode=delay", "--who=epochshell",
+            "--why=Lock the screen before sleeping", "sleep", "infinity"])
     }
 
     function goingToSleep() {

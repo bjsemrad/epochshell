@@ -446,17 +446,9 @@ battery. Type the password and press Enter, or touch the fingerprint reader if a
 -- both run at once, so neither waits on the other. Escape clears the field.
 
 `epochctl lock` returns once the compositor has confirmed every screen is covered (or after three
-seconds, saying it has not), so it is safe in a before-sleep hook. Locking twice is harmless. Bind it
-to the things that should lock, e.g. with hypridle:
-
-```nix
-services.hypridle.settings.general = {
-  lock_cmd = "epochctl lock";          # loginctl lock-session lands here
-  before_sleep_cmd = "epochctl lock";
-};
-```
-
-and a key:
+seconds, saying it has not), so it is safe in a before-sleep hook. Locking twice is harmless. Locking
+on idle, for `loginctl lock-session` and before sleep is built in -- see [Idle](#idle) -- or wire
+`epochctl lock` into hypridle's `lock_cmd` and `before_sleep_cmd` if you keep that. And a key:
 
 ```kdl
 Super+Alt+L { spawn "epochctl" "lock"; }
@@ -486,6 +478,45 @@ with `fprintd-verify`, retried for as long as the screen is locked.
 From a TTY (Ctrl+Alt+F2): `systemctl --user restart epochshell` relocks, and the new instance takes
 input. As a last resort any other ext-session-lock client takes the lock over, e.g.
 `WAYLAND_DISPLAY=wayland-1 hyprlock`.
+
+## Idle
+
+The shell can do hypridle's job itself: lock, power the screens off, and suspend after a while
+untouched; lock for `loginctl lock-session`; and lock before every sleep, holding the sleep until the
+lock is confirmed. With home-manager:
+
+```nix
+programs.epochshell.idle = {
+  enable = true;
+  lockAfter = 300;          # seconds; 0 turns a stage off
+  screenOffAfter = 400;
+  suspendAfter = 600;
+  lockBeforeSleep = true;   # default
+  afterSleepCommand = "";   # e.g. "openrgb -p Blue"
+};
+services.hypridle.enable = false;   # or both will act
+```
+
+That writes `~/.config/epochshell-idle.json`, which `modules/idle/Idle.qml` reads and watches, so a
+rebuild applies without a restart. Without that file none of this runs. Without home-manager, write
+the same JSON by hand:
+
+```json
+{ "lockAfter": 300, "screenOffAfter": 400, "suspendAfter": 600, "lockBeforeSleep": true, "afterSleepCommand": "" }
+```
+
+Details worth knowing:
+
+- **Inhibitors.** Wayland idle inhibitors -- a playing video, the shell's own Stay Awake -- stop the
+  timers. logind idle inhibitors (`systemd-inhibit --what=idle`) are checked when a stage would fire,
+  and a stage held back fires once the inhibitor lifts, if the session is still idle.
+- **Screens off** goes through the compositor EpochOxide reports (niri, Hyprland or sway), and comes
+  back on with activity.
+- **Before sleep**, a logind delay inhibitor (`epochshell`, in `systemd-inhibit --list`) makes the
+  sleep wait for the lock, up to three seconds, so the machine never wakes showing the desktop.
+- **`loginctl unlock-session` does nothing**, on purpose: only a password or fingerprint unlocks.
+- Its helper processes (`gdbus monitor`, `systemd-inhibit`) are started with
+  `setpriv --pdeathsig`, so a shell that is killed takes them with it.
 
 ## Configuration
 
