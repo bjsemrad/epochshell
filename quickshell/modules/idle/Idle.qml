@@ -75,6 +75,12 @@ Scope {
     // Hyprland's Lua dispatcher is tried before the classic one, since which a given Hyprland speaks
     // depends on its config.
     function screens(on) {
+        // One command at a time. A request made while one is still running replaces any earlier
+        // one waiting and runs when it finishes, so the last word -- usually "on" -- always lands.
+        if (screensProcess.running) {
+            screensProcess.pending = on ? 1 : 0;
+            return;
+        }
         screensProcess.command = ["sh", "-c", `
             backend="$1"; on="$2"
             niri_() {
@@ -103,8 +109,27 @@ Scope {
 
     Process {
         id: screensProcess
+        // -1 when nothing is waiting, otherwise 1 (on) or 0 (off).
+        property int pending: -1
         stderr: StdioCollector {
             onStreamFinished: if (this.text.trim().length > 0) console.log("idle: screens:", this.text.trim())
+        }
+        onExited: {
+            const next = screensProcess.pending;
+            screensProcess.pending = -1;
+            if (next >= 0) root.screens(next === 1);
+        }
+    }
+
+    // Screens on again whenever the lock ends. A lock surface on screen does not prove the screen
+    // is powered the way the desktop needs: measured on Hyprland, a fingerprint unlock just after
+    // resuming left a pure black screen, the compositor alive (VTs switched fine) but the panel
+    // never brought back. Asking for "on" when it already is costs nothing on any compositor.
+    // Not gated on `configured`: a lock taken by hand before a suspend needs this just as much.
+    Connections {
+        target: S.Lock
+        function onLockedChanged() {
+            if (!S.Lock.locked) root.screens(true);
         }
     }
 
@@ -308,6 +333,9 @@ Scope {
         sleepRelease.stop();
         root.delayReleased = false;
         root.screens(true);
+        // And again shortly after: PrepareForSleep(false) arrives the moment the kernel is back,
+        // which can be before the compositor has its outputs again, and an "on" sent then is lost.
+        screensAfterWake.restart();
         if (root.afterSleepCommand.length > 0) {
             afterSleep.command = ["sh", "-c", root.afterSleepCommand];
             afterSleep.running = true;
@@ -329,6 +357,12 @@ Scope {
                 root.delayReleased = true;
             }
         }
+    }
+
+    Timer {
+        id: screensAfterWake
+        interval: 2000
+        onTriggered: root.screens(true)
     }
 
     Process {
