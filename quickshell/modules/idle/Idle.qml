@@ -75,6 +75,9 @@ Scope {
     // Hyprland's Lua dispatcher is tried before the classic one, since which a given Hyprland speaks
     // depends on its config.
     function screens(on) {
+        // Logged: a screen left dark is otherwise impossible to trace back to who asked.
+        console.log("idle: screens " + (on ? "on" : "off") + " (" + (root.compositor || "unknown") + ")");
+        root.screensOff = !on;
         // One command at a time. A request made while one is still running replaces any earlier
         // one waiting and runs when it finishes, so the last word -- usually "on" -- always lands.
         if (screensProcess.running) {
@@ -121,16 +124,29 @@ Scope {
         }
     }
 
-    // Screens on again whenever the lock ends. A lock surface on screen does not prove the screen
-    // is powered the way the desktop needs: measured on Hyprland, a fingerprint unlock just after
-    // resuming left a pure black screen, the compositor alive (VTs switched fine) but the panel
-    // never brought back. Asking for "on" when it already is costs nothing on any compositor.
+    // Whether the last word this shell sent was "off". Waking from sleep and activity both send
+    // "on", so this is only still set when the screens went dark here and nothing has lit them.
+    property bool screensOff: false
+
+    // Screens on again when the lock ends, but only if this shell turned them off. Not on every
+    // unlock: measured on Hyprland 0.56, every unlock that sent "on" to an already-lit screen as
+    // the lock surfaces were torn down left the screen black with the compositor alive (input still
+    // handled, SIGTERM answered at once) -- three unlocks out of three. Asking for "on" when it
+    // already is does not cost nothing there. Sent a moment after the lock ends rather than at the
+    // same instant, so the lock's teardown is done before the outputs are touched.
     // Not gated on `configured`: a lock taken by hand before a suspend needs this just as much.
     Connections {
         target: S.Lock
         function onLockedChanged() {
-            if (!S.Lock.locked) root.screens(true);
+            if (S.Lock.locked) screensAfterUnlock.stop();
+            else if (root.screensOff) screensAfterUnlock.restart();
         }
+    }
+
+    Timer {
+        id: screensAfterUnlock
+        interval: 500
+        onTriggered: if (root.screensOff && !S.Lock.locked) root.screens(true)
     }
 
     // Long-running helpers are started through `setpriv --pdeathsig TERM`, which has the kernel
