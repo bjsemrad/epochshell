@@ -435,6 +435,58 @@ what makes a switch outlive a reboot; without it hyprpaper would start from its 
 Paths are used exactly as found -- `~/.config/hypr/foo.jpg`, not the `/nix/store` path it resolves
 to. hyprpaper matches on the path it was given.
 
+## Lock screen
+
+```sh
+epochctl lock
+```
+
+A session lock over every screen: the wallpaper blurred behind a clock, the password field, and the
+battery. Type the password and press Enter, or touch the fingerprint reader if a finger is enrolled
+-- both run at once, so neither waits on the other. Escape clears the field.
+
+`epochctl lock` returns once the compositor has confirmed every screen is covered (or after three
+seconds, saying it has not), so it is safe in a before-sleep hook. Locking twice is harmless. Bind it
+to the things that should lock, e.g. with hypridle:
+
+```nix
+services.hypridle.settings.general = {
+  lock_cmd = "epochctl lock";          # loginctl lock-session lands here
+  before_sleep_cmd = "epochctl lock";
+};
+```
+
+and a key:
+
+```kdl
+Super+Alt+L { spawn "epochctl" "lock"; }
+```
+
+### How it holds
+
+The lock is the compositor's, through ext-session-lock (Quickshell's `WlSessionLock`): niri,
+Hyprland and sway all keep the screen covered until the locking client says otherwise, and keep it
+covered if that client dies. On that basis:
+
+- **Only a password or a fingerprint unlocks.** There is deliberately no unlock over IPC -- it would
+  hand anything able to run `qs ipc` the one thing the compositor protects.
+- **A crash does not unlock, and does not strand you.** The shell writes
+  `$XDG_RUNTIME_DIR/epochshell-locked` before locking and removes it only after a real unlock; a
+  shell that starts and finds it locks again at once, and the compositor gives the new instance the
+  lock. **Hyprland needs `misc:allow_session_lock_restore = true` for that** -- without it a second
+  lock client is refused and the way back is a TTY. niri allows it by default.
+
+The password goes through PAM with the shell's own `quickshell/pam/password.conf` (pam_unix only),
+not the system's login stack. Those usually put pam_fprintd first, and PAM runs in order, so a typed
+password would sit behind the fingerprint reader's timeout. The fingerprint is checked separately
+with `fprintd-verify`, retried for as long as the screen is locked.
+
+### If it ever goes wrong
+
+From a TTY (Ctrl+Alt+F2): `systemctl --user restart epochshell` relocks, and the new instance takes
+input. As a last resort any other ext-session-lock client takes the lock over, e.g.
+`WAYLAND_DISPLAY=wayland-1 hyprlock`.
+
 ## Configuration
 
 Epoch Shell has built-in defaults in `quickshell/theme/Config.qml`. You can override any supported value with:

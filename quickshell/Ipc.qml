@@ -286,4 +286,22 @@ Scope {
             return root.ok({ reloaded: true, hard: true });
         }
     }
+
+    // Locking only. There is deliberately no unlock here: the compositor's promise is that a
+    // locker that dies leaves the session locked, and an unlock over IPC would hand that to
+    // anything able to run `qs ipc`. Unlocking takes a password or a fingerprint, nothing else.
+    IpcHandler {
+        target: "lock"
+
+        function lock(): string {
+            S.Lock.lock();
+            return root.ok({ locked: S.Lock.locked, secure: S.Lock.secure });
+        }
+
+        // `secure` is the compositor confirming every output is covered. epochctl waits for it, so
+        // a `lock` run just before suspend does not return while the desktop is still showing.
+        function status(): string {
+            return root.ok({ locked: S.Lock.locked, secure: S.Lock.secure });
+        }
+    }
 }

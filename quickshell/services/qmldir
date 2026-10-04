@@ -17,3 +17,4 @@ singleton Notifications 1.0 NotificationService.qml
 singleton LauncherService 1.0 LauncherService.qml
 singleton HomeAssistant 1.0 HomeAssistantService.qml
 singleton Wallpaper 1.0 Wallpaper.qml
+singleton Lock 1.0 LockService.qml

@@ -1,0 +1,253 @@
+pragma Singleton
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import Quickshell.Services.Pam
+
+// The lock screen's state: whether the session is locked, and the password and fingerprint checks
+// that end it.
+//
+// The lock itself is the compositor's (ext-session-lock, through WlSessionLock in
+// modules/lock/LockScreen.qml): once locked, nothing but this shell saying "unlock" ends it, and
+// if the shell dies while locked the compositor keeps the screen locked rather than revealing it.
+// That is the whole security model, so two rules follow:
+//
+//   * Only a PAM success or a fingerprint match unlocks. There is deliberately no unlock over IPC:
+//     the compositor's guarantee is that a crashed or killed locker leaves the session locked, and
+//     an IPC call that unlocks would hand that away to anything that can run `qs ipc`.
+//   * A lock survives the shell restarting. The marker file below is written before locking and
+//     removed only after a real unlock, so a shell that crashed or was reloaded while locked locks
+//     again as soon as it starts -- the compositor hands the new instance the lock.
+Singleton {
+    id: root
+
+    // Whether the lock is wanted. WlSessionLock follows this.
+    property bool locked: false
+    // Set by LockScreen.qml from WlSessionLock.secure: the compositor has confirmed every output
+    // is covered. Until then a lock has been asked for but cannot be relied on.
+    property bool secure: false
+    // The fade-out between a successful check and the lock actually ending.
+    property bool unlocking: false
+
+    // What has been typed. Shared, so every screen shows the same dots and typing can carry on
+    // from whichever screen has focus. Cleared the moment it has been handed to PAM.
+    property string buffer: ""
+    property bool checking: false
+    // One line under the field: why the last attempt failed, or what PAM wants to say.
+    property string message: ""
+    property bool messageIsError: false
+    // Bumped on every failure, so each screen can shake its field without a shared animation.
+    property int failures: 0
+
+    readonly property bool fingerprintAvailable: fingerprintProbe.enrolled
+    property bool fingerprintActive: false
+
+    readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"
+    readonly property string markerPath: runtimeDir + "/epochshell-locked"
+
+    // How long the fade-out runs before the lock is released. Long enough to read as deliberate,
+    // short enough that the desktop is back by the time a hand reaches the mouse.
+    readonly property int unlockFadeMs: 280
+
+    signal lockRequested
+
+    function lock() {
+        if (root.locked) return;
+        // Marker first: if anything goes wrong between here and the compositor confirming, a
+        // restarted shell still knows the session was meant to be locked.
+        markerWriter.command = ["touch", root.markerPath];
+        markerWriter.running = true;
+        root.buffer = "";
+        root.message = "";
+        root.messageIsError = false;
+        root.checking = false;
+        root.unlocking = false;
+        root.locked = true;
+        root.lockRequested();
+        root.startFingerprint();
+    }
+
+    // Hand what was typed to PAM. An empty submit is ignored rather than counted as a failure:
+    // Enter is often pressed just to wake the screen.
+    function submit() {
+        if (!root.locked || root.unlocking || root.checking) return;
+        if (root.buffer.length === 0) return;
+        root.checking = true;
+        root.message = "";
+        root.messageIsError = false;
+        pam.pending = root.buffer;
+        root.buffer = "";
+        if (!pam.start()) {
+            pam.pending = "";
+            root.checking = false;
+            root.fail("Could not start the password check");
+        }
+    }
+
+    function clearInput() {
+        root.buffer = "";
+    }
+
+    function fail(text) {
+        root.message = text;
+        root.messageIsError = true;
+        root.failures += 1;
+    }
+
+    // The only way out. Called from a PAM success or a fingerprint match, nowhere else.
+    function succeed(how) {
+        if (!root.locked || root.unlocking) return;
+        console.log("lock: unlocked by " + how);
+        root.unlocking = true;
+        root.checking = false;
+        root.message = "";
+        root.stopFingerprint();
+        if (pam.active) pam.abort();
+        releaseTimer.restart();
+    }
+
+    // The compositor ended or refused the lock on its own. Not an unlock this shell performed, so
+    // no fade; just get the state back in line with the screen.
+    function compositorReleased() {
+        console.log("lock: the compositor did not grant or did not keep the session lock");
+        releaseTimer.stop();
+        root.stopFingerprint();
+        if (pam.active) pam.abort();
+        root.locked = false;
+        root.unlocking = false;
+        root.checking = false;
+        root.buffer = "";
+        markerWriter.command = ["rm", "-f", root.markerPath];
+        markerWriter.running = true;
+    }
+
+    Timer {
+        id: releaseTimer
+        interval: root.unlockFadeMs
+        onTriggered: {
+            root.locked = false;
+            root.unlocking = false;
+            root.buffer = "";
+            markerWriter.command = ["rm", "-f", root.markerPath];
+            markerWriter.running = true;
+        }
+    }
+
+    Process {
+        id: markerWriter
+    }
+
+    // A marker left by a previous instance means this one was started into a locked session --
+    // a crash or a reload while locked. Lock again straight away.
+    FileView {
+        path: root.markerPath
+        printErrors: false
+        onLoaded: {
+            console.log("lock: the session was locked when the shell last stopped; locking again");
+            root.lock();
+        }
+    }
+
+    PamContext {
+        id: pam
+        property string pending: ""
+
+        configDirectory: Quickshell.shellDir + "/pam"
+        config: "password.conf"
+
+        onPamMessage: {
+            if (pam.responseRequired) {
+                pam.respond(pam.pending);
+                pam.pending = "";
+            } else if (pam.message.length > 0) {
+                root.message = pam.message;
+                root.messageIsError = pam.messageIsError;
+            }
+        }
+
+        onCompleted: function (result) {
+            pam.pending = "";
+            root.checking = false;
+            if (result === PamResult.Success) {
+                root.succeed("password");
+            } else if (result === PamResult.MaxTries) {
+                root.fail("Too many attempts");
+            } else {
+                root.fail("Wrong password");
+            }
+        }
+
+        onError: function (error) {
+            pam.pending = "";
+            root.checking = false;
+            root.fail("Password check failed: " + PamError.toString(error));
+        }
+    }
+
+    // --- Fingerprint ------------------------------------------------------------------------
+    //
+    // Through fprintd-verify rather than a second PAM stack: pam_fprintd lives outside the libpam
+    // quickshell links against, so a shipped config could not name it portably, and the CLI is
+    // what every fprintd install has. It runs alongside the password field the whole time the
+    // screen is locked, and a match unlocks just as a password does.
+
+    function startFingerprint() {
+        if (!root.fingerprintAvailable || !root.locked || root.unlocking) return;
+        fingerprint.matched = false;
+        fingerprint.running = true;
+    }
+
+    function stopFingerprint() {
+        retryFingerprint.stop();
+        fingerprint.running = false;
+    }
+
+    // Whether this user has a finger enrolled. Asked once at startup; enrolling a finger later
+    // needs a shell restart to be noticed, which is rare enough not to poll for.
+    Process {
+        id: fingerprintProbe
+        property bool enrolled: false
+        command: ["sh", "-c", "command -v fprintd-verify >/dev/null && fprintd-list \"$USER\" 2>/dev/null | grep -q ' - #'"]
+        running: true
+        onExited: function (code) {
+            fingerprintProbe.enrolled = code === 0;
+            if (fingerprintProbe.enrolled && root.locked) root.startFingerprint();
+        }
+    }
+
+    Process {
+        id: fingerprint
+        property bool matched: false
+        command: ["fprintd-verify"]
+
+        onRunningChanged: root.fingerprintActive = fingerprint.running
+
+        stdout: SplitParser {
+            onRead: function (line) {
+                // "Verify result: verify-match (done)" is the one line that means yes.
+                if (line.indexOf("verify-match") >= 0) {
+                    fingerprint.matched = true;
+                } else if (line.indexOf("verify-no-match") >= 0) {
+                    root.fail("Fingerprint not recognised");
+                }
+            }
+        }
+
+        onExited: function (code) {
+            if (fingerprint.matched && code === 0) {
+                root.succeed("fingerprint");
+                return;
+            }
+            // Not matched, timed out, or the reader went away over a suspend: try again while
+            // the screen is still locked. The pause keeps a reader that fails instantly from
+            // spinning.
+            if (root.locked && !root.unlocking) retryFingerprint.restart();
+        }
+    }
+
+    Timer {
+        id: retryFingerprint
+        interval: 1500
+        onTriggered: root.startFingerprint()
+    }
+}
