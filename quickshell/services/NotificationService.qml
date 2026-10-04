@@ -474,28 +474,29 @@ Singleton {
         closeNotificationEverywhere(id);
     }
 
+    // Clicking a notification just raises the app's window. The app's default action is only a
+    // fallback when no window matches (e.g. the app is closed): it opens things we don't want
+    // (a message view in a mail client), and niri ignores the app's own activation request anyway
+    // since this server never issues an xdg-activation token.
+    function activateNotification(id, appName, windowClass) {
+        const match = (windowClass && windowClass.length > 0) ? windowClass : appName;
+        const window = CompositorService.findWindow(match);
+        if (window) {
+            CompositorService.focusWindow(window.id);
+            return true;
+        }
+        return invokeDefaultAction(id);
+    }
+
     function focusAndDismiss(id, appName, windowClass) {
-        if (invokeDefaultAction(id)) {
-            closeNotificationEverywhere(id);
-            return;
-        }
-        if (windowClass && windowClass.length > 0) {
-            CompositorService.focusWindowByClass(windowClass);
-        } else if (appName && appName.length > 0) {
-            CompositorService.focusWindowByAppName(appName);
-        }
+        activateNotification(id, appName, windowClass);
         closeNotificationEverywhere(id);
     }
 
     function focusFromHistory(id, appName, index, windowClass) {
-        if (invokeDefaultAction(id)) {
+        if (activateNotification(id, appName, windowClass)) {
             closeNotificationEverywhere(id);
             return;
-        }
-        if (windowClass && windowClass.length > 0) {
-            CompositorService.focusWindowByClass(windowClass);
-        } else if (appName && appName.length > 0) {
-            CompositorService.focusWindowByAppName(appName);
         }
         if (index !== undefined && index !== null) {
             dismissHistory(index);
