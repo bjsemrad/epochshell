@@ -9,6 +9,10 @@ import Quickshell.Wayland
 import qs.modules
 
 ShellRoot {
+    // First, so the wallpaper is up as early as the shell can manage. It draws only when EpochOxide
+    // says the shell is the wallpaper backend; under hyprpaper it is an empty scope.
+    WallpaperBackground {}
+
     Bar {}
     Notifications {}
     SoundOSD {}

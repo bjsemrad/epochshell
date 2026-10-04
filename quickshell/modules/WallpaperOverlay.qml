@@ -7,7 +7,7 @@ import qs.services as S
 // The wallpaper switcher: a full-screen grid of what is on disk.
 //
 // Moving the selection applies the wallpaper straight away rather than waiting for Enter. The
-// switch is a single hyprctl call and the thing being chosen is the whole screen, so there is no
+// switch is a single call and the thing being chosen is the whole screen, so there is no
 // preview worth showing that is smaller or more honest than the real one -- the same reasoning the
 // theme picker uses. Enter keeps it, Escape puts back what was there before.
 //

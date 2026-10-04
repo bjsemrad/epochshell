@@ -355,10 +355,55 @@ everything in it is a link into the nix store.
 `~/Pictures` itself is deliberately not in the list. The scan goes two levels deep, so it would pull
 in `~/Pictures/Screenshots` and bury the wallpapers under every screenshot ever taken.
 
-### How it applies
+### What draws it
 
-Through `hyprctl hyprpaper wallpaper ",<path>,<fit_mode>"`, which switches with no reload. Three
-things about hyprpaper shape this:
+Either the shell itself or hyprpaper, chosen by `wallpaper_backend` in EpochOxide's `config.toml`
+(or `programs.epochshell.wallpaper.backend` in the home-manager module):
+
+| `wallpaper_backend` | Who draws |
+|---|---|
+| `"auto"` (default) | hyprpaper if a hyprpaper process is running, the shell otherwise |
+| `"shell"` | EpochShell, on a background layer surface |
+| `"hyprpaper"` | hyprpaper, as described below |
+
+So with `auto`, switching to the shell is just a matter of no longer starting hyprpaper. The status
+the shell receives says which backend is active (`epochctl wallpaper list` and `wallpaper.status`),
+and the shell only draws when that says `shell` -- it never paints under a running hyprpaper.
+
+#### The shell
+
+`modules/WallpaperBackground.qml` puts one `WlrLayer.Background` surface on each screen, namespace
+`epochshell-wallpaper`, and shows whatever EpochOxide reports as current. A switch decodes the new
+image behind the old one and crossfades, so there is no flicker and no restart, under Hyprland or
+niri alike. All four fit modes work as named: `cover`, `contain`, `tile` and `stretch`. Images are
+decoded at the screen's pixel size rather than the file's, and the old one is released once the
+fade ends.
+
+Switches reach the shell over `wallpaper.subscribe`, which EpochOxide fires whenever its state file
+changes -- so `epochctl wallpaper next` from a keybinding lands at once, even one run while the
+daemon was down.
+
+The cost is that the wallpaper lives and dies with the shell: a crash or reload shows the theme's
+background colour until the shell is back (systemd restarts it). Choose `hyprpaper` if that
+matters to you.
+
+**niri:** the overview draws its backdrop rather than the background layer, so to see the wallpaper
+behind the zoomed-out workspaces add:
+
+```kdl
+layer-rule {
+    match namespace="^epochshell-wallpaper$"
+    place-within-backdrop true
+}
+```
+
+#### hyprpaper
+
+Under Hyprland, through `hyprctl hyprpaper wallpaper ",<path>,<fit_mode>"`, which switches with no
+reload. Outside Hyprland hyprpaper turns its IPC off, so a switch repoints the symlink that
+`hyprpaper.conf` draws from and restarts `hyprpaper.service`; if that config names a plain file
+there is no way to switch at all, and the shell backend is the way out. Three things about
+hyprpaper shape this:
 
 - Its `listactive` reports what was loaded at startup and does **not** follow a live switch, so it
   cannot answer "what is set now". The shell remembers instead.
@@ -385,6 +430,7 @@ image did not also change.
 
 So the choice is kept in `~/.local/state/epochshell/wallpaper` and re-applied at startup. That is
 what makes a switch outlive a reboot; without it hyprpaper would start from its own config again.
+(The shell backend reads the same file, which is how it starts on the right image.)
 
 Paths are used exactly as found -- `~/.config/hypr/foo.jpg`, not the `/nix/store` path it resolves
 to. hyprpaper matches on the path it was given.

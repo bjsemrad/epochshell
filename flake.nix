@@ -366,6 +366,51 @@
               description = "Home Assistant panel configuration.";
             };
 
+            wallpaper = lib.mkOption {
+              type = lib.types.submodule {
+                options = {
+                  backend = lib.mkOption {
+                    type = lib.types.enum [
+                      "auto"
+                      "shell"
+                      "hyprpaper"
+                    ];
+                    default = "auto";
+                    description = ''
+                      What draws the wallpaper. "shell" draws it in EpochShell on a background
+                      layer surface, which switches instantly under any compositor and needs no
+                      hyprpaper at all. "hyprpaper" keeps hyprpaper drawing. "auto" uses hyprpaper
+                      when it is running and the shell otherwise. With "shell", disable
+                      services.hyprpaper, or both will draw.
+                    '';
+                  };
+
+                  fitMode = lib.mkOption {
+                    type = lib.types.enum [
+                      "cover"
+                      "contain"
+                      "tile"
+                      "stretch"
+                    ];
+                    default = "cover";
+                    description = ''
+                      How an image is fitted to the screen. All four work when the shell draws;
+                      hyprpaper 0.8.4 renders "stretch" as "cover".
+                    '';
+                  };
+
+                  directories = lib.mkOption {
+                    type = lib.types.nullOr (lib.types.listOf lib.types.str);
+                    default = null;
+                    example = [ "~/Pictures/Wallpapers" ];
+                    description = "Where the picker looks for images. null keeps EpochOxide's defaults.";
+                  };
+                };
+              };
+              default = { };
+              description = "The desktop wallpaper and the picker over it.";
+            };
+
             epochoxide = lib.mkOption {
               type = lib.types.submodule {
                 options = {
@@ -459,6 +504,12 @@
           };
 
           config = lib.mkIf cfg.enable {
+            # Two wallpapers drawn at once is never what anyone meant, and nothing on screen says
+            # which one is on top.
+            warnings = lib.optional (
+              cfg.wallpaper.backend == "shell" && (config.services.hyprpaper.enable or false)
+            ) "programs.epochshell.wallpaper.backend is \"shell\" but services.hyprpaper is enabled; both will draw a wallpaper.";
+
             # Install quickshell runtime and your flake package (optional but nice to have)
             home.packages = [
               qsPkg
@@ -551,7 +602,19 @@ os.replace(tmp, path)
                   nix_hosts = cfg.nixUpdates.hosts;
                   nix_notify = cfg.nixUpdates.notify;
                 };
-                merged = nixSettings // cfg.epochoxide.settings;
+                # The wallpaper is EpochOxide's state too. Only what differs from its defaults is
+                # written, so a config that never mentions the wallpaper stays empty.
+                wallpaperSettings =
+                  lib.optionalAttrs (cfg.wallpaper.backend != "auto") {
+                    wallpaper_backend = cfg.wallpaper.backend;
+                  }
+                  // lib.optionalAttrs (cfg.wallpaper.fitMode != "cover") {
+                    wallpaper_fit_mode = cfg.wallpaper.fitMode;
+                  }
+                  // lib.optionalAttrs (cfg.wallpaper.directories != null) {
+                    wallpaper_dirs = cfg.wallpaper.directories;
+                  };
+                merged = nixSettings // wallpaperSettings // cfg.epochoxide.settings;
               in
               lib.mkIf (merged != { }) merged;
             systemd.user.services.epochoxide.Unit = lib.mkIf cfg.epochoxide.enableService {
