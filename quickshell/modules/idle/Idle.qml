@@ -291,6 +291,9 @@ Scope {
     }
 
     function goingToSleep() {
+        // Before locking, so the lock does not start the fingerprint reader just as fprintd puts
+        // it to sleep.
+        S.Lock.pauseFingerprint();
         if (!root.lockBeforeSleep) return;
         S.Lock.lock();
         if (S.Lock.secure) {
@@ -301,6 +304,7 @@ Scope {
     }
 
     function wokeUp() {
+        S.Lock.resumeFingerprint();
         sleepRelease.stop();
         root.delayReleased = false;
         root.screens(true);

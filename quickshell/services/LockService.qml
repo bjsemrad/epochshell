@@ -191,15 +191,42 @@ Singleton {
     // what every fprintd install has. It runs alongside the password field the whole time the
     // screen is locked, and a match unlocks just as a password does.
 
+    // While the machine sleeps fprintd suspends the reader, and a verify running across that
+    // fails ("Cannot run while suspended") and can leave the reader unusable for a while after
+    // waking -- measured: a lock taken just before sleep then would not take a finger at all.
+    // Idle.qml, which watches logind, pauses the reader for the sleep and resumes it after.
+    property bool fingerprintPaused: false
+
+    // Verifies in a row that ended without a finger being read. A reader that fails at once is
+    // retried less and less often rather than every moment, which is what made the icon flash.
+    property int fingerprintFailures: 0
+
     function startFingerprint() {
-        if (!root.fingerprintAvailable || !root.locked || root.unlocking) return;
+        if (!root.fingerprintAvailable || !root.locked || root.unlocking || root.fingerprintPaused) return;
         fingerprint.matched = false;
+        fingerprint.startedAt = Date.now();
         fingerprint.running = true;
     }
 
     function stopFingerprint() {
         retryFingerprint.stop();
         fingerprint.running = false;
+        root.fingerprintFailures = 0;
+    }
+
+    function pauseFingerprint() {
+        root.fingerprintPaused = true;
+        retryFingerprint.stop();
+        fingerprint.running = false;
+    }
+
+    // fprintd brings the reader back a moment after the system resumes; asking before then is the
+    // same failure again, so wait a little.
+    function resumeFingerprint() {
+        root.fingerprintPaused = false;
+        root.fingerprintFailures = 0;
+        retryFingerprint.interval = 1500;
+        if (root.locked && !root.unlocking) retryFingerprint.restart();
     }
 
     // Whether this user has a finger enrolled. Asked once at startup; enrolling a finger later
@@ -218,6 +245,8 @@ Singleton {
     Process {
         id: fingerprint
         property bool matched: false
+        property real startedAt: 0
+        property string result: ""
         // Dies with the shell (see Idle.qml's orphanSafe): an orphaned verify would keep the
         // reader claimed, and the restarted shell's own verify would then fail to get it.
         command: ["setpriv", "--pdeathsig", "TERM", "--", "fprintd-verify"]
@@ -227,6 +256,7 @@ Singleton {
         stdout: SplitParser {
             onRead: function (line) {
                 // "Verify result: verify-match (done)" is the one line that means yes.
+                if (line.indexOf("Verify result:") >= 0) fingerprint.result = line.trim();
                 if (line.indexOf("verify-match") >= 0) {
                     fingerprint.matched = true;
                 } else if (line.indexOf("verify-no-match") >= 0) {
@@ -235,16 +265,45 @@ Singleton {
             }
         }
 
+        // Kept for the journal: the reader's own complaint is the only clue when it stops working.
+        stderr: SplitParser {
+            onRead: function (line) {
+                console.log("lock: fprintd-verify: " + line);
+            }
+        }
+
         onExited: function (code) {
+            const result = fingerprint.result;
+            fingerprint.result = "";
             if (fingerprint.matched && code === 0) {
                 root.succeed("fingerprint");
                 return;
             }
-            // Not matched, timed out, or the reader went away over a suspend: try again while
-            // the screen is still locked. The pause keeps a reader that fails instantly from
-            // spinning.
-            if (root.locked && !root.unlocking) retryFingerprint.restart();
+            if (!root.locked || root.unlocking || root.fingerprintPaused) return;
+
+            // A verify that ran a while ended in a real attempt or a timeout: go again straight
+            // away. One that ended almost at once means the reader is not there for us -- claimed
+            // elsewhere, still asleep -- so back off: 1.5s, 3s, 6s, then every 10s.
+            const quick = Date.now() - fingerprint.startedAt < 3000;
+            if (quick) {
+                root.fingerprintFailures += 1;
+                console.log("lock: fingerprint reader failed at once (exit " + code + (result ? ", " + result : "")
+                    + "), attempt " + root.fingerprintFailures);
+            } else {
+                root.fingerprintFailures = 0;
+            }
+            retryFingerprint.interval = quick ? Math.min(10000, 1500 * Math.pow(2, root.fingerprintFailures - 1)) : 200;
+            retryFingerprint.restart();
         }
+    }
+
+    // In case the wake-up is never heard (logind's signal missed, the monitor restarting): resume
+    // anyway. Timers do not advance while the machine sleeps, so this lands about 20s after waking
+    // at the latest, rather than 20s into the sleep.
+    Timer {
+        running: root.fingerprintPaused
+        interval: 20000
+        onTriggered: root.resumeFingerprint()
     }
 
     Timer {

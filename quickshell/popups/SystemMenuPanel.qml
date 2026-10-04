@@ -181,16 +181,15 @@ HoverPopupWindow {
         Layout.fillWidth: true
         spacing: 4
 
-        Process {
-            id: lock
-            command: ["hyprlock"]
-        }
-
+        // The shell's own lock screen (modules/lock), not an external locker: a second locker
+        // would race it for the session lock and for the fingerprint reader. The menu is closed
+        // first so it is not still open behind the lock when the session comes back.
         SystemAction {
             icon: "󰌾"
             description: "Lock"
             function onClick() {
-                lock.running = true;
+                S.PopupManager.closeAll();
+                S.Lock.lock();
             }
         }
 
