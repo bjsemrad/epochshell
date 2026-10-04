@@ -75,6 +75,11 @@ Scope {
     // Hyprland's Lua dispatcher is tried before the classic one, since which a given Hyprland speaks
     // depends on its config.
     function screens(on) {
+        // On Hyprland an "on" sent to a lit screen blanks it (see the unlock handling below), so
+        // only the first "on" after this shell's own "off" goes out. Waking from an idle suspend
+        // has the screen and suspend stages both report activity at once -- measured, two "on"s
+        // 20ms apart: lit, black, lit again, and only then the lock screen.
+        if (on && !root.screensOff && root.compositor === "hypr") return;
         // Logged: a screen left dark is otherwise impossible to trace back to who asked.
         console.log("idle: screens " + (on ? "on" : "off") + " (" + (root.compositor || "unknown") + ")");
         root.screensOff = !on;
@@ -380,20 +385,12 @@ Scope {
         S.Lock.resumeFingerprint();
         sleepRelease.stop();
         root.delayReleased = false;
-        // Hyprland lights its outputs again by itself on waking, and an "on" sent to a lit screen
-        // there blanks it (see the unlock handling above) -- measured, every manual suspend woke
-        // lit, went black at the second "on" below, and came back only at a keypress. So there,
-        // only if this shell turned them off, and only once: the delayed one, which lands after
-        // the outputs are back rather than lighting them only for a second "on" to blank them.
-        if (root.compositor === "hypr") {
-            if (root.screensOff) screensAfterWake.restart();
-        } else {
-            root.screens(true);
-            // And again shortly after: PrepareForSleep(false) arrives the moment the kernel is
-            // back, which can be before the compositor has its outputs again, and an "on" sent then
-            // is lost.
-            screensAfterWake.restart();
-        }
+        // On Hyprland, which lights its outputs again by itself, both of these are dropped unless
+        // this shell turned the screens off (see screens()).
+        root.screens(true);
+        // And again shortly after: PrepareForSleep(false) arrives the moment the kernel is back,
+        // which can be before the compositor has its outputs again, and an "on" sent then is lost.
+        screensAfterWake.restart();
         if (root.afterSleepCommand.length > 0) {
             afterSleep.command = ["sh", "-c", root.afterSleepCommand];
             afterSleep.running = true;
@@ -421,8 +418,7 @@ Scope {
     Timer {
         id: screensAfterWake
         interval: 2000
-        // On Hyprland, not if an unlock has already lit them in the meantime (see wokeUp).
-        onTriggered: if (root.compositor !== "hypr" || root.screensOff) root.screens(true)
+        onTriggered: root.screens(true)
     }
 
     Process {
