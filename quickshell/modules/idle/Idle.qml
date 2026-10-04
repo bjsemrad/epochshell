@@ -156,8 +156,32 @@ Scope {
         return ["setpriv", "--pdeathsig", "TERM", "--"].concat(command);
     }
 
+    // The fingerprint reader is stopped and let go of before the suspend is even asked for. Waiting
+    // inside the sleep delay is too late: fprintd hears PrepareForSleep at the same moment this
+    // shell does and starts suspending the reader, and a verify killed then collides with that --
+    // measured, "Error closing device after disconnect: The device is still busy" at the instant
+    // of every idle suspend, even with the delay held a second longer, and no fingerprint after
+    // waking until fprintd restarted.
     function suspend() {
-        suspendProcess.running = true;
+        S.Lock.pauseFingerprint();
+        suspendWhenReleased.restart();
+    }
+
+    Timer {
+        id: suspendWhenReleased
+        interval: 50
+        repeat: true
+        property int waited: 0
+        onRunningChanged: if (running) waited = 0
+        onTriggered: {
+            waited += interval;
+            const released = !S.Lock.fingerprintActive
+                && Date.now() - S.Lock.fingerprintStoppedAt >= root.fingerprintSettleMs;
+            if (released || waited >= 3000) {
+                suspendWhenReleased.stop();
+                suspendProcess.running = true;
+            }
+        }
     }
 
     Process {
@@ -219,7 +243,9 @@ Scope {
             root.screens(false);
         } else if (stage === suspendStage) {
             // The lock also comes from PrepareForSleep below when lockBeforeSleep is on; locking
-            // here too covers a configuration that suspends without it.
+            // here too covers a configuration that suspends without it. Paused first, so the lock
+            // does not start a verify only for suspend() to kill it.
+            S.Lock.pauseFingerprint();
             S.Lock.lock();
             root.screens(false);
             root.suspend();
