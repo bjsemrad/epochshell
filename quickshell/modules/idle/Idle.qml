@@ -337,11 +337,17 @@ Scope {
         S.Lock.pauseFingerprint();
         if (!root.lockBeforeSleep) return;
         S.Lock.lock();
-        if (S.Lock.secure) {
-            root.delayReleased = true;
-        } else {
-            sleepRelease.restart();
-        }
+        // Always through the timer, even when already locked: the verify just stopped above still
+        // has to be let go of by fprintd before the machine sleeps (see LockService).
+        sleepRelease.restart();
+    }
+
+    // How long fprintd is given to release the reader after the verify exits.
+    readonly property int fingerprintSettleMs: 1000
+
+    function readyToSleep() {
+        return S.Lock.secure && !S.Lock.fingerprintActive
+            && Date.now() - S.Lock.fingerprintStoppedAt >= root.fingerprintSettleMs;
     }
 
     function wokeUp() {
@@ -358,8 +364,9 @@ Scope {
         }
     }
 
-    // Waits for the lock to be confirmed, then lets sleep go ahead. Gives up before logind does, so
-    // a lock that will not confirm costs a moment rather than the whole delay.
+    // Waits for the lock to be confirmed and the fingerprint reader to be let go, then lets sleep go
+    // ahead. Gives up before logind does, so a lock that will not confirm costs a moment rather than
+    // the whole delay.
     Timer {
         id: sleepRelease
         interval: 50
@@ -368,7 +375,7 @@ Scope {
         onRunningChanged: if (running) waited = 0
         onTriggered: {
             waited += interval;
-            if (S.Lock.secure || waited >= 3000) {
+            if (root.readyToSleep() || waited >= 3000) {
                 sleepRelease.stop();
                 root.delayReleased = true;
             }

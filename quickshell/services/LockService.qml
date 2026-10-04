@@ -201,6 +201,13 @@ Singleton {
     // retried less and less often rather than every moment, which is what made the icon flash.
     property int fingerprintFailures: 0
 
+    // When the last verify exited. fprintd-verify has no signal handler, so stopping it is a kill,
+    // and fprintd releases the reader only once it notices the client has gone. Idle.qml waits on
+    // this before letting the machine sleep: measured, a kill at the same instant as the suspend
+    // left fprintd with "Error closing device after disconnect: The device is still busy", and
+    // that fprintd would not hand out the reader again after waking.
+    property real fingerprintStoppedAt: 0
+
     function startFingerprint() {
         if (!root.fingerprintAvailable || !root.locked || root.unlocking || root.fingerprintPaused) return;
         fingerprint.matched = false;
@@ -251,7 +258,10 @@ Singleton {
         // reader claimed, and the restarted shell's own verify would then fail to get it.
         command: ["setpriv", "--pdeathsig", "TERM", "--", "fprintd-verify"]
 
-        onRunningChanged: root.fingerprintActive = fingerprint.running
+        onRunningChanged: {
+            root.fingerprintActive = fingerprint.running;
+            if (!fingerprint.running) root.fingerprintStoppedAt = Date.now();
+        }
 
         stdout: SplitParser {
             onRead: function (line) {
@@ -283,7 +293,12 @@ Singleton {
 
             // A verify that ran a while ended in a real attempt or a timeout: go again straight
             // away. One that ended almost at once means the reader is not there for us -- claimed
-            // elsewhere, still asleep -- so back off: 1.5s, 3s, 6s, then every 10s.
+            // elsewhere, still asleep -- so back off: 1.5s, 3s, 6s, then every 35s.
+            //
+            // The 35s is fprintd's idle exit (30s without a client) plus a margin. A fprintd that
+            // has lost track of the reader keeps failing every verify until it restarts, and
+            // retrying more often than that kept it alive indefinitely: measured, four quick
+            // failures after waking, then a match within seconds of fprintd exiting.
             const quick = Date.now() - fingerprint.startedAt < 3000;
             if (quick) {
                 root.fingerprintFailures += 1;
@@ -292,7 +307,9 @@ Singleton {
             } else {
                 root.fingerprintFailures = 0;
             }
-            retryFingerprint.interval = quick ? Math.min(10000, 1500 * Math.pow(2, root.fingerprintFailures - 1)) : 200;
+            retryFingerprint.interval = !quick ? 200
+                : root.fingerprintFailures <= 3 ? 1500 * Math.pow(2, root.fingerprintFailures - 1)
+                : 35000;
             retryFingerprint.restart();
         }
     }
