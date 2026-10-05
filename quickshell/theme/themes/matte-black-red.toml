@@ -4,16 +4,15 @@
 # and error colours -- is inherited unchanged, so this is the same theme wearing a different accent,
 # as matte-black-blue is.
 #
-# A true red rather than One Dark's #e06c75, which is a salmon-pink and would sit on the error colour
-# exactly. This one is hue 359 at full chroma, so the two differ in kind: a lit switch is red, a
-# failed password is pink. They are still close -- 1.14 apart -- which is the same compromise
-# dark-red makes, and the price of any red accent.
+# The red is One Dark's #e06c75, chosen to match the niri window border, so the focused window and
+# the shell's lit controls are one colour. It is also matte-black's error colour, so a lit switch and
+# a failed password are now drawn identically -- the same trade dark-red makes, taken further. Worth
+# it for a desktop that reads as one red; a separate error colour can come back if that ever
+# confuses.
 #
-# It cannot carry the weight the blue does. A red bright enough to reach the blue's 7.15 against the
-# ground has to be lifted so far it turns pink itself, so this stops at 5.16: comfortably past 4.5
-# for the background-coloured text drawn on an accent fill, and still the brightest thing on the bar
-# after the text.
+# 5.86 against the ground: past 4.5 for the background-coloured text drawn on an accent fill, though
+# lighter on a bar than matte-black-blue's 7.15.
 
 extends = "matte-black"
 
-accent = "#ef4b4f"
+accent = "#e06c75"
