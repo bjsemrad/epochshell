@@ -1,0 +1,19 @@
+# EpochShell theme: matte-black-red
+#
+# matte-black with a red accent. Everything else -- the neutral grey ladder, the text, the warning
+# and error colours -- is inherited unchanged, so this is the same theme wearing a different accent,
+# as matte-black-blue is.
+#
+# A true red rather than One Dark's #e06c75, which is a salmon-pink and would sit on the error colour
+# exactly. This one is hue 359 at full chroma, so the two differ in kind: a lit switch is red, a
+# failed password is pink. They are still close -- 1.14 apart -- which is the same compromise
+# dark-red makes, and the price of any red accent.
+#
+# It cannot carry the weight the blue does. A red bright enough to reach the blue's 7.15 against the
+# ground has to be lifted so far it turns pink itself, so this stops at 5.16: comfortably past 4.5
+# for the background-coloured text drawn on an accent fill, and still the brightest thing on the bar
+# after the text.
+
+extends = "matte-black"
+
+accent = "#ef4b4f"
