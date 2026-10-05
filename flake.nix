@@ -590,6 +590,18 @@
             # Install repo config into ~/.config/${cfg.configDir}
             xdg.configFile."${cfg.configDir}".source = "${self}/quickshell";
 
+            # Disabled: take back the file an earlier enabled generation wrote, or the shell keeps
+            # finding a token and the panel stays. Only a file this module wrote, recognised by its
+            # `managedBy`; a hand-written one is left alone.
+            home.activation.epochshellHomeAssistantConfigRemove = lib.mkIf (!cfg.homeAssistant.enable) (
+              lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                config_file="''${XDG_CONFIG_HOME:-''${HOME}/.config}/epochshell-hass.json"
+                if [ -f "$config_file" ] && ${pkgs.gnugrep}/bin/grep -q '"managedBy": "programs.epochshell.homeAssistant"' "$config_file"; then
+                  run rm -f "$config_file"
+                fi
+              ''
+            );
+
             home.activation.epochshellHomeAssistantConfig = lib.mkIf cfg.homeAssistant.enable (
               lib.hm.dag.entryAfter [ "writeBoundary" ] ''
                 config_home="''${XDG_CONFIG_HOME:-''${HOME}/.config}"
@@ -624,6 +636,7 @@ import sys
 
 path = sys.argv[1]
 data = {
+    "managedBy": "programs.epochshell.homeAssistant",
     "baseUrl": os.environ.get("EPOCHSHELL_HASS_BASE_URL", ""),
     "token": os.environ.get("EPOCHSHELL_HASS_TOKEN", ""),
     "favorites": json.loads(os.environ.get("EPOCHSHELL_HASS_FAVORITES", "[]")),
