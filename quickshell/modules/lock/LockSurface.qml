@@ -19,9 +19,13 @@ WlSessionLockSurface {
 
     readonly property bool shown: S.Lock.locked && !S.Lock.unlocking
 
+    // Seconds, though only minutes are shown. SystemClock waits for the next tick on a timer that
+    // does not count time asleep, so a minute clock wakes still owing the rest of the minute it
+    // went to sleep in: the lock showed the time of the suspend after waking, and a fingerprint
+    // unlock beat the catch-up. A second clock is out by a second at most.
     SystemClock {
         id: clock
-        precision: SystemClock.Minutes
+        precision: SystemClock.Seconds
     }
 
     // --- Background -------------------------------------------------------------------------
