@@ -54,12 +54,27 @@ PopupWindow {
     property Item island: null
     readonly property bool inIsland: attached && island !== null
 
-    // The flares reach outside the card, so an attached window is that much wider on each side.
+    // Under the full bar, the bar strip (see Bar.qml), which spans the screen. Read on opening to
+    // decide whether the panel snaps to the screen's right edge.
+    property Item barStrip: null
+
+    // Snapped flush with the screen's right edge, rather than centred under the trigger. Only when
+    // centring would leave the panel within `snapDistance` of the edge -- or push it past, which
+    // the compositor would otherwise slide it back from: a sliver of desktop beside the panel is
+    // neither attached to the edge nor clearly apart from it, so it goes all the way. A panel
+    // whose trigger is further in stays centred under it.
+    property bool snapRight: false
+    readonly property bool atRightEdge: attached && !inIsland && snapRight
+    readonly property real snapDistance: T.Config.popupRadius * 2
+
+    // The flares reach outside the card, so an attached window is that much wider on each side --
+    // or, snapped to the right edge, on the left only.
     readonly property real flare: attached ? T.Config.popupRadius : 0
+    readonly property real _flareRight: atRightEdge ? 0 : flare
 
     readonly property real cardHeight: contentLayout.implicitHeight + padding + bottomPadding
 
-    implicitWidth: popupWidth + flare * 2 + edgeInset * 2
+    implicitWidth: popupWidth + flare + _flareRight + edgeInset * 2
     // A pixel more when attached, for the bottom outline: it is drawn centred on the edge, and
     // half of it would otherwise fall outside the window.
     implicitHeight: cardHeight + edgeInset * 2 + (attached ? 1 : 0)
@@ -82,8 +97,15 @@ PopupWindow {
     onRevealChanged: if (reveal <= 0 && !open && attached) visible = false
 
     function showPanel() {
-        // Before the window shows, so it is anchored for the island from the start.
+        // Before the window shows, so it is sized and anchored for its place from the start.
         island = _findUp("barIsland");
+        barStrip = _findUp("barStrip");
+        snapRight = false;
+        if (attached && !inIsland && barStrip && trigger) {
+            const centre = trigger.mapToItem(barStrip, trigger.width / 2, 0).x;
+            const centredWidth = popupWidth + flare * 2;
+            snapRight = barStrip.width - (centre + centredWidth / 2) < snapDistance;
+        }
         if (attached) {
             const bar = _findUp("barPanels");
             if (bar) bar.attach(popup);
@@ -156,15 +178,28 @@ PopupWindow {
 
     // From an island, the anchor is a point on the island's bottom edge, and the panel's left edge
     // goes there; the island's body starts at the top of the bar, so its bottom edge is the bar's.
+    //
+    // Snapped to the right edge, the anchor is the bar strip's bottom-right corner, and the panel
+    // grows leftwards from it.
     anchor {
-        item: popup.inIsland ? popup.island : popup.trigger
-        edges: popup.inIsland ? Edges.Bottom | Edges.Left : popup.attached ? Edges.Bottom : popup.anchorEdges
-        gravity: popup.inIsland ? Edges.Bottom | Edges.Right : popup.anchorGravity
+        item: popup.inIsland ? popup.island : popup.atRightEdge ? popup.barStrip : popup.trigger
+        edges: popup.inIsland ? Edges.Bottom | Edges.Left
+            : popup.atRightEdge ? Edges.Bottom | Edges.Right
+            : popup.attached ? Edges.Bottom : popup.anchorEdges
+        gravity: popup.inIsland ? Edges.Bottom | Edges.Right
+            : popup.atRightEdge ? Edges.Bottom | Edges.Left : popup.anchorGravity
         // No Flip for an attached panel: flipped, it would open upwards off the top of the screen.
-        adjustment: popup.attached ? PopupAdjustment.Slide : PopupAdjustment.Slide | PopupAdjustment.Flip
-        rect.x: popup.inIsland ? popup._islandLeft : 0
-        rect.width: popup.inIsland ? 1 : popup.trigger ? popup.trigger.width : 1
-        rect.y: popup.inIsland ? T.Config.barHeight - 2 : popup.attached ? popup._barBottomRectY : popup.anchorRectY
+        // Nothing at all at the right edge: the panel is placed against the edge on purpose, so
+        // there is nothing to slide it back from -- and Hyprland (0.56) slides one that fits
+        // exactly anyway, leaving a 4px strip of desktop between it and the edge.
+        adjustment: popup.atRightEdge ? PopupAdjustment.None
+            : popup.attached ? PopupAdjustment.Slide : PopupAdjustment.Slide | PopupAdjustment.Flip
+        rect.x: popup.inIsland ? popup._islandLeft : popup.atRightEdge ? popup.barStrip.width - 1 : 0
+        rect.width: popup.inIsland || popup.atRightEdge ? 1 : popup.trigger ? popup.trigger.width : 1
+        // An island's body and the bar strip both start at the top of the bar, so their bottom
+        // edge is the bar's.
+        rect.y: popup.inIsland || popup.atRightEdge ? T.Config.barHeight - 2
+            : popup.attached ? popup._barBottomRectY : popup.anchorRectY
         rect.height: 1
     }
 
@@ -188,6 +223,8 @@ PopupWindow {
             width: parent.width
             height: popup.cardHeight * popup.reveal
             flare: popup.flare
+            // Square at the screen's right edge, when snapped there.
+            rightFlush: popup.atRightEdge
             fillColor: T.Config.barBackground
             // Carries on the bar's outline round the rest of the shape, or is the only outline
             // (T.Config.panelOutline).

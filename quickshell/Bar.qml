@@ -127,6 +127,7 @@ Scope {
                 // Found by panels opened from in here; see HoverPopupWindow.
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property Item barStrip: barArea
                 // Placed by x rather than anchors, in both styles. An anchor removed at runtime
                 // leaves the item where the anchor put it -- an x binding underneath does not take
                 // over until something it reads changes -- so switching to the island style after
@@ -162,6 +163,7 @@ Scope {
                 spacing: T.Config.barModuleSpacing
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property Item barStrip: barArea
                 x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
                     : Math.round((parent.width - width) / 2)
 
@@ -191,6 +193,7 @@ Scope {
                 spacing: T.Config.barModuleSpacing
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property Item barStrip: barArea
                 x: barWindow.island ? centerSide.x + centerSide.width + barWindow.islandGap
                     : parent.width - width - T.Config.barModuleSpacing
                 Layout.alignment: Qt.AlignVCenter
