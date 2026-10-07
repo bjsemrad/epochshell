@@ -171,9 +171,8 @@ HoverPopupWindow {
     // setting you can see while choosing it does not want a confirm step, and a file rewritten on
     // every pixel of a drag is a lot of writes for no gain.
     //
-    // The panels opened from the bar grow out of it in its own colour (HoverPopupWindow), so they
-    // follow barOpacity, and the labels say so; popupOpacity is left with everything that floats
-    // free of the bar.
+    // Three, for the three grounds (see Config): the bar, the panels that grow out of it, and
+    // everything that floats free of it.
     Text {
         text: "Opacity"
         color: T.Config.surfaceText
@@ -183,11 +182,19 @@ HoverPopupWindow {
     }
 
     SettingSlider {
-        label: "Bar & panels"
+        label: "Bar"
         hint: "100% is solid"
         settingValue: T.Config.barOpacity
         onMoved: value => T.Config.barOpacity = value
         onCommitted: value => T.Config.setSetting("barOpacity", value)
+    }
+
+    SettingSlider {
+        label: "Panels"
+        hint: "Opened from the bar"
+        settingValue: T.Config.panelOpacity
+        onMoved: value => T.Config.panelOpacity = value
+        onCommitted: value => T.Config.setSetting("panelOpacity", value)
     }
 
     SettingSlider {

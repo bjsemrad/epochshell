@@ -240,7 +240,7 @@ PopupWindow {
             flare: popup.flare
             // Square at the screen's right edge, when snapped there.
             rightFlush: popup.atRightEdge
-            fillColor: T.Config.barBackground
+            fillColor: T.Config.panelBackground
             // Carries on the bar's outline round the rest of the shape, or is the only outline --
             // or, faded, an outline that only appears below the join (T.Config.panelOutline).
             outlineOpacity: ["panel", "bar", "fade"].indexOf(T.Config.panelOutline) !== -1 ? popup.reveal : 0

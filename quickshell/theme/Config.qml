@@ -87,7 +87,7 @@ Singleton {
     onThemeNameChanged: themeFromUserDir = true
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
     readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons"]
-    readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "popupOpacity"]
+    readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
     readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
@@ -239,15 +239,21 @@ Singleton {
     // way it always has until someone asks otherwise -- so these ship at 1 and the sliders in the
     // Themes panel are how you ask.
     //
-    // Those sliders write to the settings file rather than config.toml, which matters because
-    // config.toml cannot exist at all on a home-manager install.
+    // Those sliders write to the settings file rather than config.toml, which is read-only on a
+    // home-manager install.
+    //
+    // Three grounds: the bar; the panels that grow out of it (HoverPopupWindow, attached); and
+    // everything that floats free -- OSDs, notifications, the launcher, a floating card. Panels
+    // are their own so the bar can stay solid while they let a little through, or the reverse.
     property real barOpacity: 1.0
+    property real panelOpacity: 1.0
     property real popupOpacity: 1.0
 
     // The ground with its opacity applied, which is what actually gets painted. Bindings rather
     // than values written by updateDerived(): they depend on `background`, which a theme may set,
     // and on the opacity, which config.toml may set, so they have to follow both.
     readonly property color barBackground: Qt.rgba(background.r, background.g, background.b, barOpacity)
+    readonly property color panelBackground: Qt.rgba(background.r, background.g, background.b, panelOpacity)
     readonly property color popupBackground: Qt.rgba(background.r, background.g, background.b, popupOpacity)
 
     // config.toml says which theme to use and overrides anything it wants on top of it. Both
@@ -572,6 +578,7 @@ Singleton {
         workspaceIcons = true;
         workspaceStripMaxWidthRatio = 0.45;
         barOpacity = 1.0;
+        panelOpacity = 1.0;
         popupOpacity = 1.0;
 
         updateDerived({});
