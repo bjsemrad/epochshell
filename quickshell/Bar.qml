@@ -65,8 +65,8 @@ Scope {
             readonly property bool island: T.Config.barStyle === "island"
             // Between one group and the next, and after the last.
             readonly property int islandGap: T.Config.barModuleSpacing * 2
-            readonly property real islandNatural: leftSide.width + islandGap + centerSide.width + islandGap
-                + rightSide.width + T.Config.barModuleSpacing
+            readonly property real islandNatural: T.Config.barModuleSpacing + leftSide.width + islandGap
+                + centerSide.width + islandGap + rightSide.width + T.Config.barModuleSpacing
             readonly property real islandWidth: panelTracker.widthAround(islandNatural, T.Config.popupRadius)
             readonly property real islandX: Math.round((width - islandWidth) / 2)
             // Where the groups start: centred in the island, which is only wider than them while
@@ -122,8 +122,10 @@ Scope {
                 enabled: S.StayAwake.enabled
             }
 
-            Flickable {
+            // Left: the launcher and what is playing.
+            RowLayout {
                 id: leftSide
+                spacing: T.Config.barModuleSpacing
                 // Found by panels opened from in here; see HoverPopupWindow.
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
@@ -132,40 +134,7 @@ Scope {
                 // leaves the item where the anchor put it -- an x binding underneath does not take
                 // over until something it reads changes -- so switching to the island style after
                 // startup, as reading config.toml does, left the groups at the screen's edges.
-                x: barWindow.island ? barWindow.islandContentX : 0
-                width: Math.min(leftContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
-                contentWidth: leftContent.implicitWidth
-                contentHeight: height
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                interactive: contentWidth > width
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                }
-
-                RowLayout {
-                    id: leftContent
-                    height: parent.height
-                    spacing: T.Config.barModuleSpacing
-
-                    BarFill {}
-                    ApplicationLauncher {}
-                    Workspaces {}
-                    BarFill {}
-                }
-            }
-
-            // As wide as its modules: centred on the bar, or placed after the left group in the
-            // island.
-            RowLayout {
-                id: centerSide
-                spacing: T.Config.barModuleSpacing
-                readonly property var barPanels: panelTracker
-                readonly property Item barIsland: barWindow.island ? islandBody : null
-                readonly property Item barStrip: barArea
-                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
-                    : Math.round((parent.width - width) / 2)
+                x: (barWindow.island ? barWindow.islandContentX : 0) + T.Config.barModuleSpacing
 
                 anchors {
                     top: parent.top
@@ -173,24 +142,51 @@ Scope {
                 }
 
                 children: [
+                    ApplicationLauncher {},
                     MediaIndicator {
                         id: mediaIndicator
                         popup: mediaPanel
-                    },
-                    ClickableClock {
-                        id: clock
-                        popup: calendarPanel
-                    },
-                    Weather {
-                        id: weather
-                        popup: weatherPanel
                     }
                 ]
             }
 
+            // Centre: the workspaces, the thing glanced at most, where the eye lands. A strip of
+            // many workspaces is capped at a share of the bar and scrolls rather than pushing into
+            // the groups either side.
+            Flickable {
+                id: centerSide
+                readonly property var barPanels: panelTracker
+                readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property Item barStrip: barArea
+                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
+                    : Math.round((parent.width - width) / 2)
+                width: Math.min(centerContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
+                contentWidth: centerContent.implicitWidth
+                contentHeight: height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                interactive: contentWidth > width
+
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+
+                RowLayout {
+                    id: centerContent
+                    height: parent.height
+                    spacing: T.Config.barModuleSpacing
+
+                    Workspaces {}
+                }
+            }
+
             RowLayout {
                 id: rightSide
-                spacing: T.Config.barModuleSpacing
+                // The drawer's own spacing between its icons (IndividualBarRight), so the clock
+                // after them sits at the same distance as one icon from the next rather than
+                // standing off as a group of its own.
+                spacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
                 readonly property Item barStrip: barArea
@@ -204,16 +200,18 @@ Scope {
                 }
 
                 IndividualBarRight {}
+
+                // The time at the far right, after the system icons, where most desktops keep it.
+                ClickableClock {
+                    id: clock
+                    Layout.alignment: Qt.AlignVCenter
+                    popup: calendarPanel
+                }
             }
 
             CalendarPanel {
                 id: calendarPanel
                 trigger: clock
-            }
-
-            WeatherPanel {
-                id: weatherPanel
-                trigger: weather
             }
 
             MediaPanel {

@@ -148,7 +148,9 @@ Singleton {
     property int popupLayoutSpacing: 8
 
     property int barIconSize: 18
-    property int barClockSize: fontSizeSubtext
+    // In pixels, like the icons and the workspace numbers beside them, and the same size by
+    // default: as small as subtext the time read as a footnote to the bar.
+    property int barClockSize: barIconSize
     property int barWeatherSize: fontSizeNormal
     property int barModuleSpacing: 10
     property int barGroupIconSpacing: barModuleVerticalPadding * 2
@@ -599,7 +601,7 @@ Singleton {
         if (!overridden.activeSelection)
             activeSelection = surfaceContainerHigh;
         if (!overridden.barClockSize)
-            barClockSize = fontSizeSubtext;
+            barClockSize = barIconSize;
         if (!overridden.barWeatherSize)
             barWeatherSize = fontSizeNormal;
         if (!overridden.barGroupIconSpacing)

@@ -8,7 +8,9 @@ Rectangle {
     color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
-    implicitWidth: clockText.implicitWidth + T.Config.barModuleHorizontalPadding
+    // Half the icons' side padding: text carries its own side bearings, so the full amount stood
+    // the clock off from the icon before it.
+    implicitWidth: clockText.implicitWidth + Math.round(T.Config.barModuleHorizontalPadding / 2)
     implicitHeight: clockText.implicitHeight + T.Config.barModuleVerticalPadding
 
     property var popup
@@ -34,10 +36,12 @@ Rectangle {
 
     Text {
         id: clockText
-        text: Qt.formatDateTime(sysclk.date, "ddd hh:mm AP")
+        // Just the time, unpadded -- "3:19 PM", as the lock screen has it. The day is a click
+        // away in the calendar.
+        text: Qt.formatDateTime(sysclk.date, "h:mm AP")
         color: T.Config.surfaceText
         font {
-            pointSize: T.Config.barClockSize
+            pixelSize: T.Config.barClockSize
             family: T.Config.fontFamily
         }
         anchors.centerIn: parent

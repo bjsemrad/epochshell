@@ -83,18 +83,20 @@ PopupWindow {
 
     // How far open, 0 to 1. Drives the attached panel's growth out of the bar; a floating card
     // only fades.
-    property real reveal: open ? 1 : 0
-    Behavior on reveal {
-        NumberAnimation {
-            duration: 260
-            easing.type: Easing.BezierSpline
-            easing.bezierCurve: popup.anim_CURVE_SMOOTH_SLIDE
-        }
+    //
+    // Animated on the way open only. Closing is instant -- the window goes, and with it anything
+    // following `reveal` (the bar's outline, an island widened to carry the panel) drops back at
+    // once rather than retracting after the panel has already gone.
+    property real reveal: 0
+    NumberAnimation {
+        id: revealAnimation
+        target: popup
+        property: "reveal"
+        to: 1
+        duration: 260
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: popup.anim_CURVE_SMOOTH_SLIDE
     }
-
-    // The window outlives `open` by the closing animation: it is hidden once the panel has
-    // retracted into the bar, not the moment it is asked to close.
-    onRevealChanged: if (reveal <= 0 && !open && attached) visible = false
 
     function showPanel() {
         // Before the window shows, so it is sized and anchored for its place from the start.
@@ -112,12 +114,15 @@ PopupWindow {
         }
         open = true;
         visible = true;
+        revealAnimation.restart();
     }
 
     function hidePanel() {
         if (!stopHide) {
             open = false;
-            if (!attached) visible = false;
+            revealAnimation.stop();
+            reveal = 0;
+            visible = false;
             popupHover = false;
         }
     }
