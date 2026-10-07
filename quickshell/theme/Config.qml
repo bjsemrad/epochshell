@@ -88,7 +88,7 @@ Singleton {
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
     readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "popupOpacity"]
-    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline"]
+    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
     readonly property string themeKey: "theme"
@@ -145,6 +145,12 @@ Singleton {
     // under the full bar, round the island in the island style. Anything else reads as "none".
     // "fade" by default.
     property string panelOutline: "fade"
+
+    // How the bar's panels are drawn. "attached": growing out of the bar in its colour, its edge
+    // flaring into theirs. "floating": a bordered card a few pixels below the bar, rounded all
+    // round. Anything else reads as "attached". panelOutline and edge-snapping are for attached
+    // panels only; a floating card has its own border.
+    property string panelStyle: "attached"
 
     property int popupPadding: 10
     property int popupRadius: 10
@@ -514,6 +520,7 @@ Singleton {
         fontFamily = "JetBrainsMono Nerd Font Propo";
         barStyle = defaultBarStyle;
         panelOutline = "fade";
+        panelStyle = "attached";
         popupPadding = 10;
         popupRadius = 10;
         popupLayoutSpacing = 8;

@@ -36,9 +36,17 @@ PopupWindow {
     // has no border to lose, and its top edge must touch the bar, so it has none.)
     readonly property int edgeInset: attached ? 0 : 1
 
-    // Attached unless the anchoring below is overridden -- a panel placed somewhere else is not
-    // touching the bar, and flares drawn into thin air would look like a mistake.
-    readonly property bool attached: anchorEdges === (Edges.Left | Edges.Bottom) && anchorRectY < 0
+    // Opened from the bar: the anchoring below is left at its defaults. A panel that overrides it
+    // is placed somewhere else (the theme picker, flying sideways out of the system menu).
+    readonly property bool fromBar: anchorEdges === (Edges.Left | Edges.Bottom) && anchorRectY < 0
+
+    // Attached to the bar, growing out of it, unless T.Config.panelStyle asks for floating cards
+    // -- and never when not opened from the bar, where flares drawn into thin air would look like
+    // a mistake.
+    readonly property bool attached: fromBar && T.Config.panelStyle !== "floating"
+
+    // A floating card from the bar hangs this far below it.
+    readonly property int floatingGap: 5
 
     // The first value of `name` found walking up from the trigger: how a panel learns which part
     // of the bar it was opened from, which the bar marks on its left, centre and right groups.
@@ -190,7 +198,7 @@ PopupWindow {
         item: popup.inIsland ? popup.island : popup.atRightEdge ? popup.barStrip : popup.trigger
         edges: popup.inIsland ? Edges.Bottom | Edges.Left
             : popup.atRightEdge ? Edges.Bottom | Edges.Right
-            : popup.attached ? Edges.Bottom : popup.anchorEdges
+            : popup.fromBar ? Edges.Bottom : popup.anchorEdges
         gravity: popup.inIsland ? Edges.Bottom | Edges.Right
             : popup.atRightEdge ? Edges.Bottom | Edges.Left : popup.anchorGravity
         // No Flip for an attached panel: flipped, it would open upwards off the top of the screen.
@@ -202,9 +210,11 @@ PopupWindow {
         rect.x: popup.inIsland ? popup._islandLeft : popup.atRightEdge ? popup.barStrip.width - 1 : 0
         rect.width: popup.inIsland || popup.atRightEdge ? 1 : popup.trigger ? popup.trigger.width : 1
         // An island's body and the bar strip both start at the top of the bar, so their bottom
-        // edge is the bar's.
+        // edge is the bar's. A floating card from the bar sits `floatingGap` below it.
         rect.y: popup.inIsland || popup.atRightEdge ? T.Config.barHeight - 2
-            : popup.attached ? popup._barBottomRectY : popup.anchorRectY
+            : popup.attached ? popup._barBottomRectY
+            : popup.fromBar ? T.Config.barHeight - popup._triggerTop - 1 + popup.floatingGap
+            : popup.anchorRectY
         rect.height: 1
     }
 
