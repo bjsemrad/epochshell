@@ -87,7 +87,7 @@ Singleton {
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
     readonly property var boolKeys: ["panelAnimationsEnabled", "hideInactiveWorkspaces", "workspaceIcons"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "popupOpacity"]
-    readonly property var stringKeys: ["fontFamily"]
+    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
     readonly property string themeKey: "theme"
@@ -127,6 +127,20 @@ Singleton {
 
     /* Misc */
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
+
+    // "full": one strip across the top of the screen. "island": every module in a single island
+    // centred at the top, as wide as what is showing in it. Anything else reads as "full".
+    //
+    // Defaults to $EPOCHSHELL_BAR_STYLE when set, so a style can be tried for one run without
+    // touching a config file: `EPOCHSHELL_BAR_STYLE=island qs -p .../shell.qml`. A `barStyle` in
+    // config.toml or settings.toml still wins.
+    readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "full"
+    property string barStyle: defaultBarStyle
+
+    // An outline while a panel is open. "none": no outline. "panel": round the panel only.
+    // "bar": round the bar and the panel together, as one shape -- along the bar's bottom edge
+    // under the full bar, round the island in the island style. Anything else reads as "none".
+    property string panelOutline: "none"
 
     property int popupPadding: 10
     property int popupRadius: 10
@@ -506,6 +520,8 @@ Singleton {
         outline = "#8c9199";
 
         fontFamily = "JetBrainsMono Nerd Font Propo";
+        barStyle = defaultBarStyle;
+        panelOutline = "none";
         popupPadding = 10;
         popupRadius = 10;
         popupLayoutSpacing = 8;

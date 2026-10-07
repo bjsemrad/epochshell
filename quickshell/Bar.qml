@@ -41,11 +41,57 @@ Scope {
 
             implicitHeight: T.Config.barHeight
 
+            // Clicks on the bar, or in the island style on the island only: the screen showing
+            // either side of it is the desktop's, not the bar's.
+            mask: Region {
+                item: barWindow.island ? islandShape : barArea
+            }
+
             // First child, so it sits behind everything else the bar draws.
             Rectangle {
                 id: barArea
                 anchors.fill: parent
-                color: T.Config.barBackground
+                // In the island style the ground is the island below, and the strip is only the
+                // frame the modules are laid out in.
+                color: barWindow.island ? "transparent" : T.Config.barBackground
+            }
+
+            // --- Island ------------------------------------------------------------------------
+            //
+            // In the island style the three groups sit side by side, in one island hanging from the
+            // top of the screen and centred on it. Its width is whatever they need -- so it moves
+            // as the drawer opens, workspaces come and go, or the media title appears -- or, while
+            // a panel too wide for it is open, enough to carry that panel (BarPanels.widthAround).
+            readonly property bool island: T.Config.barStyle === "island"
+            // Between one group and the next, and after the last.
+            readonly property int islandGap: T.Config.barModuleSpacing * 2
+            readonly property real islandNatural: leftSide.width + islandGap + centerSide.width + islandGap
+                + rightSide.width + T.Config.barModuleSpacing
+            readonly property real islandWidth: panelTracker.widthAround(islandNatural, T.Config.popupRadius)
+            readonly property real islandX: Math.round((width - islandWidth) / 2)
+            // Where the groups start: centred in the island, which is only wider than them while
+            // it carries a wide panel.
+            readonly property real islandContentX: islandX + Math.round((islandWidth - islandNatural) / 2)
+
+            AttachedSurface {
+                id: islandShape
+                visible: barWindow.island
+                x: barWindow.islandX
+                width: barWindow.islandWidth
+                height: T.Config.barHeight
+                // Square where it meets the top of the screen; only its bottom corners are round.
+                flare: 0
+                // Round its sides and along its bottom while a panel is open; the panel covers
+                // the bottom line where it hangs, and outlines the rest of itself.
+                outlineOpacity: T.Config.panelOutline === "bar" ? panelTracker.openness : 0
+            }
+
+            // The island's body, for panels to anchor to.
+            Item {
+                id: islandBody
+                x: barWindow.islandX
+                width: barWindow.islandWidth
+                height: T.Config.barHeight
             }
 
             // How far open the most-open panel from this bar is: panels attach here on opening
@@ -59,7 +105,7 @@ Scope {
             // shape. The panel covers this line where it hangs, since it overlaps the bar by a
             // pixel.
             Rectangle {
-                visible: opacity > 0
+                visible: !barWindow.island && T.Config.panelOutline === "bar" && opacity > 0
                 opacity: panelTracker.openness
                 y: T.Config.barHeight - 1
                 width: parent.width
@@ -80,6 +126,8 @@ Scope {
                 id: leftSide
                 // Found by panels opened from in here; see HoverPopupWindow.
                 readonly property var barPanels: panelTracker
+                readonly property Item barIsland: barWindow.island ? islandBody : null
+                x: barWindow.islandContentX
                 width: Math.min(leftContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
                 contentWidth: leftContent.implicitWidth
                 contentHeight: height
@@ -89,7 +137,7 @@ Scope {
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
-                    left: parent.left
+                    left: barWindow.island ? undefined : parent.left
                 }
 
                 RowLayout {
@@ -104,21 +152,22 @@ Scope {
                 }
             }
 
+            // As wide as its modules: centred on the bar, or placed after the left group in the
+            // island.
             RowLayout {
                 id: centerSide
                 spacing: T.Config.barModuleSpacing
                 readonly property var barPanels: panelTracker
+                readonly property Item barIsland: barWindow.island ? islandBody : null
+                x: leftSide.x + leftSide.width + barWindow.islandGap
 
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
-                    centerIn: parent
+                    horizontalCenter: barWindow.island ? undefined : parent.horizontalCenter
                 }
-                readonly property int available: parent.width
 
-                implicitWidth: available
                 children: [
-                    BarFill {},
                     MediaIndicator {
                         id: mediaIndicator
                         popup: mediaPanel
@@ -130,8 +179,7 @@ Scope {
                     Weather {
                         id: weather
                         popup: weatherPanel
-                    },
-                    BarFill {}
+                    }
                 ]
             }
 
@@ -139,12 +187,14 @@ Scope {
                 id: rightSide
                 spacing: T.Config.barModuleSpacing
                 readonly property var barPanels: panelTracker
+                readonly property Item barIsland: barWindow.island ? islandBody : null
+                x: centerSide.x + centerSide.width + barWindow.islandGap
                 Layout.alignment: Qt.AlignVCenter
 
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
-                    right: parent.right
+                    right: barWindow.island ? undefined : parent.right
                     rightMargin: T.Config.barModuleSpacing
                 }
 

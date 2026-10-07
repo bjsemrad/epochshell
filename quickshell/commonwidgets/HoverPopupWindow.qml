@@ -49,6 +49,11 @@ PopupWindow {
         return null;
     }
 
+    // In the island style, the island's body (see Bar.qml): the panel hangs from it, kept within
+    // its ends so the flares land on it. Null under the full bar.
+    property Item island: null
+    readonly property bool inIsland: attached && island !== null
+
     // The flares reach outside the card, so an attached window is that much wider on each side.
     readonly property real flare: attached ? T.Config.popupRadius : 0
 
@@ -77,6 +82,8 @@ PopupWindow {
     onRevealChanged: if (reveal <= 0 && !open && attached) visible = false
 
     function showPanel() {
+        // Before the window shows, so it is anchored for the island from the start.
+        island = _findUp("barIsland");
         if (attached) {
             const bar = _findUp("barPanels");
             if (bar) bar.attach(popup);
@@ -124,23 +131,40 @@ PopupWindow {
     // started, before the bar had laid out. Measured in `anchoring`, which fires before every
     // placement, rather than in showPanel, which a panel may replace with its own.
     property real _triggerTop: 0
+    // From an island: where the panel's left edge goes, relative to the island. Centred under the
+    // trigger, but kept a corner's width inside the island's ends so the flares clear its rounded
+    // corners; a panel wider than the island is centred on it instead, and the island widens to
+    // carry it (BarPanels.widthAround) -- about its centre, so the panel stays centred as it does.
+    property real _islandLeft: 0
     Connections {
         target: popup.anchor
         function onAnchoring() {
-            if (popup.trigger) popup._triggerTop = popup.trigger.mapToItem(null, 0, 0).y;
+            if (!popup.trigger) return;
+            popup._triggerTop = popup.trigger.mapToItem(null, 0, 0).y;
+            if (popup.inIsland) {
+                const margin = T.Config.popupRadius;
+                const islandWidth = popup.island.width;
+                const centre = popup.trigger.mapToItem(popup.island, popup.trigger.width / 2, 0).x;
+                if (popup.width + margin * 2 > islandWidth)
+                    popup._islandLeft = (islandWidth - popup.width) / 2;
+                else
+                    popup._islandLeft = Math.max(margin, Math.min(islandWidth - popup.width - margin, centre - popup.width / 2));
+            }
         }
     }
     readonly property real _barBottomRectY: T.Config.barHeight - _triggerTop - 1 - 1
 
+    // From an island, the anchor is a point on the island's bottom edge, and the panel's left edge
+    // goes there; the island's body starts at the top of the bar, so its bottom edge is the bar's.
     anchor {
-        item: popup.trigger
-        edges: popup.attached ? Edges.Bottom : popup.anchorEdges
-        gravity: popup.anchorGravity
+        item: popup.inIsland ? popup.island : popup.trigger
+        edges: popup.inIsland ? Edges.Bottom | Edges.Left : popup.attached ? Edges.Bottom : popup.anchorEdges
+        gravity: popup.inIsland ? Edges.Bottom | Edges.Right : popup.anchorGravity
         // No Flip for an attached panel: flipped, it would open upwards off the top of the screen.
         adjustment: popup.attached ? PopupAdjustment.Slide : PopupAdjustment.Slide | PopupAdjustment.Flip
-        rect.x: 0
-        rect.width: popup.trigger ? popup.trigger.width : 1
-        rect.y: popup.attached ? popup._barBottomRectY : popup.anchorRectY
+        rect.x: popup.inIsland ? popup._islandLeft : 0
+        rect.width: popup.inIsland ? 1 : popup.trigger ? popup.trigger.width : 1
+        rect.y: popup.inIsland ? T.Config.barHeight - 2 : popup.attached ? popup._barBottomRectY : popup.anchorRectY
         rect.height: 1
     }
 
@@ -165,8 +189,9 @@ PopupWindow {
             height: popup.cardHeight * popup.reveal
             flare: popup.flare
             fillColor: T.Config.barBackground
-            // Carries on the bar's outline, round the rest of the shape.
-            outlineOpacity: popup.reveal
+            // Carries on the bar's outline round the rest of the shape, or is the only outline
+            // (T.Config.panelOutline).
+            outlineOpacity: T.Config.panelOutline === "panel" || T.Config.panelOutline === "bar" ? popup.reveal : 0
         }
 
         // The card's own rectangle within the shape. The content is laid out at full size from

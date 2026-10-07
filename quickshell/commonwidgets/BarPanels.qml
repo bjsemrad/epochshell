@@ -19,4 +19,18 @@ QtObject {
             most = Math.max(most, panel.reveal);
         return most;
     }
+
+    // For the island style: how wide an island of `natural` width has to be for every open panel
+    // to hang from it with `margin` to spare at each end -- so a panel's flares always land on the
+    // island's bottom edge, clear of its rounded corners. It grows as a panel opens and shrinks as
+    // it closes, so a panel wider than the island widens it rather than overhanging it.
+    function widthAround(natural, margin) {
+        let width = natural;
+        for (const panel of panels) {
+            const needed = panel.width + margin * 2;
+            if (needed > natural)
+                width = Math.max(width, natural + (needed - natural) * panel.reveal);
+        }
+        return width;
+    }
 }
