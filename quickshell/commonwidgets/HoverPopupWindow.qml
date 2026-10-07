@@ -231,9 +231,12 @@ PopupWindow {
             // Square at the screen's right edge, when snapped there.
             rightFlush: popup.atRightEdge
             fillColor: T.Config.barBackground
-            // Carries on the bar's outline round the rest of the shape, or is the only outline
-            // (T.Config.panelOutline).
-            outlineOpacity: T.Config.panelOutline === "panel" || T.Config.panelOutline === "bar" ? popup.reveal : 0
+            // Carries on the bar's outline round the rest of the shape, or is the only outline --
+            // or, faded, an outline that only appears below the join (T.Config.panelOutline).
+            outlineOpacity: ["panel", "bar", "fade"].indexOf(T.Config.panelOutline) !== -1 ? popup.reveal : 0
+            // Over the flare's height: the outline traces the curve up towards the bar, fading to
+            // nothing where it meets it, and is at full strength once the side runs straight.
+            outlineFade: T.Config.panelOutline === "fade" ? popup.flare : 0
         }
 
         // The card's own rectangle within the shape. The content is laid out at full size from

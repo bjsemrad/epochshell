@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Shapes
+import Qt5Compat.GraphicalEffects
 import qs.theme as T
 
 // A surface hanging from an edge above it: its top corners flare outwards into that edge and its
@@ -35,6 +36,11 @@ Shape {
     property color outlineColor: T.Config.outline
     property real outlineOpacity: 0
     property bool outlineBottom: true
+    // How far down from the top the outline takes to fade in, in pixels; 0 for none. Fading it in
+    // keeps the join with the surface above seamless -- no line where the two meet -- while still
+    // drawing the sides and bottom, which is where the shape's edges get lost against whatever is
+    // behind it.
+    property real outlineFade: 0
     readonly property color _stroke: Qt.rgba(outlineColor.r, outlineColor.g, outlineColor.b, outlineColor.a * outlineOpacity)
 
     // The body proper, within the shape.
@@ -103,59 +109,96 @@ Shape {
     // --- Outline -------------------------------------------------------------------------------
     // The fill's path walked the other way round, in three pieces so the flush sides and the
     // bottom can each be left out: down the left, along the bottom, up the right.
+    //
+    // In a Shape of their own, so a fade can be laid over the outline without touching the fill.
 
-    ShapePath {
-        fillColor: "transparent"
-        strokeWidth: 1
-        strokeColor: root.outlineOpacity > 0 && !root.leftFlush ? root._stroke : "transparent"
-        startX: 0
-        startY: 0
-        PathArc {
-            x: root._left
-            y: root._fl
-            radiusX: root._fl
-            radiusY: root._fl
-            direction: PathArc.Clockwise
+    Shape {
+        id: outlineShape
+        // A pixel past the bottom and right: a layer holds only its item's own bounds, and the
+        // bottom line is drawn centred on the edge, so half of it would otherwise be cut away.
+        // (Not past the top or left, which would move the origin the paths are drawn from.)
+        anchors.fill: parent
+        anchors.bottomMargin: -1
+        anchors.rightMargin: -1
+        preferredRendererType: Shape.CurveRenderer
+        // Only layered while fading: a layer is an extra texture and pass, and a plain outline
+        // needs neither.
+        layer.enabled: root.outlineFade > 0 && root.outlineOpacity > 0
+        layer.effect: OpacityMask {
+            maskSource: outlineFadeMask
         }
-        PathLine { x: root._left; y: root.height - root._rl }
-        PathArc {
-            x: root._left + root._rl
-            y: root.height
-            radiusX: root._rl
-            radiusY: root._rl
-            direction: PathArc.Counterclockwise
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeWidth: 1
+            strokeColor: root.outlineOpacity > 0 && !root.leftFlush ? root._stroke : "transparent"
+            startX: 0
+            startY: 0
+            PathArc {
+                x: root._left
+                y: root._fl
+                radiusX: root._fl
+                radiusY: root._fl
+                direction: PathArc.Clockwise
+            }
+            PathLine { x: root._left; y: root.height - root._rl }
+            PathArc {
+                x: root._left + root._rl
+                y: root.height
+                radiusX: root._rl
+                radiusY: root._rl
+                direction: PathArc.Counterclockwise
+            }
+        }
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeWidth: 1
+            strokeColor: root.outlineOpacity > 0 && root.outlineBottom ? root._stroke : "transparent"
+            startX: root._left + root._rl
+            startY: root.height
+            PathLine { x: root._right - root._rr; y: root.height }
+        }
+
+        ShapePath {
+            fillColor: "transparent"
+            strokeWidth: 1
+            strokeColor: root.outlineOpacity > 0 && !root.rightFlush ? root._stroke : "transparent"
+            startX: root._right - root._rr
+            startY: root.height
+            PathArc {
+                x: root._right
+                y: root.height - root._rr
+                radiusX: root._rr
+                radiusY: root._rr
+                direction: PathArc.Counterclockwise
+            }
+            PathLine { x: root._right; y: root._fr }
+            PathArc {
+                x: root.width
+                y: 0
+                radiusX: root._fr
+                radiusY: root._fr
+                direction: PathArc.Clockwise
+            }
         }
     }
 
-    ShapePath {
-        fillColor: "transparent"
-        strokeWidth: 1
-        strokeColor: root.outlineOpacity > 0 && root.outlineBottom ? root._stroke : "transparent"
-        startX: root._left + root._rl
-        startY: root.height
-        PathLine { x: root._right - root._rr; y: root.height }
-    }
-
-    ShapePath {
-        fillColor: "transparent"
-        strokeWidth: 1
-        strokeColor: root.outlineOpacity > 0 && !root.rightFlush ? root._stroke : "transparent"
-        startX: root._right - root._rr
-        startY: root.height
-        PathArc {
-            x: root._right
-            y: root.height - root._rr
-            radiusX: root._rr
-            radiusY: root._rr
-            direction: PathArc.Counterclockwise
-        }
-        PathLine { x: root._right; y: root._fr }
-        PathArc {
-            x: root.width
-            y: 0
-            radiusX: root._fr
-            radiusY: root._fr
-            direction: PathArc.Clockwise
+    // Transparent at the top, opaque `outlineFade` down: what the outline shows through.
+    Rectangle {
+        id: outlineFadeMask
+        width: outlineShape.width
+        height: outlineShape.height
+        visible: false
+        gradient: Gradient {
+            GradientStop {
+                position: 0
+                color: "transparent"
+            }
+            GradientStop {
+                position: outlineShape.height > 0 ? Math.min(1, root.outlineFade / outlineShape.height) : 1
+                color: "black"
+            }
         }
     }
 }

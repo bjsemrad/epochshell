@@ -6,7 +6,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
 
 ## Features
 
-- Top bar with workspace indicators, launcher, media indicator, clock, weather, network, Bluetooth, volume, Tailscale, LocalSend, battery, notifications, system tray items, and system menu.
+- Top bar with workspace indicators, launcher, media indicator, clock, network, Bluetooth, volume, Tailscale, LocalSend, battery, notifications, system tray items, and system menu.
 - LocalSend panel for discovering nearby devices and sending them a file, backed by EpochOxide.
 - Capture panel in the bar drawer for region, window, and monitor screenshots and OCR text capture,
   with clipboard, save, and pointer switches, backed by EpochOxide.
@@ -27,7 +27,7 @@ The project is intentionally pragmatic: it keeps only the pieces used by the cur
   daemon is managing them, battery wear and cycle count, and a stay-awake switch.
 - Keyboard backlight OSD alongside the volume, media, and screen brightness ones.
 - Sound, media, and brightness OSDs.
-- Network, Bluetooth, audio, battery, weather, calendar, media, notification, and system popups.
+- Network, Bluetooth, audio, battery, calendar, media, notification, and system popups.
 - Built-in polkit authentication agent with password and fingerprint-aware UI.
 - Seventeen named themes active (eighteen more shipped disabled), with a live picker in the system menu that previews a palette on hover, and
   `epochctl theme set` for keybindings and scripts.

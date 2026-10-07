@@ -170,6 +170,10 @@ HoverPopupWindow {
     // Moving a handle applies the value at once and writes nothing; letting go writes it. A
     // setting you can see while choosing it does not want a confirm step, and a file rewritten on
     // every pixel of a drag is a lot of writes for no gain.
+    //
+    // The panels opened from the bar grow out of it in its own colour (HoverPopupWindow), so they
+    // follow barOpacity, and the labels say so; popupOpacity is left with everything that floats
+    // free of the bar.
     Text {
         text: "Opacity"
         color: T.Config.surfaceText
@@ -179,7 +183,7 @@ HoverPopupWindow {
     }
 
     SettingSlider {
-        label: "Bar"
+        label: "Bar & panels"
         hint: "100% is solid"
         settingValue: T.Config.barOpacity
         onMoved: value => T.Config.barOpacity = value
@@ -187,7 +191,8 @@ HoverPopupWindow {
     }
 
     SettingSlider {
-        label: "Panels"
+        label: "Overlays"
+        hint: "OSDs, notifications, launcher"
         settingValue: T.Config.popupOpacity
         onMoved: value => T.Config.popupOpacity = value
         onCommitted: value => T.Config.setSetting("popupOpacity", value)

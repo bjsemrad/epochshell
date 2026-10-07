@@ -86,7 +86,7 @@ Singleton {
     property bool themeFromUserDir: true
     onThemeNameChanged: themeFromUserDir = true
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
-    readonly property var boolKeys: ["panelAnimationsEnabled", "hideInactiveWorkspaces", "workspaceIcons"]
+    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "popupOpacity"]
     readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
@@ -95,7 +95,7 @@ Singleton {
     // Handled the same way and for the same reason: it decides where values come from rather than
     // being one of them.
     readonly property string extendsKey: "extends"
-    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barWeatherSize", "barModuleSpacing", "barGroupIconSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "widthPaddingLarge", "widthPaddingSmall", "heightPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardMargin", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "musicPlayerWidth", "controlCenterPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "selectedBorderWidth", "panelBottomMargin", "panelBottomMarginMedium", "statMargin", "barHeight", "cornerRadius", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
+    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "panelBottomMarginMedium", "barHeight", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
 
     property color accent: blue
     property color accentLightShade: Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10)
@@ -139,9 +139,12 @@ Singleton {
     property string barStyle: defaultBarStyle
 
     // An outline while a panel is open. "none": no outline. "panel": round the panel only.
+    // "fade": round the panel only, fading in down its sides from nothing at the bar, so the
+    // join stays seamless and only the edges that get lost against what is behind are drawn.
     // "bar": round the bar and the panel together, as one shape -- along the bar's bottom edge
     // under the full bar, round the island in the island style. Anything else reads as "none".
-    property string panelOutline: "none"
+    // "fade" by default.
+    property string panelOutline: "fade"
 
     property int popupPadding: 10
     property int popupRadius: 10
@@ -151,16 +154,12 @@ Singleton {
     // In pixels, like the icons and the workspace numbers beside them, and the same size by
     // default: as small as subtext the time read as a footnote to the bar.
     property int barClockSize: barIconSize
-    property int barWeatherSize: fontSizeNormal
     property int barModuleSpacing: 10
-    property int barGroupIconSpacing: barModuleVerticalPadding * 2
     property int barIconTextSpacing: 5
     property int barModuleHorizontalPadding: widthPaddingSmall
     property int barModuleVerticalPadding: popupPadding
 
-    property int widthPaddingLarge: 20
     property int widthPaddingSmall: 14
-    property int heightPaddingSmall: 5
 
     property int layoutMarginSmall: 5
     property int layoutSpacingLarge: 20
@@ -178,7 +177,6 @@ Singleton {
 
     property int cardRadius: 10
     property int cardHeight: 50
-    property int cardMargin: 14
     property int cardSpacing: 10
 
     property int networkPopupWidth: 400
@@ -189,22 +187,15 @@ Singleton {
     property int systemTrayPopupWidth: 300
     property int systemPopupWidth: 300
     property int batteryPopupWidth: 250
-    property int musicPlayerWidth: 600
-    property int controlCenterPopupWidth: 700
     property int homeAssistantPopupWidth: 420
     property int capturePopupWidth: 320
     property int nixPopupWidth: 380
 
     property int tailscalePeersFontSize: 14
 
-    property int selectedBorderWidth: 1
-    property int panelBottomMargin: 5
     property int panelBottomMarginMedium: 15
 
-    property int statMargin: 12
-
     property int barHeight: 40
-    property int cornerRadius: 18
 
     property int headerSize: 40
 
@@ -225,8 +216,6 @@ Singleton {
     property int volumeSliderRadius: 20
     property int volumeSliderMargin: 30
     property int volumeSliderSpacing: 10
-
-    property bool panelAnimationsEnabled: false
 
     property bool hideInactiveWorkspaces: true
     property bool workspaceIcons: true
@@ -524,14 +513,12 @@ Singleton {
 
         fontFamily = "JetBrainsMono Nerd Font Propo";
         barStyle = defaultBarStyle;
-        panelOutline = "none";
+        panelOutline = "fade";
         popupPadding = 10;
         popupRadius = 10;
         popupLayoutSpacing = 8;
         barIconSize = 18;
-        widthPaddingLarge = 20;
         widthPaddingSmall = 14;
-        heightPaddingSmall = 5;
         layoutMarginSmall = 5;
         layoutSpacingLarge = 20;
         layoutSpacingSmall = 20;
@@ -544,7 +531,6 @@ Singleton {
         fontSizeSubtext = 11;
         cardRadius = 10;
         cardHeight = 50;
-        cardMargin = 14;
         cardSpacing = 10;
         networkPopupWidth = 400;
         tailscalePopupWidth = 700;
@@ -554,18 +540,12 @@ Singleton {
         systemTrayPopupWidth = 300;
         systemPopupWidth = 300;
         batteryPopupWidth = 250;
-        musicPlayerWidth = 600;
-        controlCenterPopupWidth = 700;
         homeAssistantPopupWidth = 420;
         capturePopupWidth = 320;
         nixPopupWidth = 380;
         tailscalePeersFontSize = 14;
-        selectedBorderWidth = 1;
-        panelBottomMargin = 5;
         panelBottomMarginMedium = 15;
-        statMargin = 12;
         barHeight = 40;
-        cornerRadius = 18;
         headerSize = 40;
         switchHeight = 42;
         switchWidth = 24;
@@ -581,7 +561,6 @@ Singleton {
         volumeSliderRadius = 20;
         volumeSliderMargin = 30;
         volumeSliderSpacing = 10;
-        panelAnimationsEnabled = false;
         hideInactiveWorkspaces = true;
         workspaceIcons = true;
         workspaceStripMaxWidthRatio = 0.45;
@@ -602,10 +581,6 @@ Singleton {
             activeSelection = surfaceContainerHigh;
         if (!overridden.barClockSize)
             barClockSize = barIconSize;
-        if (!overridden.barWeatherSize)
-            barWeatherSize = fontSizeNormal;
-        if (!overridden.barGroupIconSpacing)
-            barGroupIconSpacing = barModuleVerticalPadding * 2;
         if (!overridden.barModuleHorizontalPadding)
             barModuleHorizontalPadding = widthPaddingSmall;
         if (!overridden.barModuleVerticalPadding)
