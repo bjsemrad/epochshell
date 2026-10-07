@@ -139,9 +139,6 @@ Scope {
                 id: rightSide
                 spacing: T.Config.barModuleSpacing
                 readonly property var barPanels: panelTracker
-                // Panels from here hang flush with the screen's right edge rather than under their
-                // trigger; this is the strip they measure that edge by.
-                readonly property Item barRightEdge: barArea
                 Layout.alignment: Qt.AlignVCenter
 
                 anchors {
