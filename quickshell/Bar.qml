@@ -127,7 +127,11 @@ Scope {
                 // Found by panels opened from in here; see HoverPopupWindow.
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
-                x: barWindow.islandContentX
+                // Placed by x rather than anchors, in both styles. An anchor removed at runtime
+                // leaves the item where the anchor put it -- an x binding underneath does not take
+                // over until something it reads changes -- so switching to the island style after
+                // startup, as reading config.toml does, left the groups at the screen's edges.
+                x: barWindow.island ? barWindow.islandContentX : 0
                 width: Math.min(leftContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
                 contentWidth: leftContent.implicitWidth
                 contentHeight: height
@@ -137,7 +141,6 @@ Scope {
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
-                    left: barWindow.island ? undefined : parent.left
                 }
 
                 RowLayout {
@@ -159,12 +162,12 @@ Scope {
                 spacing: T.Config.barModuleSpacing
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
-                x: leftSide.x + leftSide.width + barWindow.islandGap
+                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
+                    : Math.round((parent.width - width) / 2)
 
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
-                    horizontalCenter: barWindow.island ? undefined : parent.horizontalCenter
                 }
 
                 children: [
@@ -188,14 +191,13 @@ Scope {
                 spacing: T.Config.barModuleSpacing
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
-                x: centerSide.x + centerSide.width + barWindow.islandGap
+                x: barWindow.island ? centerSide.x + centerSide.width + barWindow.islandGap
+                    : parent.width - width - T.Config.barModuleSpacing
                 Layout.alignment: Qt.AlignVCenter
 
                 anchors {
                     top: parent.top
                     bottom: parent.bottom
-                    right: barWindow.island ? undefined : parent.right
-                    rightMargin: T.Config.barModuleSpacing
                 }
 
                 IndividualBarRight {}
