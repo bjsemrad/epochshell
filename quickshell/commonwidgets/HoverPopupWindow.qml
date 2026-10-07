@@ -40,13 +40,31 @@ PopupWindow {
     // touching the bar, and flares drawn into thin air would look like a mistake.
     readonly property bool attached: anchorEdges === (Edges.Left | Edges.Bottom) && anchorRectY < 0
 
-    // The flares reach outside the card, so an attached window is that much wider on each side.
+    // The first value of `name` found walking up from the trigger: how a panel learns which part
+    // of the bar it was opened from, which the bar marks on its left, centre and right groups.
+    function _findUp(name) {
+        for (let item = trigger; item; item = item.parent) {
+            if (item[name] !== undefined) return item[name];
+        }
+        return null;
+    }
+
+    // Set for a panel opened from the right-hand group: the bar strip whose right end is the
+    // screen's edge, which the panel then hangs flush against.
+    property Item rightEdge: null
+    readonly property bool atRightEdge: attached && rightEdge !== null
+
+    // The flares reach outside the card, so an attached window is that much wider on each side --
+    // or, at the screen's right edge, on the left only.
     readonly property real flare: attached ? T.Config.popupRadius : 0
+    readonly property real _flareRight: atRightEdge ? 0 : flare
 
     readonly property real cardHeight: contentLayout.implicitHeight + padding + bottomPadding
 
-    implicitWidth: popupWidth + flare * 2 + edgeInset * 2
-    implicitHeight: cardHeight + edgeInset * 2
+    implicitWidth: popupWidth + flare + _flareRight + edgeInset * 2
+    // A pixel more when attached, for the bottom outline: it is drawn centred on the edge, and
+    // half of it would otherwise fall outside the window.
+    implicitHeight: cardHeight + edgeInset * 2 + (attached ? 1 : 0)
 
     property bool open: false
 
@@ -66,6 +84,12 @@ PopupWindow {
     onRevealChanged: if (reveal <= 0 && !open && attached) visible = false
 
     function showPanel() {
+        // Before the window shows, so it is sized and anchored for its place from the start.
+        rightEdge = _findUp("barRightEdge");
+        if (attached) {
+            const bar = _findUp("barPanels");
+            if (bar) bar.attach(popup);
+        }
         open = true;
         visible = true;
     }
@@ -117,15 +141,20 @@ PopupWindow {
     }
     readonly property real _barBottomRectY: T.Config.barHeight - _triggerTop - 1 - 1
 
+    // At the right edge, the anchor is the bar strip's bottom-right corner, and the panel grows
+    // leftwards from it.
     anchor {
-        item: trigger
-        edges: popup.attached ? Edges.Bottom : popup.anchorEdges
-        gravity: popup.anchorGravity
+        item: popup.atRightEdge ? popup.rightEdge : popup.trigger
+        edges: popup.atRightEdge ? Edges.Bottom | Edges.Right
+            : popup.attached ? Edges.Bottom : popup.anchorEdges
+        gravity: popup.atRightEdge ? Edges.Bottom | Edges.Left : popup.anchorGravity
         // No Flip for an attached panel: flipped, it would open upwards off the top of the screen.
         adjustment: popup.attached ? PopupAdjustment.Slide : PopupAdjustment.Slide | PopupAdjustment.Flip
-        rect.x: 0
-        rect.width: trigger ? trigger.width : 1
-        rect.y: popup.attached ? popup._barBottomRectY : popup.anchorRectY
+        rect.x: popup.atRightEdge ? popup.rightEdge.width - 1 : 0
+        rect.width: popup.atRightEdge ? 1 : popup.trigger ? popup.trigger.width : 1
+        // The bar strip starts at the top of the bar, so its bottom edge is the bar's.
+        rect.y: popup.atRightEdge ? T.Config.barHeight - 2
+            : popup.attached ? popup._barBottomRectY : popup.anchorRectY
         rect.height: 1
     }
 
@@ -142,12 +171,18 @@ PopupWindow {
     Item {
         anchors.fill: parent
 
+        // As wide as the window: the card and its flares.
         AttachedSurface {
             id: attachedSurface
             visible: popup.attached
             width: parent.width
             height: popup.cardHeight * popup.reveal
+            flare: popup.flare
+            // Square at the screen's right edge, for a right-hand panel.
+            rightFlush: popup.atRightEdge
             fillColor: T.Config.barBackground
+            // Carries on the bar's outline, round the rest of the shape.
+            outlineOpacity: popup.reveal
         }
 
         // The card's own rectangle within the shape. The content is laid out at full size from

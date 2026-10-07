@@ -39,38 +39,32 @@ Scope {
             // in a Rectangle that can change whenever it likes.
             color: "transparent"
 
-            // Taller than the bar by the screen corners below it (see screenCorners), which are
-            // drawn here but are not the bar: windows are kept clear of the bar alone, and the
-            // corners let clicks through to whatever is under them.
-            implicitHeight: T.Config.barHeight + T.Config.cornerRadius
-            exclusiveZone: T.Config.barHeight
-            mask: Region {
-                item: barArea
-            }
+            implicitHeight: T.Config.barHeight
 
             // First child, so it sits behind everything else the bar draws.
             Rectangle {
                 id: barArea
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                }
-                height: T.Config.barHeight
+                anchors.fill: parent
                 color: T.Config.barBackground
             }
 
-            // The bar's bottom ends curve down into the screen's left and right edges, so the
-            // desktop under it reads as having rounded top corners -- and a panel growing out of
-            // the bar (HoverPopupWindow) is part of the same surface rather than a card below it.
-            ScreenCorner {
-                anchors.top: barArea.bottom
-                anchors.left: parent.left
+            // How far open the most-open panel from this bar is: panels attach here on opening
+            // (see HoverPopupWindow), and the outline below fades in with them.
+            BarPanels {
+                id: panelTracker
             }
-            ScreenCorner {
-                anchors.top: barArea.bottom
-                anchors.right: parent.right
-                mirrored: true
+
+            // With a panel open, an outline along the bar's bottom edge. The panel draws the rest
+            // -- round its flares, sides and bottom -- so the bar and the panel are outlined as one
+            // shape. The panel covers this line where it hangs, since it overlaps the bar by a
+            // pixel.
+            Rectangle {
+                visible: opacity > 0
+                opacity: panelTracker.openness
+                y: T.Config.barHeight - 1
+                width: parent.width
+                height: 1
+                color: T.Config.outline
             }
 
             // Stay awake, at the compositor's level. The backend holds a logind inhibitor, which
@@ -84,6 +78,8 @@ Scope {
 
             Flickable {
                 id: leftSide
+                // Found by panels opened from in here; see HoverPopupWindow.
+                readonly property var barPanels: panelTracker
                 width: Math.min(leftContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
                 contentWidth: leftContent.implicitWidth
                 contentHeight: height
@@ -91,8 +87,8 @@ Scope {
                 boundsBehavior: Flickable.StopAtBounds
                 interactive: contentWidth > width
                 anchors {
-                    top: barArea.top
-                    bottom: barArea.bottom
+                    top: parent.top
+                    bottom: parent.bottom
                     left: parent.left
                 }
 
@@ -111,11 +107,12 @@ Scope {
             RowLayout {
                 id: centerSide
                 spacing: T.Config.barModuleSpacing
+                readonly property var barPanels: panelTracker
 
                 anchors {
-                    top: barArea.top
-                    bottom: barArea.bottom
-                    horizontalCenter: parent.horizontalCenter
+                    top: parent.top
+                    bottom: parent.bottom
+                    centerIn: parent
                 }
                 readonly property int available: parent.width
 
@@ -141,11 +138,15 @@ Scope {
             RowLayout {
                 id: rightSide
                 spacing: T.Config.barModuleSpacing
+                readonly property var barPanels: panelTracker
+                // Panels from here hang flush with the screen's right edge rather than under their
+                // trigger; this is the strip they measure that edge by.
+                readonly property Item barRightEdge: barArea
                 Layout.alignment: Qt.AlignVCenter
 
                 anchors {
-                    top: barArea.top
-                    bottom: barArea.bottom
+                    top: parent.top
+                    bottom: parent.bottom
                     right: parent.right
                     rightMargin: T.Config.barModuleSpacing
                 }
