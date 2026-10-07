@@ -26,9 +26,10 @@ Singleton {
     readonly property string selectionPath: stateDir + "/theme"
 
     // Settings changed from inside the shell. config.toml is the declarative answer and is often
-    // not writable -- on a home-manager install it cannot exist at all -- so anything the user
-    // adjusts through a control lands here instead, and wins over both the theme and config.toml
-    // because it is the most explicit thing anyone has said.
+    // not writable -- on a home-manager install it is generated from programs.epochshell.settings
+    // into a read-only directory -- so anything the user adjusts through a control lands here
+    // instead, and wins over both the theme and config.toml because it is the most explicit thing
+    // anyone has said.
     readonly property string settingsPath: stateDir + "/settings.toml"
     // What to wear when nobody has said otherwise. Not the same thing as the built-in palette in
     // resetDefaults(), which is `dark` and stays that way: that one is the parachute for a shell

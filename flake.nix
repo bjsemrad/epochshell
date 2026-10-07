@@ -249,6 +249,32 @@
               description = "Start EpochShell (quickshell) via systemd --user.";
             };
 
+            # Flat on purpose: the shell reads config.toml one `key = value` line at a time and has
+            # no notion of tables, so a nested value here would be written and then silently
+            # ignored. The type refuses it at evaluation instead.
+            settings = lib.mkOption {
+              type = lib.types.attrsOf (
+                lib.types.oneOf [
+                  lib.types.str
+                  lib.types.int
+                  lib.types.float
+                  lib.types.bool
+                ]
+              );
+              default = { };
+              example = {
+                barStyle = "island";
+                panelOutline = "panel";
+                barHeight = 40;
+              };
+              description = ''
+                EpochShell config.toml settings: any style key the shell reads (see
+                quickshell/theme/Config.qml), such as `barStyle`, `panelOutline` or `barHeight`.
+                These win over the selected theme; settings changed from inside the shell
+                (~/.local/state/epochshell/settings.toml) still win over these.
+              '';
+            };
+
             runtimePackages = lib.mkOption {
               type = lib.types.listOf lib.types.package;
               default = defaultRuntimePackages pkgs;
@@ -587,8 +613,18 @@
               pkgs.libnotify
             ];
 
-            # Install repo config into ~/.config/${cfg.configDir}
-            xdg.configFile."${cfg.configDir}".source = "${self}/quickshell";
+            # Install repo config into ~/.config/${cfg.configDir}, with `settings` as its
+            # config.toml. A copy rather than a link only when there are settings to add: the
+            # directory is read-only either way, so config.toml has to be in it from the start.
+            xdg.configFile."${cfg.configDir}".source =
+              if cfg.settings == { } then
+                "${self}/quickshell"
+              else
+                pkgs.runCommand "epochshell-config" { } ''
+                  cp -r ${self}/quickshell $out
+                  chmod u+w $out
+                  cp ${(pkgs.formats.toml { }).generate "epochshell-config.toml" cfg.settings} $out/config.toml
+                '';
 
             # Disabled: take back the file an earlier enabled generation wrote, or the shell keeps
             # finding a token and the panel stays. Only a file this module wrote, recognised by its
