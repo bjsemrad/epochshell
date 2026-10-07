@@ -16,17 +16,9 @@ HoverPopupWindow {
     property int viewMonth: today.getMonth()
     readonly property var labelLocale: Qt.locale("en_US")
 
-    function showPanel() {
-        today = new Date();
-        open = true;
-        visible = true;
-    }
-
-    function hidePanel() {
-        open = false;
-        visible = false;
-        popupHover = false;
-    }
+    // Today again on every opening, so a panel left open across midnight -- or opened days after
+    // the shell started -- does not ring the wrong date.
+    onOpenChanged: if (open) today = new Date()
 
     function daysInMonth(year, month) {
         return new Date(year, month + 1, 0).getDate();

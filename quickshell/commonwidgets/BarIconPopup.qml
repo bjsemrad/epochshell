@@ -37,7 +37,7 @@ Rectangle {
                 root.rightClicked();
                 return;
             }
-            if (popup.visible) {
+            if (popup.open) {
                 popup.hidePanel();
             } else {
                 popup.showPanel();

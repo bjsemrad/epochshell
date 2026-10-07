@@ -7,6 +7,7 @@ import qs.popups
 import qs.modules
 import qs.modules.audio
 import qs.modules.compositor
+import qs.commonwidgets
 import qs.services as S
 
 Scope {
@@ -37,12 +38,39 @@ Scope {
             // that entirely, because the surface is transparent from the start and the alpha lives
             // in a Rectangle that can change whenever it likes.
             color: "transparent"
-            implicitHeight: T.Config.barHeight
+
+            // Taller than the bar by the screen corners below it (see screenCorners), which are
+            // drawn here but are not the bar: windows are kept clear of the bar alone, and the
+            // corners let clicks through to whatever is under them.
+            implicitHeight: T.Config.barHeight + T.Config.cornerRadius
+            exclusiveZone: T.Config.barHeight
+            mask: Region {
+                item: barArea
+            }
 
             // First child, so it sits behind everything else the bar draws.
             Rectangle {
-                anchors.fill: parent
+                id: barArea
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    right: parent.right
+                }
+                height: T.Config.barHeight
                 color: T.Config.barBackground
+            }
+
+            // The bar's bottom ends curve down into the screen's left and right edges, so the
+            // desktop under it reads as having rounded top corners -- and a panel growing out of
+            // the bar (HoverPopupWindow) is part of the same surface rather than a card below it.
+            ScreenCorner {
+                anchors.top: barArea.bottom
+                anchors.left: parent.left
+            }
+            ScreenCorner {
+                anchors.top: barArea.bottom
+                anchors.right: parent.right
+                mirrored: true
             }
 
             // Stay awake, at the compositor's level. The backend holds a logind inhibitor, which
@@ -63,8 +91,8 @@ Scope {
                 boundsBehavior: Flickable.StopAtBounds
                 interactive: contentWidth > width
                 anchors {
-                    top: parent.top
-                    bottom: parent.bottom
+                    top: barArea.top
+                    bottom: barArea.bottom
                     left: parent.left
                 }
 
@@ -85,9 +113,9 @@ Scope {
                 spacing: T.Config.barModuleSpacing
 
                 anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                    centerIn: parent
+                    top: barArea.top
+                    bottom: barArea.bottom
+                    horizontalCenter: parent.horizontalCenter
                 }
                 readonly property int available: parent.width
 
@@ -116,8 +144,8 @@ Scope {
                 Layout.alignment: Qt.AlignVCenter
 
                 anchors {
-                    top: parent.top
-                    bottom: parent.bottom
+                    top: barArea.top
+                    bottom: barArea.bottom
                     right: parent.right
                     rightMargin: T.Config.barModuleSpacing
                 }

@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Widgets
 import qs.services as S
 import qs.theme as T
+import qs.commonwidgets
 
 PopupWindow {
     id: popup
@@ -15,10 +16,33 @@ PopupWindow {
     property int popupWidth: 420
     readonly property var player: S.AudioService.player
 
-    visible: open
+    // Attached to the bar, as HoverPopupWindow's panels are: flush with its bottom edge, in its
+    // colour, flaring into it and growing down out of it. See HoverPopupWindow for the why of each
+    // piece; this panel has its own hover timing and so is not built on it.
+    visible: false
     color: "transparent"
-    implicitWidth: popupWidth
+    readonly property real flare: T.Config.popupRadius
+    implicitWidth: popupWidth + flare * 2
     implicitHeight: panel.implicitHeight
+
+    property real reveal: open ? 1 : 0
+    Behavior on reveal {
+        NumberAnimation {
+            duration: 260
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: [0.23, 1, 0.32, 1, 1, 1]
+        }
+    }
+    onRevealChanged: if (reveal <= 0 && !open) visible = false
+
+    // Measured as the panel is placed; see HoverPopupWindow.
+    property real _triggerTop: 0
+    Connections {
+        target: popup.anchor
+        function onAnchoring() {
+            if (popup.trigger) popup._triggerTop = popup.trigger.mapToItem(null, 0, 0).y;
+        }
+    }
 
     function showPanel() {
         open = true;
@@ -28,7 +52,6 @@ PopupWindow {
 
     function hidePanel() {
         open = false;
-        visible = false;
         popupHover = false;
     }
 
@@ -52,21 +75,35 @@ PopupWindow {
 
     anchor {
         item: trigger
-        edges: Edges.Left | Edges.Bottom
+        edges: Edges.Bottom
         gravity: Edges.Bottom | Edges.Middle
-        adjustment: PopupAdjustment.Slide | PopupAdjustment.Flip
-        rect.y: trigger.mapToGlobal(0, 0).y + trigger.height + 5
+        adjustment: PopupAdjustment.Slide
+        rect.x: 0
+        rect.width: trigger ? trigger.width : 1
+        // The bar's bottom edge, less the rect's own pixel and one of overlap.
+        rect.y: T.Config.barHeight - popup._triggerTop - 2
+        rect.height: 1
     }
 
-    ClippingRectangle {
+    mask: Region {
+        item: panel
+    }
+
+    AttachedSurface {
+        id: surface
+        width: popup.width
+        height: panel.implicitHeight * popup.reveal
+    }
+
+    // Laid out at full size and clipped, so it is uncovered from the top as the surface grows.
+    Item {
         id: panel
+        x: surface.bodyX
         width: popup.popupWidth
+        height: surface.height
         implicitHeight: content.implicitHeight + T.Config.popupPadding * 3
-        radius: T.Config.popupRadius
-        antialiasing: true
-        color: T.Config.background
-        border.width: 1
-        border.color: T.Config.outline
+        clip: true
+        opacity: Math.min(1, popup.reveal * 1.5)
 
         HoverHandler {
             onHoveredChanged: {

@@ -10,18 +10,10 @@ HoverPopupWindow {
     trigger: trigger
     popupWidth: 480
 
-    function showPanel() {
-        if (trigger && typeof trigger.refresh === "function") {
+    onOpenChanged: {
+        if (open && trigger && typeof trigger.refresh === "function") {
             trigger.refresh();
         }
-        open = true;
-        visible = true;
-    }
-
-    function hidePanel() {
-        open = false;
-        visible = false;
-        popupHover = false;
     }
 
     Component.onDestruction: S.PopupManager.unregister(popup)
