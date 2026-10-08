@@ -442,7 +442,7 @@ HoverPopupWindow {
                     text: tile.subtitle
                     visible: text.length > 0
                     color: T.Config.inactive
-                    font.pixelSize: T.Config.fontSizeSubtext
+                    font.pixelSize: T.Config.fontSizeSubtext + 2
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                 }

@@ -80,7 +80,7 @@ Rectangle {
                 visible: row.subtitle.length > 0
                 text: row.subtitle
                 color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
+                font.pixelSize: T.Config.fontSizeSubtext + 2
                 Layout.fillWidth: true
                 elide: Text.ElideRight
             }

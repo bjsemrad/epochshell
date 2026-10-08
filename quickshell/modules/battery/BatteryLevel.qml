@@ -63,7 +63,7 @@ Rectangle {
                 visible: text.length > 0
                 text: S.BatteryService.stateText()
                 color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
+                font.pixelSize: T.Config.fontSizeSubtext + 2
                 Layout.fillWidth: true
                 elide: Text.ElideRight
             }

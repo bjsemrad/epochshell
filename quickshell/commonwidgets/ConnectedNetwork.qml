@@ -87,7 +87,7 @@ Rectangle {
                 visible: card.connectedStatus && card.connectedIp.length > 0
                 text: card.connectedIp
                 color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
+                font.pixelSize: T.Config.fontSizeSubtext + 2
                 font.family: T.Config.fontFamily
                 font.underline: ipMouse.containsMouse
                 Layout.fillWidth: true

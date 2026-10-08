@@ -73,7 +73,7 @@ Rectangle {
                 visible: text.length > 0
                 text: card.subtitle
                 color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
+                font.pixelSize: T.Config.fontSizeSubtext + 2
                 Layout.fillWidth: true
                 elide: Text.ElideRight
             }
@@ -82,7 +82,7 @@ Rectangle {
                 visible: text.length > 0
                 text: card.detail
                 color: T.Config.outline
-                font.pixelSize: T.Config.fontSizeSubtext
+                font.pixelSize: T.Config.fontSizeSubtext + 2
                 font.family: T.Config.fontFamily
                 Layout.fillWidth: true
                 elide: Text.ElideMiddle
