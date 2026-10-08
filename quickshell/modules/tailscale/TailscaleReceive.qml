@@ -25,19 +25,20 @@ Item {
 
             Text {
                 text: "Receive Taildrop"
-                color: T.Config.surfaceText
-                font.pixelSize: 13
+                color: T.Config.outline
+                font.pixelSize: T.Config.fontSizeSubtext
+                font.bold: true
             }
         }
 
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: S.Tailscale.hasIncomingFiles ? Math.min(incomingList.contentHeight + 18, 110) : 34
-            radius: T.Config.roundRadius
+            radius: T.Config.cardRadius
             antialiasing: true
-            color: T.Config.surface
-            border.width: 1
-            border.color: S.Tailscale.hasIncomingFiles ? T.Config.accent : T.Config.outline
+            color: T.Config.surfaceContainer
+            border.width: S.Tailscale.hasIncomingFiles ? 1 : 0
+            border.color: T.Config.accent
             clip: true
 
             ColumnLayout {
@@ -112,11 +113,11 @@ Item {
             Rectangle {
                 Layout.preferredWidth: receiveText.implicitWidth + T.Config.popupPadding * 2
                 Layout.preferredHeight: 28
-                radius: T.Config.roundRadius
+                radius: T.Config.cardRadius
                 antialiasing: true
-                color: receiveMouse.containsMouse ? T.Config.accentLightShade : T.Config.surface
-                border.width: 1
-                border.color: S.Tailscale.hasIncomingFiles ? T.Config.accent : T.Config.outline
+                color: receiveMouse.containsMouse ? T.Config.accentLightShade : T.Config.surfaceContainer
+                border.width: S.Tailscale.hasIncomingFiles ? 1 : 0
+                border.color: T.Config.accent
 
                 Text {
                     id: receiveText

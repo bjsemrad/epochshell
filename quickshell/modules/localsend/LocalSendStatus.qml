@@ -38,7 +38,7 @@ Item {
         Rectangle {
             Layout.preferredWidth: 28
             Layout.preferredHeight: 24
-            radius: 6
+            radius: T.Config.cardRadius
             antialiasing: true
             color: refreshMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
 

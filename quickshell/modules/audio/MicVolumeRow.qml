@@ -16,16 +16,28 @@ Item {
         id: column
         anchors.fill: parent
         width: parent.width
-        spacing: 10
-        Text {
-            text: "Microphone" + (Pipewire.defaultAudioSource ? " - " + Pipewire.defaultAudioSource?.description : "")
-            color: T.Config.surfaceText
-            font.bold: true
-            font.pointSize: T.Config.fontSizeSubtext
-            Layout.alignment: Qt.AlignLeft
+        spacing: 4
+        // What it is, and the device it is for underneath, quietly.
+        ColumnLayout {
             Layout.fillWidth: true
-            elide: Text.ElideRight
-            clip: true
+            spacing: 0
+
+            Text {
+                text: "Microphone"
+                color: T.Config.surfaceText
+                font.pixelSize: T.Config.fontSizeNormal
+                font.bold: true
+                Layout.fillWidth: true
+            }
+
+            Text {
+                visible: text.length > 0
+                text: Pipewire.defaultAudioSource ? (Pipewire.defaultAudioSource.description || "") : ""
+                color: T.Config.inactive
+                font.pixelSize: T.Config.fontSizeSubtext
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
         }
 
         MicVolumeSlider {}

@@ -40,58 +40,38 @@ HoverPopupWindow {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
         }
-
-        Text {
-            text: S.NixUpdates.icon
-            color: S.NixUpdates.hasUpdates ? T.Config.accent : T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.family: T.Config.fontFamily
-            Layout.alignment: Qt.AlignVCenter
-        }
     }
 
-    Text {
-        Layout.fillWidth: true
-        visible: text.length > 0
-        text: {
-            if (S.NixUpdates.backendError.length > 0) return S.NixUpdates.backendError;
-            if (!S.NixUpdates.configured) return "No flake configured (set nix_flake)";
-            if (!S.NixUpdates.available) return S.NixUpdates.reason;
-            if (S.NixUpdates.error.length > 0) return S.NixUpdates.error;
-            return S.NixUpdates.flake;
-        }
-        color: (S.NixUpdates.backendError.length > 0 || !S.NixUpdates.available || S.NixUpdates.error.length > 0) ? T.Config.red : T.Config.outline
-        font.pixelSize: T.Config.fontSizeSubtext
-        elide: Text.ElideRight
-        Layout.rightMargin: T.Config.systemActionSpacing
+    // Where the flake stands, as a card: lit when something can move. A problem -- no flake, the
+    // daemon unreachable, a failed check -- takes the card over in red, since then it is the news.
+    readonly property string problem: {
+        if (S.NixUpdates.backendError.length > 0) return S.NixUpdates.backendError;
+        if (!S.NixUpdates.configured) return "No flake configured (set nix_flake)";
+        if (!S.NixUpdates.available) return S.NixUpdates.reason;
+        if (S.NixUpdates.error.length > 0) return S.NixUpdates.error;
+        return "";
     }
 
-    Text {
-        Layout.fillWidth: true
-        visible: S.NixUpdates.available
-        text: {
-            if (S.NixUpdates.checking) return "Checking every input...";
+    StatusCard {
+        icon: S.NixUpdates.icon
+        active: S.NixUpdates.hasUpdates
+        problem: nixPopup.problem.length > 0
+        title: {
+            if (nixPopup.problem.length > 0) return nixPopup.problem;
+            if (S.NixUpdates.checking) return "Checking every input…";
             if (S.NixUpdates.status.length > 0) return S.NixUpdates.status;
             if (S.NixUpdates.checkedAt === 0) return "Not checked yet";
-            const updates = S.NixUpdates.updates === 0
-                ? "Everything is current"
-                : (S.NixUpdates.updates === 1 ? "1 input can be updated" : S.NixUpdates.updates + " inputs can be updated");
-            return updates + " · checked " + S.NixUpdates.ago(S.NixUpdates.checkedAt) + " ago";
+            if (S.NixUpdates.updates === 0) return "Everything is current";
+            return S.NixUpdates.updates === 1 ? "1 input can be updated" : S.NixUpdates.updates + " inputs can be updated";
         }
-        color: T.Config.outline
-        font.pixelSize: T.Config.fontSizeSubtext
-        elide: Text.ElideRight
-        Layout.rightMargin: T.Config.systemActionSpacing
-    }
-
-    Text {
-        Layout.fillWidth: true
-        visible: S.NixUpdates.available && S.NixUpdates.lockedAt > 0
-        text: "Locked " + S.NixUpdates.ago(S.NixUpdates.lockedAt) + " ago"
-        color: T.Config.outline
-        font.pixelSize: T.Config.fontSizeSubtext
-        elide: Text.ElideRight
-        Layout.rightMargin: T.Config.systemActionSpacing
+        subtitle: {
+            if (!S.NixUpdates.available) return "";
+            const parts = [];
+            if (S.NixUpdates.checkedAt > 0) parts.push("checked " + S.NixUpdates.ago(S.NixUpdates.checkedAt) + " ago");
+            if (S.NixUpdates.lockedAt > 0) parts.push("locked " + S.NixUpdates.ago(S.NixUpdates.lockedAt) + " ago");
+            return parts.join(" · ");
+        }
+        detail: S.NixUpdates.configured ? S.NixUpdates.flake : ""
     }
 
     ComponentSplitter {
@@ -104,6 +84,10 @@ HoverPopupWindow {
         Layout.fillWidth: true
         spacing: 2
         visible: S.NixUpdates.movable.length > 0
+
+        SectionLabel {
+            text: "Can be updated"
+        }
 
         Repeater {
             model: S.NixUpdates.movable
@@ -157,6 +141,10 @@ HoverPopupWindow {
         Layout.fillWidth: true
         spacing: 4
         visible: nixPopup.rebuildable.length > 0
+
+        SectionLabel {
+            text: "Hosts"
+        }
 
         Repeater {
             model: nixPopup.rebuildable

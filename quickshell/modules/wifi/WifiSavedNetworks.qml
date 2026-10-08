@@ -1,39 +1,23 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
-import Quickshell
-import Quickshell.Io
-import Quickshell.Widgets
-import qs.theme as T
-import qs.services as S
 import qs.commonwidgets
+import qs.services as S
 
-Item {
+// The networks this machine already knows.
+ColumnLayout {
     id: root
     Layout.fillWidth: true
-    Layout.preferredHeight: column.implicitHeight
+    spacing: 2
 
-    property string pendingSsid: ""
-    property int pendingIndex: -1
+    SectionLabel {
+        text: "Saved networks"
+    }
 
-    ColumnLayout {
-        id: column
-        anchors.fill: parent
-        spacing: 10
-
-        Text {
-            text: "Saved Networks"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeNormal
-        }
-
-        Repeater {
-            model: S.Network.savedAccessPoints
-
-            delegate: WifiSavedNetworkRow {
-                width: root.width
-                ssid: model.ssid
-            }
+    Repeater {
+        model: S.Network.savedAccessPoints
+        delegate: WifiSavedNetworkRow {
+            required property var model
+            ssid: model.ssid
         }
     }
 }

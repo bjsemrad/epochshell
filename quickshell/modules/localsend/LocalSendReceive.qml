@@ -20,8 +20,9 @@ Item {
 
             Text {
                 text: "Receive Files"
-                color: T.Config.surfaceText
-                font.pixelSize: 13
+                color: T.Config.outline
+                font.pixelSize: T.Config.fontSizeSubtext
+                font.bold: true
                 Layout.fillWidth: true
             }
 
@@ -37,11 +38,11 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: S.LocalSend.hasIncomingFiles ? Math.min(incomingList.contentHeight + 18, 150) : 34
-            radius: T.Config.roundRadius
+            radius: T.Config.cardRadius
             antialiasing: true
-            color: T.Config.surface
-            border.width: 1
-            border.color: S.LocalSend.hasIncomingFiles ? T.Config.accent : T.Config.outline
+            color: T.Config.surfaceContainer
+            border.width: S.LocalSend.hasIncomingFiles ? 1 : 0
+            border.color: T.Config.accent
             clip: true
 
             ColumnLayout {
@@ -147,7 +148,7 @@ Item {
                                     Rectangle {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 26
-                                        radius: T.Config.roundRadius
+                                        radius: T.Config.cardRadius
                                         antialiasing: true
                                         color: acceptMouse.containsMouse ? T.Config.accentLightShade : T.Config.surfaceContainer
                                         border.width: 1
@@ -172,7 +173,7 @@ Item {
                                     Rectangle {
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 26
-                                        radius: T.Config.roundRadius
+                                        radius: T.Config.cardRadius
                                         antialiasing: true
                                         color: declineMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
 

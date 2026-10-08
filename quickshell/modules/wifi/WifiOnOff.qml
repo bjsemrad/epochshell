@@ -10,7 +10,7 @@ import qs.services as S
 import qs.commonwidgets
 
 SettingsToggleHeader {
-    headerText: "Wifi"
+    headerText: "Wi-Fi"
     enableToggle: true
     checkedValue: S.Network.wifiConnected
 

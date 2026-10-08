@@ -1,22 +1,20 @@
 import QtQuick
-import Qt5Compat.GraphicalEffects
-import Quickshell
-import Quickshell.Widgets
-import QtQuick.Controls
 import QtQuick.Layouts
-import Quickshell.Io
 import qs.theme as T
-import qs.services as S
-import qs.commonwidgets
 
+// The top of a panel: its name, large and bold, with its on/off switch and its settings button at
+// the right end. The header every panel with a switch uses -- Wi-Fi, Bluetooth, Ethernet,
+// Tailscale, LocalSend -- so they all open the same way.
 Item {
     Layout.fillWidth: true
-    Layout.preferredHeight: T.Config.settingsHeaderHeight
+    Layout.preferredHeight: T.Config.settingsHeaderHeight + 6
     Layout.topMargin: T.Config.layoutMarginSmall
 
     required property string headerText
     required property bool checkedValue
     property bool enableToggle: true
+    // Whether there is a settings action to offer.
+    property bool showSettings: true
 
     function handleToggled(checked) {
         console.log("Missing Implementation");
@@ -26,38 +24,31 @@ Item {
         console.log("Missing Implementation");
     }
 
-    Rectangle {
+    Text {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        height: T.Config.settingsHeaderHeight
-        color: "transparent"
-
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: headerText
-            color: T.Config.surfaceText
-            font.bold: true
-            font.pointSize: T.Config.fontSizeNormal
-        }
+        text: headerText
+        color: T.Config.surfaceText
+        font.pixelSize: T.Config.fontSizeLarge
+        font.bold: true
     }
 
     RowLayout {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        spacing: T.Config.settingsHeaderSpacing
+        spacing: T.Config.layoutMarginSmall
+
         RoundedSwitch {
-            id: rSwitch
             visible: enableToggle
             Layout.alignment: Qt.AlignVCenter
             checked: checkedValue
             onToggled: requested => handleToggled(requested)
         }
-        PanelHeaderIcon {
-            id: settings
-            iconText: ""
-            function onClick() {
-                settingsClick();
-            }
+
+        IconButton {
+            visible: showSettings
+            icon: ""
+            onClicked: settingsClick()
         }
     }
 }

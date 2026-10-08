@@ -1,38 +1,22 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
-import Quickshell
-import Quickshell.Io
-import Quickshell.Widgets
-import qs.services as S
-import qs.theme as T
 import qs.commonwidgets
+import qs.services as S
 
-Item {
-    id: pairedDevices
+// The devices this machine already knows.
+ColumnLayout {
     Layout.fillWidth: true
-    Layout.preferredHeight: column.implicitHeight
+    spacing: 2
 
-    property string pendingSsid: ""
-    property int pendingIndex: -1
+    SectionLabel {
+        text: "Paired devices"
+    }
 
-    ColumnLayout {
-        id: column
-        anchors.fill: parent
-        spacing: 10
-
-        Text {
-            text: "Paired Devices"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeNormal
-        }
-
-        Repeater {
-            model: S.Bluetooth.pairedDevices
-
-            delegate: BluetoothPairedRow {
-                device: modelData
-            }
+    Repeater {
+        model: S.Bluetooth.pairedDevices
+        delegate: BluetoothPairedRow {
+            required property var modelData
+            device: modelData
         }
     }
 }

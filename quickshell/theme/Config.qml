@@ -88,7 +88,7 @@ Singleton {
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
     readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
-    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle"]
+    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
     readonly property string themeKey: "theme"
@@ -153,6 +153,12 @@ Singleton {
     // whatever this says: an attached panel needs a visible bar to grow out of.
     property string panelStyle: "attached"
 
+    // The right end of the bar. "individual": an icon each for Wi-Fi, Bluetooth, sound, battery
+    // and power, each with its own panel, like every other icon on the bar (Tailscale, capture,
+    // ...). "dashboard": one status cluster opening quick settings (DashboardPanel). Anything else
+    // reads as "individual".
+    property string statusStyle: "individual"
+
     property int popupPadding: 10
     property int popupRadius: 10
     property int popupLayoutSpacing: 8
@@ -187,13 +193,17 @@ Singleton {
     property int cardSpacing: 10
 
     property int networkPopupWidth: 400
-    property int tailscalePopupWidth: 700
+    // Peers are rows of name over address now, not a table of columns, so this no longer has to
+    // hold three columns abreast.
+    property int tailscalePopupWidth: 480
     property int localsendPopupWidth: 420
     property int bluetoothPopupWidth: 400
     property int audioPopupWidth: 550
     property int systemTrayPopupWidth: 300
-    property int systemPopupWidth: 300
-    property int batteryPopupWidth: 250
+    // Wide enough for the session actions (SessionActions) to sit five abreast with their names
+    // and room around them -- the dashboard's width, so the two menus match.
+    property int systemPopupWidth: 420
+    property int batteryPopupWidth: 320
     property int homeAssistantPopupWidth: 420
     property int capturePopupWidth: 320
     property int nixPopupWidth: 380
@@ -536,6 +546,7 @@ Singleton {
         barStyle = defaultBarStyle;
         panelOutline = "fade";
         panelStyle = "attached";
+        statusStyle = "individual";
         popupPadding = 10;
         popupRadius = 10;
         popupLayoutSpacing = 8;
@@ -555,13 +566,13 @@ Singleton {
         cardHeight = 50;
         cardSpacing = 10;
         networkPopupWidth = 400;
-        tailscalePopupWidth = 700;
+        tailscalePopupWidth = 480;
         localsendPopupWidth = 420;
         bluetoothPopupWidth = 400;
         audioPopupWidth = 550;
         systemTrayPopupWidth = 300;
-        systemPopupWidth = 300;
-        batteryPopupWidth = 250;
+        systemPopupWidth = 420;
+        batteryPopupWidth = 320;
         homeAssistantPopupWidth = 420;
         capturePopupWidth = 320;
         nixPopupWidth = 380;

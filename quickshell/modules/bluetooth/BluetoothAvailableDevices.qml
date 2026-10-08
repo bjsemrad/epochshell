@@ -1,154 +1,81 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
-import Quickshell
-import Quickshell.Widgets
+import QtQuick.Layouts
+import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
-import qs.commonwidgets
 
-Item {
+// Devices in range, found by scanning. The scan is started and stopped from the label's right
+// end; the list opens with the first scan and folds away, scan stopped, when the panel closes.
+ColumnLayout {
     id: bluetoothSection
     Layout.fillWidth: true
-    Layout.preferredHeight: col.implicitHeight
-    Layout.bottomMargin: 10
+    Layout.bottomMargin: T.Config.layoutMarginSmall
+    spacing: 2
 
     property bool expanded: false
-    // Transparent, not the ground: this sits inside a panel that already paints one, and
-    // a second ground over a translucent card reads as a patch of the wrong opacity.
-    property string bgColor: "transparent"
 
     onVisibleChanged: {
         bluetoothSection.expanded = false;
         S.Bluetooth.stopScan();
     }
 
-    ColumnLayout {
-        id: col
-        anchors.fill: parent
-        spacing: 15
-        RowLayout {
-            width: parent.width
-            spacing: 10
-            Text {
-                id: avText
-                Layout.alignment: Qt.AlignVCenter
-                text: "Available Devices"
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeNormal
-                Layout.leftMargin: 4
-            }
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: T.Config.layoutMarginSmall
 
-            Rectangle {
-                Layout.preferredWidth: 100
-                Layout.preferredHeight: 25
-                Layout.alignment: Qt.AlignLeft
-                radius: 10
-                antialiasing: true
-                color: S.Bluetooth.discovering ? T.Config.accent : T.Config.surfaceVariant
-                Text {
-                    anchors.centerIn: parent
-                    color: S.Bluetooth.discovering ? T.Config.surface : T.Config.surfaceText
-                    font.pixelSize: T.Config.fontSizeNormal
-                    text: S.Bluetooth.discovering ? "Stop Scan" : "Start Scan"
-                }
+        SectionLabel {
+            text: "Available devices"
+        }
 
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
+        Spinner {
+            Layout.topMargin: T.Config.layoutMarginSmall
+            running: S.Bluetooth.discovering
+            visible: running
+        }
 
-                    onClicked: function () {
-                        if (!S.Bluetooth.adapter)
-                            return;
-                        if (!S.Bluetooth.discovering) {
-                            S.Bluetooth.scanForDevices();
-                            bluetoothSection.expanded = true;
-                        } else {
-                            S.Bluetooth.stopScan();
-                        }
-                    }
+        // Start or stop a scan.
+        IconButton {
+            Layout.topMargin: T.Config.layoutMarginSmall
+            icon: S.Bluetooth.discovering ? "󰓛" : "󰑐"
+            iconColor: S.Bluetooth.discovering ? T.Config.accent : T.Config.surfaceText
+            onClicked: {
+                if (!S.Bluetooth.adapter) return;
+                if (S.Bluetooth.discovering) {
+                    S.Bluetooth.stopScan();
+                } else {
+                    S.Bluetooth.scanForDevices();
+                    bluetoothSection.expanded = true;
                 }
             }
+        }
+    }
 
-            Spinner {
-                id: bluetoothSpinner
-                running: S.Bluetooth.discovering
+    ListView {
+        id: bluetoothList
+        visible: bluetoothSection.expanded
+        Layout.fillWidth: true
+        Layout.preferredHeight: bluetoothSection.expanded ? Math.min(contentHeight, 300) : 0
+        clip: true
+        spacing: 2
+        boundsBehavior: Flickable.StopAtBounds
+        model: S.Bluetooth.devices
+
+        delegate: ListRow {
+            required property var modelData
+            width: ListView.view.width
+            icon: S.Bluetooth.getDeviceIcon(modelData)
+            title: modelData.name
+            subtitle: "Click to pair"
+            clickable: !S.Bluetooth.discovering
+            onClicked: {
+                modelData.trusted = true;
+                modelData.connect();
             }
         }
 
-        Rectangle {
-            id: listContainer
-            radius: 6
-            antialiasing: true
-            color: bgColor
-            clip: true
-            border.width: 2
-            border.color: T.Config.surfaceVariant
-            Layout.fillWidth: true
-            Layout.preferredHeight: bluetoothSection.expanded ? Math.min(bluetoothList.contentHeight, 300) : 0
-
-            Behavior on height {
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.InOutQuad
-                }
-            }
-
-            ListView {
-                id: bluetoothList
-                anchors.fill: parent
-                implicitHeight: Math.min(listContainer.implicitHeight, 100)
-                model: S.Bluetooth.devices
-                interactive: true
-
-                delegate: Rectangle {
-                    width: ListView.view.width * .95
-                    implicitHeight: 30
-                    radius: 6
-                    antialiasing: true
-                    color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-
-                    RowLayout {
-                        id: row
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.margins: 10
-                        spacing: 10
-
-                        Text {
-                            text: S.Bluetooth.getDeviceIcon(modelData)
-                            font.pixelSize: T.Config.fontSizeLarge
-                            Layout.alignment: Qt.AlignVCenter
-                            Layout.leftMargin: 10
-                            color: T.Config.surfaceText
-                        }
-
-                        Text {
-                            text: modelData.name
-                            Layout.alignment: Qt.AlignVCenter
-                            color: T.Config.surfaceText
-                            font.pixelSize: T.Config.fontSizeNormal
-                        }
-                    }
-
-                    MouseArea {
-                        id: mouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        enabled: !S.Bluetooth.discovering
-                        cursorShape: !S.Bluetooth.discovering ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onClicked: {
-                            modelData.trusted = true;
-                            modelData.connect();
-                        }
-                    }
-                }
-                boundsBehavior: Flickable.StopAtBounds
-
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AlwaysOn
-                }
-            }
+        ScrollBar.vertical: ScrollBar {
+            policy: bluetoothList.contentHeight > 300 ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded
         }
     }
 }

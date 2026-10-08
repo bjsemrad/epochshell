@@ -28,8 +28,9 @@ Item {
 
         Text {
             text: "Devices"
-            color: T.Config.surfaceText
-            font.pixelSize: 13
+            color: T.Config.outline
+            font.pixelSize: T.Config.fontSizeSubtext
+            font.bold: true
             Layout.fillWidth: true
         }
 
@@ -79,9 +80,9 @@ Item {
 
                             Layout.fillWidth: true
                             Layout.preferredHeight: 38
-                            radius: 6
+                            radius: T.Config.cardRadius
                             antialiasing: true
-                            color: deviceMouse.containsMouse && sendable ? T.Config.activeSelection : "transparent"
+                            color: deviceMouse.containsMouse && sendable ? T.Config.surfaceContainerHigh : "transparent"
 
                             RowLayout {
                                 anchors {

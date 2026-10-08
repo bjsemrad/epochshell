@@ -1,19 +1,23 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.theme as T
+import qs.services as S
 
-// The Theme row in the system menu: what is worn now, and the way into the picker.
+// The Theme row in the dashboard: what is worn now, and the way into the theme switcher.
 //
-// The row itself is the picker's trigger -- the panel anchors to this item and flies out beside
-// the menu. It hides while there is nothing to choose between: a single theme is not a choice, and
-// an empty list is what the shell shows for the moment before it has finished looking on disk.
+// Clicking opens the full-screen switcher (ThemeOverlay) and closes the menu it sits in, as the
+// Wallpaper row does with its switcher: the switcher covers the screen anyway, and a menu left open
+// behind it would only be something to close afterwards. The row hides while there is nothing to
+// choose between: a single theme is not a choice, and an empty list is what the shell shows for
+// the moment before it has finished looking on disk.
 Item {
     id: root
     Layout.fillWidth: true
     Layout.preferredHeight: T.Config.settingsHeaderHeight
     visible: T.Config.availableThemes.length > 1
 
-    property var popup
+    // Told what to close, rather than reaching for it: the menu owns this row.
+    property var menu
 
     Rectangle {
         id: rowBackground
@@ -21,7 +25,7 @@ Item {
         anchors.rightMargin: T.Config.systemActionSpacing
         radius: T.Config.popupRadius
         antialiasing: true
-        color: (root.popup && root.popup.open) || rowMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
+        color: rowMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
 
         RowLayout {
             anchors.fill: parent
@@ -63,41 +67,16 @@ Item {
             }
         }
 
-        // Hover opens it, the way every other panel in this shell opens. Clicking still toggles,
-        // for anyone who would rather not have a panel appear at them.
         MouseArea {
             id: rowMouse
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-
-            onEntered: {
-                closeTimer.stop();
-                if (root.popup) root.popup.showPanel();
-            }
-
-            // Not an immediate hide: the pointer leaving this row is usually the pointer on its
-            // way into the panel, and the gap between the two is real estate the pointer has to
-            // cross. The timer gives it time to arrive, and the panel cancels the close once it
-            // reports the pointer inside itself.
-            onExited: closeTimer.restart()
-
             onClicked: {
-                if (!root.popup) return;
-                if (root.popup.open) {
-                    root.popup.hidePanel();
-                } else {
-                    root.popup.showPanel();
-                }
-            }
-        }
-
-        Timer {
-            id: closeTimer
-            interval: 200
-            repeat: false
-            onTriggered: {
-                if (root.popup && !root.popup.popupHover) root.popup.hidePanel();
+                const overlay = S.PopupManager.themeOverlay;
+                if (!overlay) return;
+                if (root.menu) root.menu.hidePanel();
+                overlay.open();
             }
         }
     }

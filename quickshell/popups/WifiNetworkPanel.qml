@@ -51,7 +51,5 @@ HoverPopupWindow {
     WifiAvailableNetworks{
         attachedPanel: networkPopup
     }
-    ComponentSpacer { bottomMargin: 6 }
-    ComponentSpacer { bottomMargin: 6 }
 
 }

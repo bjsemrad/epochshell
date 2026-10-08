@@ -72,7 +72,9 @@ HoverPopupWindow {
         spacing: T.Config.popupLayoutSpacing
         boundsBehavior: Flickable.StopAtBounds
 
-        delegate: Rectangle {
+        // An entity, in the shared row look. One that is on is lit, like a dashboard tile; clicking a
+        // controllable one toggles it -- or, for a scene or a script, runs it.
+        delegate: ListRow {
             id: row
             required property string entityId
             required property string name
@@ -80,86 +82,16 @@ HoverPopupWindow {
             required property string icon
             required property bool controllable
 
+            readonly property bool runnable: row.entityId.indexOf("scene.") === 0 || row.entityId.indexOf("script.") === 0
+
             width: entityList.width - 12
-            height: 42
-            radius: T.Config.cardRadius
-            antialiasing: true
-            color: rowHover.hovered ? T.Config.surfaceContainerHigh : T.Config.surface
-            border.width: 1
-            border.color: T.Config.outline
-
-            HoverHandler { id: rowHover }
-
-            RowLayout {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    verticalCenter: parent.verticalCenter
-                    leftMargin: 10
-                    rightMargin: 10
-                }
-                spacing: T.Config.cardSpacing
-
-                Text {
-                    text: row.icon
-                    color: T.Config.surfaceText
-                    font.pixelSize: T.Config.fontSizeLarge
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-
-                    Text {
-                        text: row.name
-                        color: T.Config.surfaceText
-                        font.pixelSize: T.Config.fontSizeNormal
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true
-                    }
-
-                    Text {
-                        text: row.state
-                        color: T.Config.inactive
-                        font.pixelSize: T.Config.fontSizeSubtext
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true
-                    }
-                }
-
-                Rectangle {
-                    visible: row.controllable
-                    Layout.preferredWidth: 64
-                    Layout.preferredHeight: 26
-                    radius: T.Config.roundRadius
-                    antialiasing: true
-                    color: toggleMouse.containsMouse ? T.Config.accentLightShade : T.Config.surfaceContainer
-                    border.width: 1
-                    border.color: T.Config.outline
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: row.entityId.indexOf("scene.") === 0 || row.entityId.indexOf("script.") === 0 ? "Run" : "Toggle"
-                        color: T.Config.surfaceText
-                        font.pixelSize: T.Config.fontSizeSubtext
-                    }
-
-                    MouseArea {
-                        id: toggleMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        enabled: !S.HomeAssistant.loading
-                        onClicked: mouse => {
-                            mouse.accepted = true;
-                            S.HomeAssistant.toggleEntity(row.entityId);
-                        }
-                    }
-                }
-            }
+            icon: row.icon
+            title: row.name
+            subtitle: row.runnable ? "Click to run" : row.state
+            active: row.state === "on"
+            clickable: row.controllable && !S.HomeAssistant.loading
+            onClicked: S.HomeAssistant.toggleEntity(row.entityId)
         }
-
         ScrollBar.vertical: ScrollBar {
             policy: entityList.contentHeight > entityList.height ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
             contentItem: Rectangle {

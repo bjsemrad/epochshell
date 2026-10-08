@@ -1,153 +1,102 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
-import Quickshell
-import Quickshell.Widgets
-import qs.theme as T
-import qs.services as S
+import QtQuick.Layouts
 import qs.commonwidgets
+import qs.services as S
+import qs.theme as T
 
-Item {
+// Networks in range, behind a section label that opens them: scanning is slow and the list long,
+// and most of the time the network you want is already saved. Opening it starts a scan; closing
+// the panel folds it away again.
+ColumnLayout {
     id: networksSection
     Layout.fillWidth: true
-    Layout.preferredHeight: col.implicitHeight
-    Layout.bottomMargin: 10
-    clip: true
+    Layout.bottomMargin: T.Config.layoutMarginSmall
+    spacing: 2
 
     property bool expanded: false
     required property var attachedPanel
-    // Transparent, not the ground: this sits inside a panel that already paints one, and
-    // a second ground over a translucent card reads as a patch of the wrong opacity.
-    property string bgColor: "transparent"
 
     Connections {
-        target: attachedPanel
+        target: networksSection.attachedPanel
         function onVisibleChanged() {
-            if (!attachedPanel.visible)
+            if (!networksSection.attachedPanel.visible)
                 networksSection.expanded = false;
         }
     }
 
-    ColumnLayout {
-        id: col
-        anchors.fill: parent
-        spacing: 6
-        Rectangle {
-            id: header
-            Layout.preferredHeight: 20
-            Layout.fillWidth: true
-            color: "transparent"
-            RowLayout {
-                width: parent.width
-                spacing: 10
-                Text {
-                    id: avText
-                    text: "Available Networks"
-                    color: T.Config.surfaceText
-                    font.pixelSize: T.Config.fontSizeNormal
-                    Layout.leftMargin: 4
-                }
+    // The label, which is also the way in.
+    Rectangle {
+        Layout.fillWidth: true
+        implicitHeight: headerRow.implicitHeight + T.Config.popupPadding
+        radius: T.Config.cardRadius
+        color: headerMouse.containsMouse && !networksSection.expanded ? T.Config.surfaceContainerHigh : "transparent"
 
-                Text {
-                    text: expanded ? "" : "▼"
-                    color: T.Config.surfaceText
-                    font.pixelSize: T.Config.fontSizeSubtext
-                }
+        RowLayout {
+            id: headerRow
+            anchors.fill: parent
+            anchors.leftMargin: 2
+            anchors.rightMargin: T.Config.popupPadding
+            spacing: T.Config.layoutMarginSmall
 
-                Spinner {
-                    id: wifiSpinner
-                    running: S.Network.wifiScanning
-                }
+            SectionLabel {
+                Layout.topMargin: 0
+                text: "Available networks"
             }
 
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: networksSection.expanded ? Qt.ArrowCursor : Qt.PointingHandCursor
+            Spinner {
+                running: S.Network.wifiScanning
+                visible: running
+            }
 
-                onClicked: function () {
-                    if (!networksSection.expanded) {
-                        S.Network.refreshAvailable();
-                    }
-                    networksSection.expanded = true; //!networksSection.expanded;
-                }
+            Text {
+                visible: !networksSection.expanded
+                text: ""
+                color: T.Config.outline
+                font.pixelSize: T.Config.fontSizeSubtext
+                font.family: T.Config.fontFamily
             }
         }
 
-        Rectangle {
-            id: listContainer
-            radius: 6
-            antialiasing: true
-            color: bgColor
-            clip: true
-            border.width: 2
-            border.color: T.Config.surfaceVariant
-            Layout.fillWidth: true
-            Layout.preferredHeight: networksSection.expanded ? Math.min(networkList.contentHeight, 300) : 0
-
-            ListView {
-                id: networkList
-                anchors.fill: parent
-                implicitHeight: Math.min(listContainer.implicitHeight, 100)
-                model: S.Network.accessPoints
-                interactive: true
-
-                delegate: Rectangle {
-                    width: ListView.view.width * .95
-                    implicitHeight: 30
-                    radius: 6
-                    antialiasing: true
-                    color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-
-                    RowLayout {
-                        id: row
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.margins: 10
-                        spacing: 8
-
-                        Text {
-                            text: {
-                                const s = modelData.strength;
-
-                                if (s >= 75)
-                                    return "󰤨";
-                                if (s >= 50)
-                                    return "󰤢";
-                                if (s >= 25)
-                                    return "󰤟";
-                                return "󰤟";
-                            }
-                            font.pixelSize: 18
-                            Layout.alignment: Qt.AlignVCenter
-                            Layout.leftMargin: 10
-                            color: T.Config.surfaceText
-                        }
-
-                        Text {
-                            text: modelData.ssid
-                            color: T.Config.surfaceText
-                            font.pixelSize: 13
-                            elide: Text.ElideRight
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-                    }
-
-                    MouseArea {
-                        id: mouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            S.Network.connectTo(modelData.ssid);
-                        }
-                    }
-                }
-                boundsBehavior: Flickable.StopAtBounds
-
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AlwaysOn
-                }
+        MouseArea {
+            id: headerMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            enabled: !networksSection.expanded
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                S.Network.refreshAvailable();
+                networksSection.expanded = true;
             }
+        }
+    }
+
+    ListView {
+        id: networkList
+        visible: networksSection.expanded
+        Layout.fillWidth: true
+        Layout.preferredHeight: networksSection.expanded ? Math.min(contentHeight, 300) : 0
+        clip: true
+        spacing: 2
+        boundsBehavior: Flickable.StopAtBounds
+        model: S.Network.accessPoints
+
+        delegate: ListRow {
+            required property var modelData
+            width: ListView.view.width
+            icon: {
+                const s = modelData.strength;
+                if (s >= 75) return "󰤨";
+                if (s >= 50) return "󰤢";
+                return "󰤟";
+            }
+            title: modelData.ssid
+            active: modelData.active === true
+            onClicked: S.Network.connectTo(modelData.ssid)
+        }
+
+        ScrollBar.vertical: ScrollBar {
+            policy: networkList.contentHeight > 300 ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded
         }
     }
 }

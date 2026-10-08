@@ -192,6 +192,28 @@ Scope {
             T.Config.clearThemeSelection();
             return root.ok({ theme: T.Config.themeName });
         }
+
+        // The switcher, for a keybinding, as the wallpaper's has.
+        function toggle(): string {
+            const overlay = S.PopupManager.themeOverlay;
+            if (!overlay) return root.fail("theme overlay is not loaded");
+            overlay.toggle();
+            return root.ok({ open: overlay._visible });
+        }
+
+        function open(): string {
+            const overlay = S.PopupManager.themeOverlay;
+            if (!overlay) return root.fail("theme overlay is not loaded");
+            overlay.open();
+            return root.ok({ open: true });
+        }
+
+        function close(): string {
+            const overlay = S.PopupManager.themeOverlay;
+            if (!overlay) return root.fail("theme overlay is not loaded");
+            overlay.cancel();
+            return root.ok({ open: false });
+        }
     }
 
     // The wallpaper switcher. `next`/`previous` exist so a keybinding can cycle without opening

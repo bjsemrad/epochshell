@@ -27,14 +27,18 @@ Singleton {
     // The wallpaper switcher, held here for the same reason the launcher is: one per session,
     // owned by the shell root, reached from a bar module and from IPC.
     property var wallpaperOverlay: null
+    // The theme switcher, for the same reason again.
+    property var themeOverlay: null
 
     function register(popup, name) {
         if (openPopups.indexOf(popup) === -1) {
             openPopups.push(popup);
         }
         if (!name || name.length === 0) return;
+        // One panel may answer to several names (the dashboard stands in for the panels it
+        // replaced), so only the same panel under the same name is a duplicate.
         for (const entry of root.entries) {
-            if (entry.popup === popup) return;
+            if (entry.popup === popup && entry.name === String(name)) return;
         }
         root.entries = root.entries.concat([{ name: String(name), popup: popup }]);
     }
@@ -54,6 +58,10 @@ Singleton {
 
     function registerWallpaperOverlay(overlay) {
         root.wallpaperOverlay = overlay;
+    }
+
+    function registerThemeOverlay(overlay) {
+        root.themeOverlay = overlay;
     }
 
     function popupsFor(name) {
@@ -76,11 +84,20 @@ Singleton {
         return popup !== null && popup.open;
     }
 
+    // A panel that answers to several names can be told which one it was opened as -- the
+    // dashboard opens on its Wi-Fi page for "wifi" -- through an optional showPage(name).
+    function show(popup, name) {
+        if (typeof popup.showPage === "function")
+            popup.showPage(name);
+        else
+            popup.showPanel();
+    }
+
     function openPanel(name) {
         const popup = root.panelFor(name);
         if (!popup) return false;
         root.closeOthers(popup);
-        popup.showPanel();
+        root.show(popup, name);
         return true;
     }
 
@@ -98,7 +115,7 @@ Singleton {
             popup.hidePanel();
         } else {
             root.closeOthers(popup);
-            popup.showPanel();
+            root.show(popup, name);
         }
         return true;
     }

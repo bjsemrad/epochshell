@@ -31,6 +31,9 @@ ShellRoot {
     // of them at once.
     WallpaperOverlay {}
 
+    // And the theme switcher, likewise one for the session.
+    ThemeOverlay {}
+
     // The session lock. Last, so nothing declared after it can end up drawn above it -- though the
     // compositor puts lock surfaces above everything regardless.
     LockScreen {}

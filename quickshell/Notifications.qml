@@ -21,6 +21,13 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
+            // Input only where the toasts are. The window spans the screen so the column can sit
+            // anywhere in it; without this, everything under it -- every window -- stopped taking
+            // clicks for as long as a toast was up.
+            mask: Region {
+                item: toastColumn
+            }
+
             anchors {
                 top: true
                 bottom: true

@@ -1,65 +1,27 @@
 import QtQuick
-import QtQuick.Layouts
-import Quickshell.Widgets
-import Quickshell
-import Quickshell.Io
 import Quickshell.Bluetooth
-import qs.theme as T
-import qs.services as S
 import qs.commonwidgets
+import qs.services as S
 
-Rectangle {
+// A paired device: click to connect, or to disconnect when it already is. Lit while connected.
+ListRow {
     id: root
-    Layout.fillWidth: true
-    Layout.preferredHeight: 30
-    radius: 6
-    antialiasing: true
-    color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-
     property BluetoothDevice device
 
-    Rectangle {
-        width: row.implicitWidth
-        height: parent.height
-        color: "transparent"
-        RowLayout {
-            id: row
-            spacing: 10
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width
+    readonly property bool connected: device && device.state === BluetoothDeviceState.Connected
+    readonly property bool connecting: device && device.state === BluetoothDeviceState.Connecting
 
-            Text {
-                text: S.Bluetooth.getDeviceIcon(device)
-                font.pixelSize: T.Config.fontSizeLarge
-                Layout.alignment: Qt.AlignVCenter
-                Layout.leftMargin: 10
-                color: device.state === BluetoothDeviceState.Connected ? T.Config.accent : T.Config.surfaceText
-            }
+    icon: device ? S.Bluetooth.getDeviceIcon(device) : ""
+    title: device ? device.name : ""
+    subtitle: root.connected ? "Connected" : root.connecting ? "Connecting…" : "Click to connect"
+    active: root.connected
+    onClicked: {
+        if (root.connected) device.disconnect();
+        else device.connect();
+    }
 
-            Text {
-                text: device.name
-                Layout.alignment: Qt.AlignVCenter
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeNormal
-            }
-
-            Spinner {
-                id: bluetoothSpinner
-                running: device.state === BluetoothDeviceState.Connecting
-            }
-        }
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (device.state === BluetoothDeviceState.Connected) {
-                    device.disconnect();
-                } else {
-                    device.connect();
-                }
-            }
-        }
+    Spinner {
+        running: root.connecting
+        visible: running
     }
 }

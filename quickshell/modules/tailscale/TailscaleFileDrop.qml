@@ -25,19 +25,20 @@ Item {
 
             Text {
                 text: "Taildrop"
-                color: T.Config.surfaceText
-                font.pixelSize: 13
+                color: T.Config.outline
+                font.pixelSize: T.Config.fontSizeSubtext
+                font.bold: true
             }
         }
 
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 34
-            radius: T.Config.roundRadius
+            radius: T.Config.cardRadius
             antialiasing: true
-            color: pickerMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surface
-            border.width: 1
-            border.color: T.Config.outline
+            color: pickerMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+            border.width: 0
+            border.color: "transparent"
 
             RowLayout {
                 anchors {
@@ -92,9 +93,9 @@ Item {
                 visible: S.Tailscale.selectedFile.length > 0
                 Layout.preferredWidth: clearText.implicitWidth + T.Config.popupPadding
                 Layout.preferredHeight: 24
-                radius: T.Config.roundRadius
+                radius: T.Config.cardRadius
                 antialiasing: true
-                color: clearMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surface
+                color: clearMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
 
                 Text {
                     id: clearText

@@ -1,61 +1,23 @@
 import QtQuick
-import QtQuick.Layouts
-import Quickshell.Widgets
-import Quickshell
-import Quickshell.Io
-import qs.theme as T
-import qs.services as S
 import qs.commonwidgets
+import qs.services as S
 
-Rectangle {
+// A saved Wi-Fi network: click to connect. Lit when it is the one you are on.
+ListRow {
     id: root
-    Layout.fillWidth: true
-    Layout.preferredHeight: 30
-    radius: 6
-    antialiasing: true
-    color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-
     property string ssid: ""
 
-    Rectangle {
-        width: row.implicitWidth
-        height: parent.height
-        color: "transparent"
-        RowLayout {
-            id: row
-            spacing: 10
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin: 10
-            width: parent.width
+    readonly property bool current: S.Network.wifiConnected && S.Network.ssid === root.ssid
+    readonly property bool connecting: S.Network.wifiConnecting && S.Network.wifiConnectingTo === root.ssid
 
-            Text {
-                text: "󰤨"
-                font.pixelSize: T.Config.fontSizeLarge
-                Layout.alignment: Qt.AlignVCenter
-                Layout.leftMargin: 10
-                color: T.Config.surfaceText
-            }
+    icon: root.current ? S.Network.currentWifiIcon : "󰤨"
+    title: root.ssid
+    subtitle: root.current ? "Connected" : root.connecting ? "Connecting…" : ""
+    active: root.current
+    onClicked: S.Network.connectTo(root.ssid)
 
-            Text {
-                text: root.ssid
-                Layout.alignment: Qt.AlignVCenter
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeNormal
-            }
-
-            Spinner {
-                id: wifiSpinner
-                running: S.Network.wifiConnecting && S.Network.wifiConnectingTo === root.ssid
-            }
-        }
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                S.Network.connectTo(root.ssid);
-            }
-        }
+    Spinner {
+        running: root.connecting
+        visible: running
     }
 }

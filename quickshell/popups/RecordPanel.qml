@@ -46,14 +46,6 @@ HoverPopupWindow {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
         }
-
-        Text {
-            text: S.Capture.recording ? "󰑊" : "󰕧"
-            color: S.Capture.recording ? T.Config.red : T.Config.accent
-            font.pixelSize: T.Config.fontSizeLarge
-            font.family: T.Config.fontFamily
-            Layout.alignment: Qt.AlignVCenter
-        }
     }
 
     Text {

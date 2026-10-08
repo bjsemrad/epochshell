@@ -48,14 +48,6 @@ HoverPopupWindow {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
         }
-
-        Text {
-            text: S.Capture.icon
-            color: T.Config.accent
-            font.pixelSize: T.Config.fontSizeLarge
-            font.family: T.Config.fontFamily
-            Layout.alignment: Qt.AlignVCenter
-        }
     }
 
     // What just happened, or what is stopping it from happening.
@@ -140,7 +132,7 @@ HoverPopupWindow {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 0
+        spacing: T.Config.layoutMarginSmall
 
         ToggleRow {
             label: "Copy to clipboard"

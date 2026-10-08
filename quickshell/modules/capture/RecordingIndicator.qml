@@ -5,10 +5,10 @@ import qs.theme as T
 
 // Bar entry shown only while something is recording.
 //
-// It sits with the alert items rather than the drawer tools, so it stays visible when the drawer
-// is collapsed: a recording nobody can see is a recording that runs until the disk fills. The dot
-// pulses, the elapsed time counts up, and clicking it stops the recording -- the one thing anyone
-// wants from this widget.
+// It sits just left of the status icons, outside the drawer, so it is always in reach: a recording
+// nobody can see is a recording that runs until the disk fills. The dot pulses and the elapsed time
+// counts up; under the pointer they become a stop square and "Stop", so what a click will do is
+// said before it is done -- stopping is the one thing anyone wants from this widget.
 Rectangle {
     id: root
     visible: S.Capture.recording
@@ -27,14 +27,14 @@ Rectangle {
 
         Text {
             id: dot
-            text: "󰑊"
+            text: mouseArea.containsMouse ? "󰓛" : "󰑊"
             font.pixelSize: T.Config.barIconSize
             font.family: T.Config.fontFamily
             color: T.Config.red
             Layout.alignment: Qt.AlignVCenter
 
             SequentialAnimation on opacity {
-                running: S.Capture.recording
+                running: S.Capture.recording && !mouseArea.containsMouse
                 loops: Animation.Infinite
                 NumberAnimation { from: 1.0; to: 0.35; duration: 700; easing.type: Easing.InOutQuad }
                 NumberAnimation { from: 0.35; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
@@ -42,7 +42,7 @@ Rectangle {
         }
 
         Text {
-            text: S.Capture.recordingElapsed
+            text: mouseArea.containsMouse ? "Stop" : S.Capture.recordingElapsed
             font.pixelSize: T.Config.fontSizeNormal
             font.family: T.Config.fontFamily
             color: T.Config.surfaceText
@@ -55,6 +55,9 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        // The pulse stops under the pointer; the stop square shows at full strength, not wherever
+        // the pulse happened to be.
+        onEntered: dot.opacity = 1
         onClicked: S.Capture.stopRecording()
     }
 }

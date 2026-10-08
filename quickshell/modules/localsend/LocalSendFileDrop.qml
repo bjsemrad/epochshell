@@ -22,11 +22,11 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 34
-            radius: T.Config.roundRadius
+            radius: T.Config.cardRadius
             antialiasing: true
-            color: pickerMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surface
-            border.width: 1
-            border.color: T.Config.outline
+            color: pickerMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+            border.width: 0
+            border.color: "transparent"
 
             RowLayout {
                 anchors {

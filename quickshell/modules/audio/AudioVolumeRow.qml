@@ -16,16 +16,28 @@ Item {
         id: column
         anchors.fill: parent
         width: parent.width
-        spacing: 10
-        Text {
-            text: "Audio " + (Pipewire.defaultAudioSink ? " - " + Pipewire.defaultAudioSink?.description : "")
-            color: T.Config.surfaceText
-            font.bold: true
-            font.pointSize: 11
-            Layout.alignment: Qt.AlignLeft
+        spacing: 4
+        // What it is, and the device it is for underneath, quietly.
+        ColumnLayout {
             Layout.fillWidth: true
-            elide: Text.ElideRight
-            clip: true
+            spacing: 0
+
+            Text {
+                text: "Volume"
+                color: T.Config.surfaceText
+                font.pixelSize: T.Config.fontSizeNormal
+                font.bold: true
+                Layout.fillWidth: true
+            }
+
+            Text {
+                visible: text.length > 0
+                text: Pipewire.defaultAudioSink ? (Pipewire.defaultAudioSink.description || "") : ""
+                color: T.Config.inactive
+                font.pixelSize: T.Config.fontSizeSubtext
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
         }
 
         AudioVolumeSlider {}

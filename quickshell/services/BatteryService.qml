@@ -32,19 +32,37 @@ Singleton {
         return batteryService.charging ? "󰢜" : "󰁺";
     }
 
+    // What the battery is doing, in words. By its state rather than only charging-or-not: plugged
+    // in and full, or held below a charge limit, there is no time to count down, and the old
+    // "Remaining: " was left with nothing after it.
     function stateText() {
-        if (batteryService.charging) {
-            return "Full Charge: " + timeToString(UPower.displayDevice.timeToFull);
-        } else {
-            return "Remaining: " + timeToString(UPower.displayDevice.timeToEmpty);
+        const dev = UPower.displayDevice;
+        if (!dev) return "";
+        switch (dev.state) {
+        case UPowerDeviceState.Charging: {
+            const t = timeToString(dev.timeToFull);
+            return t.length > 0 ? "Full in " + t : "Charging";
+        }
+        case UPowerDeviceState.Discharging: {
+            const t = timeToString(dev.timeToEmpty);
+            return t.length > 0 ? t + " remaining" : "On battery";
+        }
+        case UPowerDeviceState.FullyCharged:
+            return "Fully charged";
+        case UPowerDeviceState.PendingCharge:
+            return "Plugged in, not charging";
+        default:
+            return "";
         }
     }
 
+    // "1 h 20 m", "45 m", "2 h"; empty when there is no time to tell.
     function timeToString(input) {
-        let time = secondsToHMS(input);
-        let textStr = time.hours > 0 ? time.hours + " h, " : "";
-        textStr += time.minutes > 0 ? time.minutes + " m" : "";
-        return textStr;
+        const time = secondsToHMS(input);
+        const parts = [];
+        if (time.hours > 0) parts.push(time.hours + " h");
+        if (time.minutes > 0) parts.push(time.minutes + " m");
+        return parts.join(" ");
     }
 
     function secondsToHMS(seconds) {

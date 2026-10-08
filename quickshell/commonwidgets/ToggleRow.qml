@@ -9,7 +9,9 @@ import qs.theme as T
 Item {
     id: root
     Layout.fillWidth: true
-    Layout.preferredHeight: T.Config.settingsHeaderHeight
+    // At least a header's height, and taller when the hint underneath needs it: fixed at the
+    // header's height, a row with a hint ran into the next one.
+    Layout.preferredHeight: Math.max(T.Config.settingsHeaderHeight, rowContent.implicitHeight + 4)
 
     required property string label
     required property bool checkedValue
@@ -25,6 +27,7 @@ Item {
     // above carry systemActionMargin on their left, and a switch hard against the edge next to
     // them reads as a layout mistake.
     RowLayout {
+        id: rowContent
         anchors.fill: parent
         anchors.rightMargin: T.Config.systemActionSpacing
         spacing: T.Config.layoutMarginSmall

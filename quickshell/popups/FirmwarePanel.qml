@@ -38,28 +38,20 @@ HoverPopupWindow {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
         }
-
-        Text {
-            text: S.SystemInfo.firmwareIcon
-            color: S.SystemInfo.hasFirmwareUpdates ? T.Config.accent : T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.family: T.Config.fontFamily
-            Layout.alignment: Qt.AlignVCenter
-        }
     }
 
-    Text {
-        Layout.fillWidth: true
-        Layout.rightMargin: T.Config.systemActionSpacing
-        text: {
+    StatusCard {
+        icon: S.SystemInfo.firmwareIcon
+        active: S.SystemInfo.hasFirmwareUpdates
+        problem: !S.SystemInfo.firmwareAvailable
+        title: {
             const count = S.SystemInfo.firmwareUpdates.length;
             if (!S.SystemInfo.firmwareAvailable) return "fwupd is not available";
             if (count === 0) return "Everything is up to date";
             return count === 1 ? "1 update waiting" : (count + " updates waiting");
         }
-        color: T.Config.outline
-        font.pixelSize: T.Config.fontSizeSubtext
-        elide: Text.ElideRight
+        subtitle: [S.SystemInfo.vendor, S.SystemInfo.product].filter(x => x && x.length > 0).join(" ")
+        detail: S.SystemInfo.biosVersion.length > 0 ? "BIOS " + S.SystemInfo.biosVersion : ""
     }
 
     ComponentSplitter {}
@@ -68,39 +60,20 @@ HoverPopupWindow {
         Layout.fillWidth: true
         spacing: 2
 
+        SectionLabel {
+            visible: S.SystemInfo.firmwareUpdates.length > 0
+            text: "Updates"
+        }
+
         Repeater {
             model: S.SystemInfo.firmwareUpdates
 
-            delegate: Item {
+            delegate: ListRow {
                 required property var modelData
-                Layout.fillWidth: true
-                Layout.preferredHeight: row.implicitHeight + 4
-
-                ColumnLayout {
-                    id: row
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: T.Config.systemActionSpacing
-                    anchors.rightMargin: T.Config.systemActionSpacing
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 0
-
-                    Text {
-                        text: String(modelData.name || "")
-                        color: T.Config.surfaceText
-                        font.pixelSize: T.Config.fontSizeNormal
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        text: String(modelData.current || "?") + " → " + String(modelData.available || "?")
-                        color: T.Config.outline
-                        font.pixelSize: T.Config.fontSizeSubtext
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                    }
-                }
+                icon: "󰍛"
+                title: String(modelData.name || "")
+                subtitle: String(modelData.current || "?") + " → " + String(modelData.available || "?")
+                clickable: false
             }
         }
     }

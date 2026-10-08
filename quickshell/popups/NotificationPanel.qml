@@ -37,32 +37,11 @@ HoverPopupWindow {
             Layout.alignment: Qt.AlignVCenter
         }
 
-        Rectangle {
-            radius: T.Config.popupRadius
-            antialiasing: true
-            color: dndMouseArea.containsMouse ? T.Config.activeSelection : S.Notifications.doNotDisturb ? T.Config.surfaceContainerHigh : "transparent"
-            border.width: 1
-            border.color: S.Notifications.doNotDisturb ? T.Config.accent : T.Config.outline
-            implicitWidth: dndText.implicitWidth + T.Config.popupPadding * 2
-            implicitHeight: T.Config.settingsHeaderHeight
-            Layout.alignment: Qt.AlignVCenter
-
-            Text {
-                id: dndText
-                anchors.centerIn: parent
-                text: S.Notifications.doNotDisturb ? "DND On" : "DND Off"
-                color: S.Notifications.doNotDisturb ? T.Config.accent : T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-                font.family: T.Config.fontFamily
-            }
-
-            MouseArea {
-                id: dndMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: S.Notifications.toggleDoNotDisturb()
-            }
+        // Do not disturb: the bell crossed out and lit in the accent while it is on.
+        IconButton {
+            icon: S.Notifications.doNotDisturb ? "󰂛" : "󰂚"
+            iconColor: S.Notifications.doNotDisturb ? T.Config.accent : T.Config.surfaceText
+            onClicked: S.Notifications.toggleDoNotDisturb()
         }
 
         PanelHeaderIcon {
@@ -75,15 +54,28 @@ HoverPopupWindow {
 
     ComponentSplitter {}
 
-    Text {
+    // Nothing here: said quietly, with the bell, in the middle.
+    ColumnLayout {
         visible: S.Notifications.historyModel.count === 0
-        text: "No notifications"
-        color: T.Config.inactive
-        font.pixelSize: T.Config.fontSizeNormal
-        font.family: T.Config.fontFamily
         Layout.alignment: Qt.AlignHCenter
-        Layout.topMargin: T.Config.popupPadding
-        Layout.bottomMargin: T.Config.popupPadding
+        Layout.topMargin: T.Config.popupPadding * 2
+        Layout.bottomMargin: T.Config.popupPadding * 2
+        spacing: 4
+
+        Text {
+            text: S.Notifications.doNotDisturb ? "󰂛" : "󰂚"
+            color: T.Config.outline
+            font.pixelSize: T.Config.fontSizeXLarge
+            font.family: T.Config.fontFamily
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        Text {
+            text: S.Notifications.doNotDisturb ? "Do not disturb is on" : "No notifications"
+            color: T.Config.inactive
+            font.pixelSize: T.Config.fontSizeNormal
+            Layout.alignment: Qt.AlignHCenter
+        }
     }
 
     ListView {
@@ -125,6 +117,7 @@ HoverPopupWindow {
                 body: historySlot.body
                 image: historySlot.image
                 urgency: historySlot.urgency
+                embedded: true
                 closeVisible: true
                 onClicked: S.Notifications.focusFromHistory(historySlot.notificationId, historySlot.appName, historySlot.index, historySlot.windowClass)
                 onDismissRequested: S.Notifications.dismissHistory(historySlot.index)

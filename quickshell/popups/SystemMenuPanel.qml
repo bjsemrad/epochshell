@@ -40,91 +40,41 @@ HoverPopupWindow {
         }
     }
 
-    // Header
+    // Who and what: the user, and the machine underneath -- the dashboard's header, so the two
+    // read as the same thing.
     RowLayout {
         Layout.fillWidth: true
-        Layout.preferredHeight: T.Config.settingsHeaderHeight
+        Layout.topMargin: T.Config.layoutMarginSmall
         spacing: T.Config.layoutMarginSmall
-
-        Text {
-            text: "System"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.bold: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-        }
 
         Text {
             text: "󱄅"
             color: T.Config.accent
-            font.pixelSize: T.Config.fontSizeLarge
-            font.bold: true
-            Layout.alignment: Qt.AlignVCenter
+            font.pixelSize: T.Config.fontSizeXLarge
+            font.family: T.Config.fontFamily
         }
 
-        Text {
-            text: systemMenuPopup.username
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            Layout.alignment: Qt.AlignVCenter
-        }
-    }
-
-    // What this machine is. Three facts people look up and never remember: the model, the firmware
-    // it is running, and the kernel. Laid out as label/value pairs so the values line up rather
-    // than running together in a sentence.
-    GridLayout {
-        Layout.fillWidth: true
-        Layout.topMargin: 2
-        columns: 2
-        columnSpacing: T.Config.layoutMarginSmall
-        rowSpacing: 1
-        visible: S.SystemInfo.machine.length > 0 || S.SystemInfo.kernel.length > 0
-
-        Text {
-            text: "model"
-            visible: S.SystemInfo.machine.length > 0
-            color: T.Config.outline
-            font.pixelSize: T.Config.fontSizeSubtext
-        }
-        Text {
-            text: S.SystemInfo.machine
-            visible: S.SystemInfo.machine.length > 0
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeSubtext
+        ColumnLayout {
             Layout.fillWidth: true
-            elide: Text.ElideRight
-        }
+            spacing: 0
 
-        Text {
-            text: "bios"
-            visible: S.SystemInfo.biosVersion.length > 0
-            color: T.Config.outline
-            font.pixelSize: T.Config.fontSizeSubtext
-        }
-        Text {
-            text: S.SystemInfo.biosVersion
-            visible: S.SystemInfo.biosVersion.length > 0
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeSubtext
-            Layout.fillWidth: true
-            elide: Text.ElideRight
-        }
+            Text {
+                text: systemMenuPopup.username
+                color: T.Config.surfaceText
+                font.pixelSize: T.Config.fontSizeLarge
+                font.bold: true
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
 
-        Text {
-            text: "kernel"
-            visible: S.SystemInfo.kernel.length > 0
-            color: T.Config.outline
-            font.pixelSize: T.Config.fontSizeSubtext
-        }
-        Text {
-            text: S.SystemInfo.kernel
-            visible: S.SystemInfo.kernel.length > 0
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeSubtext
-            Layout.fillWidth: true
-            elide: Text.ElideRight
+            Text {
+                visible: text.length > 0
+                text: [S.SystemInfo.product, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" · ")
+                color: T.Config.inactive
+                font.pixelSize: T.Config.fontSizeSubtext
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
         }
     }
 
@@ -165,8 +115,7 @@ HoverPopupWindow {
         }
 
         ThemeSelector {
-            id: themeRow
-            popup: themePanel
+            menu: systemMenuPopup
         }
 
         WallpaperRow {
@@ -176,90 +125,9 @@ HoverPopupWindow {
 
     ComponentSplitter {}
 
-    // Power actions
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: 4
-
-        // The shell's own lock screen (modules/lock), not an external locker: a second locker
-        // would race it for the session lock and for the fingerprint reader. The menu is closed
-        // first so it is not still open behind the lock when the session comes back.
-        SystemAction {
-            icon: "󰌾"
-            description: "Lock"
-            function onClick() {
-                S.PopupManager.closeAll();
-                S.Lock.lock();
-            }
-        }
-
-        Process {
-            id: sleep
-            command: ["systemctl", "suspend"]
-        }
-
-        SystemAction {
-            icon: "󰤄"
-            description: "Sleep"
-            function onClick() {
-                sleep.running = true;
-            }
-        }
-
-        Process {
-            id: reboot
-            command: ["systemctl", "reboot"]
-        }
-
-        SystemAction {
-            icon: "󰜉"
-            description: "Restart"
-            function onClick() {
-                reboot.running = true;
-            }
-        }
-
-        Process {
-            id: poweroff
-            command: ["systemctl", "poweroff"]
-        }
-
-        SystemAction {
-            icon: "⏻"
-            description: "Shutdown"
-            function onClick() {
-                poweroff.running = true;
-            }
-        }
-
-        Process {
-            id: logout
-            command: ["sh", "/home/" + systemMenuPopup.username + "/.config/wmscripts/logout.sh"]
-        }
-
-        SystemAction {
-            icon: "󰗽"
-            description: "Logout"
-            function onClick() {
-                logout.running = true;
-            }
-        }
-    }
+    SessionActions {}
 
     ComponentSpacer {
         bottomMargin: 6
-    }
-
-    // The picker hangs off the Theme row, so while it is up this menu must not close itself when
-    // the pointer leaves -- the pointer has gone into the picker, and closing would take the
-    // window the picker is anchored to out from under it.
-    ThemePanel {
-        id: themePanel
-        trigger: themeRow
-        parentPanel: systemMenuPopup
-        onOpenChanged: {
-            systemMenuPopup.stopHide = open;
-            if (!open) systemMenuPopup._updateHover();
-        }
     }
 }

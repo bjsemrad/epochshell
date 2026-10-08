@@ -39,12 +39,12 @@ RowLayout {
         readonly property bool showLocalSendAlert: S.LocalSend.hasIncomingFiles || (expanded && S.LocalSend.connected)
         // Updates waiting are worth seeing with the drawer shut; a system that is up to date is
         // only worth a look when the drawer is open anyway.
-        // These two are alerts and nothing else: they say a machine is being held awake and a
-        // screen is being warmed, both of which are worth explaining, and neither of which is
-        // worth an icon saying it is not happening. Unlike Tailscale and LocalSend they do not
-        // join the drawer on expand -- the system menu is where you go to turn them on.
+        // Stay awake is an alert and nothing else: it says the machine is being held awake, which
+        // has consequences you cannot see -- a laptop that never sleeps in a bag -- and is not
+        // worth an icon saying it is not happening. Night mode has no alert: a warm screen is its
+        // own indicator. Neither joins the drawer on expand; the system menu is where you go to
+        // turn them on.
         readonly property bool showIdleAlert: S.StayAwake.enabled
-        readonly property bool showNightAlert: S.NightLight.enabled
         readonly property bool showNixAlert: S.NixUpdates.hasUpdates || (expanded && S.NixUpdates.available)
         readonly property bool showTailscaleAlert: S.Tailscale.hasIncomingFiles || (expanded && S.Tailscale.available)
         // The drawer's width is measured from what is actually in it rather than counted.
@@ -227,10 +227,6 @@ RowLayout {
             anchors.verticalCenter: parent.verticalCenter
             spacing: drawer.drawerSpacing
 
-            RecordingIndicator {
-                id: recordingIndicator
-                Layout.alignment: Qt.AlignVCenter
-            }
             NixTrigger {
                 id: nixUpdates
                 Layout.alignment: Qt.AlignVCenter
@@ -241,10 +237,6 @@ RowLayout {
                 id: firmwareUpdates
                 Layout.alignment: Qt.AlignVCenter
                 popup: firmwarePanel
-            }
-            NightModeToggle {
-                Layout.alignment: Qt.AlignVCenter
-                visible: S.NightLight.connected && drawer.showNightAlert
             }
             IdleInhibitorToggle {
                 Layout.alignment: Qt.AlignVCenter
@@ -306,44 +298,163 @@ RowLayout {
         }
     }
 
-    WifiNetwork {
-        id: wifiNet
-        popup: wifiNetworkPanel
-    }
-    EthernetNetwork {
-        id: ethNet
-        popup: ethernetNetworkPanel
-    }
-    Bluetooth {
-        id: bluet
-        popup: bluetoothPanel
-    }
-    Volume {
-        id: vol
-        popup: audioPanel
-    }
-    Battery {
-        id: battery
-        popup: batteryPanel
-    }
     NotificationIndicator {
         id: notificationIndicator
         popup: notificationPanel
     }
-    SystemOptions {
-        id: systemOptions
-        popup: systemPanelPopup
+
+    // While recording, the way to stop it, just left of the status icons and outside the drawer:
+    // it should be one click away, not behind a hover that slides the drawer open under the pointer.
+    RecordingIndicator {
+        Layout.alignment: Qt.AlignVCenter
     }
+
+    // Connection, sound, battery and the session, in one of two styles (T.Config.statusStyle):
+    //
+    //   dashboard   one status cluster -- one pill, one click -- opening DashboardPanel, which
+    //               holds everything below on pages of its own, and the power actions
+    //   individual  an icon each, each opening its own panel, and a power icon for the system menu
+    //
+    // Only the chosen one exists. Both answer to the same panel names ("wifi", "audio", "system",
+    // ...), so a keybinding opens whichever is in use -- and two at once would leave PopupManager
+    // with two panels under one name.
+    Loader {
+        Layout.alignment: Qt.AlignVCenter
+        active: T.Config.statusStyle === "dashboard"
+        sourceComponent: dashboardStatus
+    }
+
+    Loader {
+        Layout.alignment: Qt.AlignVCenter
+        active: T.Config.statusStyle !== "dashboard"
+        sourceComponent: individualStatus
+    }
+
     BarFill {}
 
-    WifiNetworkPanel {
-        id: wifiNetworkPanel
-        trigger: wifiNet
+    Component {
+        id: dashboardStatus
+
+        // The icons inside are the same modules as the individual style's, made inert: no pill,
+        // no click. The cluster draws one pill round all of them and takes the click itself.
+        Rectangle {
+            id: statusCluster
+            implicitWidth: clusterRow.implicitWidth
+            implicitHeight: clusterRow.implicitHeight
+            radius: T.Config.popupRadius
+            antialiasing: true
+            color: dashboardPanel.open || clusterMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
+
+            RowLayout {
+                id: clusterRow
+                spacing: 0
+
+                WifiNetwork {
+                    mouseEnabled: false
+                    color: "transparent"
+                    popup: dashboardPanel
+                }
+                EthernetNetwork {
+                    mouseEnabled: false
+                    color: "transparent"
+                    popup: dashboardPanel
+                }
+                Bluetooth {
+                    mouseEnabled: false
+                    color: "transparent"
+                    popup: dashboardPanel
+                }
+                Volume {
+                    mouseEnabled: false
+                    color: "transparent"
+                    popup: dashboardPanel
+                }
+                Battery {
+                    mouseEnabled: false
+                    color: "transparent"
+                    popup: dashboardPanel
+                }
+            }
+
+            MouseArea {
+                id: clusterMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (dashboardPanel.open) {
+                        dashboardPanel.hidePanel();
+                    } else {
+                        S.PopupManager.closeOthers(dashboardPanel);
+                        dashboardPanel.page = "main";
+                        dashboardPanel.showPanel();
+                    }
+                }
+            }
+
+            DashboardPanel {
+                id: dashboardPanel
+                trigger: statusCluster
+            }
+        }
     }
 
-    EthernetNetworkPanel {
-        id: ethernetNetworkPanel
-        trigger: ethNet
+    Component {
+        id: individualStatus
+
+        RowLayout {
+            spacing: 0
+
+            WifiNetwork {
+                id: wifiNet
+                popup: wifiNetworkPanel
+            }
+            EthernetNetwork {
+                id: ethNet
+                popup: ethernetNetworkPanel
+            }
+            Bluetooth {
+                id: bluet
+                popup: bluetoothPanel
+            }
+            Volume {
+                id: vol
+                popup: audioPanel
+            }
+            Battery {
+                id: battery
+                popup: batteryPanel
+            }
+            SystemOptions {
+                id: systemOptions
+                popup: systemPanelPopup
+            }
+
+            WifiNetworkPanel {
+                id: wifiNetworkPanel
+                trigger: wifiNet
+            }
+            EthernetNetworkPanel {
+                id: ethernetNetworkPanel
+                trigger: ethNet
+            }
+            BluetoothPanel {
+                id: bluetoothPanel
+                trigger: bluet
+            }
+            AudioPanel {
+                id: audioPanel
+                trigger: vol
+            }
+            BatteryPanel {
+                id: batteryPanel
+                trigger: battery
+            }
+            SystemMenuPanel {
+                id: systemPanelPopup
+                trigger: systemOptions
+            }
+        }
     }
 
     TailscaleNetworkPanel {
@@ -381,28 +492,8 @@ RowLayout {
         trigger: hass
     }
 
-    AudioPanel {
-        id: audioPanel
-        trigger: vol
-    }
-
-    BatteryPanel {
-        id: batteryPanel
-        trigger: battery
-    }
-
-    BluetoothPanel {
-        id: bluetoothPanel
-        trigger: bluet
-    }
-
     NotificationPanel {
         id: notificationPanel
         trigger: notificationIndicator
-    }
-
-    SystemMenuPanel {
-        id: systemPanelPopup
-        trigger: systemOptions
     }
 }

@@ -1,18 +1,17 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
-import Quickshell
-import Quickshell.Widgets
 import Quickshell.Services.Pipewire
-import qs.theme as T
 import qs.commonwidgets
 import qs.services as S
 
-Item {
+// The devices sound can go to, or come from: click one to make it the default. The default is lit.
+// AvailableAudioOutputs and AvailableAudioInputs say which kind, by `isAudioType`.
+ColumnLayout {
     id: audioSection
     Layout.fillWidth: true
-    Layout.preferredHeight: header.height + listContainer.height
+    spacing: 2
 
+    // "Outputs" or "Inputs".
     required property string type
     required property PwNode defaultAudioNode
 
@@ -24,88 +23,23 @@ Item {
         S.AudioService.setDefault(nodeId);
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 6
-        Rectangle {
-            id: header
-            Layout.fillWidth: true
-            Layout.preferredHeight: 20
-            color: "transparent"
-            RowLayout {
-                width: parent.width
-                spacing: 10
-                Text {
-                    id: avText
-                    text: "Available " + type
-                    color: T.Config.surfaceText
-                    font.pixelSize: 13
-                }
-            }
-        }
+    SectionLabel {
+        text: audioSection.type
+    }
 
-        Rectangle {
-            id: listContainer
-            radius: 6
-            antialiasing: true
-            color: "transparent"
-            clip: true
-            Layout.fillWidth: true
-            Layout.preferredHeight: column.implicitHeight + 20
+    Repeater {
+        model: Pipewire.nodes
 
-            ColumnLayout {
-                id: column
-                anchors.fill: parent
-                spacing: 10
+        delegate: ListRow {
+            required property var modelData
+            readonly property bool isDefault: modelData.id === audioSection.defaultAudioNode?.id
 
-                Repeater {
-                    model: Pipewire.nodes
-
-                    delegate: Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 30
-                        radius: 6
-                        antialiasing: true
-                        visible: isAudioType(modelData) && modelData.description
-                        color: mouseArea.containsMouse ? T.Config.activeSelection : "transparent"
-
-                        RowLayout {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
-                            spacing: 8
-                            Text {
-                                text: ""
-                                font.pixelSize: T.Config.fontSizeLarge
-                                Layout.alignment: Qt.AlignVCenter
-                                color: modelData.id === defaultAudioNode?.id ? T.Config.accent : T.Config.surfaceText
-                            }
-
-                            Text {
-                                text: modelData.description
-                                color: T.Config.surfaceText
-                                font.pixelSize: T.Config.fontSizeNormal
-                                Layout.fillWidth: true
-                                clip: true
-                                elide: Text.ElideRight
-                                Layout.alignment: Qt.AlignVCenter
-                            }
-                        }
-
-                        MouseArea {
-                            id: mouseArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                clickOperation(modelData.id);
-                            }
-                        }
-                    }
-                }
-            }
+            visible: audioSection.isAudioType(modelData) && modelData.description
+            icon: audioSection.type === "Inputs" ? "󰍬" : "󰓃"
+            title: modelData.description || ""
+            subtitle: isDefault ? "In use" : ""
+            active: isDefault
+            onClicked: audioSection.clickOperation(modelData.id)
         }
     }
 }
