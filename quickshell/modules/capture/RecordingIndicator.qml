@@ -12,7 +12,7 @@ import qs.theme as T
 Rectangle {
     id: root
     visible: S.Capture.recording
-    color: mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    color: mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
     border.width: 1

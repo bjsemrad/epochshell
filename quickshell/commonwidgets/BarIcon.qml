@@ -7,7 +7,7 @@ import qs.services as S
 
 Rectangle {
     id: root
-    color: mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    color: mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
     implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding

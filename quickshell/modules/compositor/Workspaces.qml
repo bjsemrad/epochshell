@@ -59,7 +59,7 @@ Rectangle {
                 // Deliberately not the accent. A colour here would be the brightest thing on the
                 // bar and would pull the eye every time focus moved, which is a lot of noise for
                 // something you already know you just did.
-                color: mwrap.containsMouse ? T.Config.activeSelection : "transparent"
+                color: mwrap.containsMouse ? T.Config.onBar(T.Config.activeSelection) : "transparent"
                 radius: 10
                 antialiasing: true
 

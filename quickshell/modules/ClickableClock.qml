@@ -5,7 +5,7 @@ import qs.theme as T
 
 Rectangle {
     id: root
-    color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
     // Half the icons' side padding: text carries its own side bearings, so the full amount stood

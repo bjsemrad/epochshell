@@ -42,8 +42,9 @@ PopupWindow {
 
     // Attached to the bar, growing out of it, unless T.Config.panelStyle asks for floating cards
     // -- and never when not opened from the bar, where flares drawn into thin air would look like
-    // a mistake.
-    readonly property bool attached: fromBar && T.Config.panelStyle !== "floating"
+    // a mistake. Nor when the bar itself is mostly see-through: then there is no visible edge to
+    // grow out of, and the flares bend into nothing, so the panel floats as a card instead.
+    readonly property bool attached: fromBar && T.Config.panelStyle !== "floating" && T.Config.barOpacity >= 0.5
 
     // A floating card from the bar hangs this far below it.
     readonly property int floatingGap: 5
@@ -268,9 +269,11 @@ PopupWindow {
             anchors.margins: popup.edgeInset
             radius: T.Config.popupRadius
             antialiasing: true
-            // Solid unless popupOpacity says otherwise -- a panel sits over windows, not over the
-            // wallpaper, so what shows through is arbitrary rather than the desktop.
-            color: T.Config.popupBackground
+            // Solid unless an opacity setting says otherwise -- a panel sits over windows, not over
+            // the wallpaper, so what shows through is arbitrary rather than the desktop. A panel
+            // from the bar follows panelOpacity in either style; anything else (the theme picker)
+            // is an overlay, and follows popupOpacity.
+            color: popup.fromBar ? T.Config.panelBackground : T.Config.popupBackground
             border.width: 1
             border.color: T.Config.outline
             opacity: popup.visible ? 1 : 0

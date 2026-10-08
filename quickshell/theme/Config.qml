@@ -149,7 +149,8 @@ Singleton {
     // How the bar's panels are drawn. "attached": growing out of the bar in its colour, its edge
     // flaring into theirs. "floating": a bordered card a few pixels below the bar, rounded all
     // round. Anything else reads as "attached". panelOutline and edge-snapping are for attached
-    // panels only; a floating card has its own border.
+    // panels only; a floating card has its own border. With barOpacity under 0.5 panels float
+    // whatever this says: an attached panel needs a visible bar to grow out of.
     property string panelStyle: "attached"
 
     property int popupPadding: 10
@@ -243,8 +244,8 @@ Singleton {
     // home-manager install.
     //
     // Three grounds: the bar; the panels that grow out of it (HoverPopupWindow, attached); and
-    // everything that floats free -- OSDs, notifications, the launcher, a floating card. Panels
-    // are their own so the bar can stay solid while they let a little through, or the reverse.
+    // everything that floats free -- OSDs, notifications, the launcher. Panels are their own so
+    // the bar can stay solid while they let a little through, or the reverse.
     property real barOpacity: 1.0
     property real panelOpacity: 1.0
     property real popupOpacity: 1.0
@@ -255,6 +256,14 @@ Singleton {
     readonly property color barBackground: Qt.rgba(background.r, background.g, background.b, barOpacity)
     readonly property color panelBackground: Qt.rgba(background.r, background.g, background.b, panelOpacity)
     readonly property color popupBackground: Qt.rgba(background.r, background.g, background.b, popupOpacity)
+
+    // A fill drawn on the bar -- an icon's hover or open pill -- at the bar's own opacity, so a
+    // see-through bar does not carry solid buttons. Never under 25%: below that a hover stops
+    // showing at all, and the pointer is left with no sign of what it is over.
+    readonly property real barFillOpacity: Math.max(0.25, barOpacity)
+    function onBar(c) {
+        return Qt.rgba(c.r, c.g, c.b, c.a * barFillOpacity);
+    }
 
     // config.toml says which theme to use and overrides anything it wants on top of it. Both
     // files are watched, and either changing rebuilds the palette from both -- editing a theme

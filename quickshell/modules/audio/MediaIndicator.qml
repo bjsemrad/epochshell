@@ -13,7 +13,7 @@ Rectangle {
     readonly property bool hovered: mouseArea.containsMouse
 
     visible: active
-    color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
     implicitWidth: Math.min(content.implicitWidth + T.Config.barModuleHorizontalPadding, 220)

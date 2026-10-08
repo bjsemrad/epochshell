@@ -10,7 +10,7 @@ import qs.services as S
 // bar icon, obvious on a light theme and a dark smudge on a dark one.
 Rectangle {
     id: root
-    color: popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    color: popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
     implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding

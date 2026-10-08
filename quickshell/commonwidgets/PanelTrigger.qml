@@ -8,7 +8,7 @@ import qs.services as S
 // No border, for the reason given in BarIconPopup.qml: an uncoloured 1px border draws black.
 Rectangle {
     id: root
-    color: popup && popup.open ? T.Config.surfaceContainer : mouseArea.containsMouse ? T.Config.surfaceContainer : "transparent"
+    color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
     implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding

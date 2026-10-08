@@ -184,6 +184,9 @@ HoverPopupWindow {
     SettingSlider {
         label: "Bar"
         hint: "100% is solid"
+        // All the way down: a bar of icons straight over the wallpaper is a look of its own. The
+        // others keep the slider's 30% floor, below which a panel's text stops being readable.
+        from: 0
         settingValue: T.Config.barOpacity
         onMoved: value => T.Config.barOpacity = value
         onCommitted: value => T.Config.setSetting("barOpacity", value)

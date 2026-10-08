@@ -136,7 +136,7 @@ RowLayout {
 
                     implicitWidth: T.Config.barIconSize + T.Config.barModuleHorizontalPadding
                     implicitHeight: T.Config.barIconSize + T.Config.barModuleVerticalPadding
-                    color: trayMouse.containsMouse ? T.Config.surfaceContainer : "transparent"
+                    color: trayMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
                     radius: T.Config.popupRadius
                     antialiasing: true
 
@@ -268,7 +268,7 @@ RowLayout {
             id: chevron
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            color: chevronMouse.containsMouse ? T.Config.surfaceContainer : "transparent"
+            color: chevronMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
             radius: T.Config.popupRadius
             antialiasing: true
             implicitWidth: chevronInner.implicitWidth + T.Config.barModuleHorizontalPadding
