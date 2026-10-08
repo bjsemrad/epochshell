@@ -26,10 +26,12 @@ Item {
     // Inset on the right so the switch is not flush against the popup's border. The action rows
     // above carry systemActionMargin on their left, and a switch hard against the edge next to
     // them reads as a layout mistake.
+    // Inset as ListRow's content is, so a menu mixing switches and rows lines up down its left edge.
     RowLayout {
         id: rowContent
         anchors.fill: parent
-        anchors.rightMargin: T.Config.systemActionSpacing
+        anchors.leftMargin: T.Config.popupPadding
+        anchors.rightMargin: T.Config.popupPadding
         spacing: T.Config.layoutMarginSmall
 
         ColumnLayout {
