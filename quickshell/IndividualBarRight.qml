@@ -298,11 +298,6 @@ RowLayout {
         }
     }
 
-    NotificationIndicator {
-        id: notificationIndicator
-        popup: notificationPanel
-    }
-
     // While recording, the way to stop it, just left of the status icons and outside the drawer:
     // it should be one click away, not behind a hover that slides the drawer open under the pointer.
     RecordingIndicator {
@@ -335,66 +330,81 @@ RowLayout {
     Component {
         id: dashboardStatus
 
-        // The icons inside are the same modules as the individual style's, made inert: no pill,
-        // no click. The cluster draws one pill round all of them and takes the click itself.
-        Rectangle {
-            id: statusCluster
-            implicitWidth: clusterRow.implicitWidth
-            implicitHeight: clusterRow.implicitHeight
-            radius: T.Config.popupRadius
-            antialiasing: true
-            color: dashboardPanel.open || clusterMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
+        // The bell, in front of the cluster: notifications are not part of quick settings, and
+        // keep their own panel.
+        RowLayout {
+            spacing: 0
 
-            RowLayout {
-                id: clusterRow
-                spacing: 0
-
-                WifiNetwork {
-                    mouseEnabled: false
-                    color: "transparent"
-                    popup: dashboardPanel
-                }
-                EthernetNetwork {
-                    mouseEnabled: false
-                    color: "transparent"
-                    popup: dashboardPanel
-                }
-                Bluetooth {
-                    mouseEnabled: false
-                    color: "transparent"
-                    popup: dashboardPanel
-                }
-                Volume {
-                    mouseEnabled: false
-                    color: "transparent"
-                    popup: dashboardPanel
-                }
-                Battery {
-                    mouseEnabled: false
-                    color: "transparent"
-                    popup: dashboardPanel
-                }
+            NotificationIndicator {
+                id: clusterNotificationIndicator
+                popup: clusterNotificationPanel
+            }
+            NotificationPanel {
+                id: clusterNotificationPanel
+                trigger: clusterNotificationIndicator
             }
 
-            MouseArea {
-                id: clusterMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (dashboardPanel.open) {
-                        dashboardPanel.hidePanel();
-                    } else {
-                        S.PopupManager.closeOthers(dashboardPanel);
-                        dashboardPanel.page = "main";
-                        dashboardPanel.showPanel();
+            // The icons inside are the same modules as the individual style's, made inert: no pill,
+            // no click. The cluster draws one pill round all of them and takes the click itself.
+            Rectangle {
+                id: statusCluster
+                implicitWidth: clusterRow.implicitWidth
+                implicitHeight: clusterRow.implicitHeight
+                radius: T.Config.popupRadius
+                antialiasing: true
+                color: dashboardPanel.open || clusterMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
+
+                RowLayout {
+                    id: clusterRow
+                    spacing: 0
+
+                    WifiNetwork {
+                        mouseEnabled: false
+                        color: "transparent"
+                        popup: dashboardPanel
+                    }
+                    EthernetNetwork {
+                        mouseEnabled: false
+                        color: "transparent"
+                        popup: dashboardPanel
+                    }
+                    Bluetooth {
+                        mouseEnabled: false
+                        color: "transparent"
+                        popup: dashboardPanel
+                    }
+                    Volume {
+                        mouseEnabled: false
+                        color: "transparent"
+                        popup: dashboardPanel
+                    }
+                    Battery {
+                        mouseEnabled: false
+                        color: "transparent"
+                        popup: dashboardPanel
                     }
                 }
-            }
 
-            DashboardPanel {
-                id: dashboardPanel
-                trigger: statusCluster
+                MouseArea {
+                    id: clusterMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (dashboardPanel.open) {
+                            dashboardPanel.hidePanel();
+                        } else {
+                            S.PopupManager.closeOthers(dashboardPanel);
+                            dashboardPanel.page = "main";
+                            dashboardPanel.showPanel();
+                        }
+                    }
+                }
+
+                DashboardPanel {
+                    id: dashboardPanel
+                    trigger: statusCluster
+                }
             }
         }
     }
@@ -425,6 +435,10 @@ RowLayout {
                 id: battery
                 popup: batteryPanel
             }
+            NotificationIndicator {
+                id: notificationIndicator
+                popup: notificationPanel
+            }
             SystemOptions {
                 id: systemOptions
                 popup: systemPanelPopup
@@ -453,6 +467,10 @@ RowLayout {
             SystemMenuPanel {
                 id: systemPanelPopup
                 trigger: systemOptions
+            }
+            NotificationPanel {
+                id: notificationPanel
+                trigger: notificationIndicator
             }
         }
     }
@@ -490,10 +508,5 @@ RowLayout {
     HomeAssistantPanel {
         id: homeAssistantPanel
         trigger: hass
-    }
-
-    NotificationPanel {
-        id: notificationPanel
-        trigger: notificationIndicator
     }
 }
