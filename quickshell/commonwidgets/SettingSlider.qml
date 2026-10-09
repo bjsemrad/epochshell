@@ -25,6 +25,8 @@ Item {
     // with snapping would quietly round someone else's setting to the nearest notch and then
     // write the rounded value back as though it had been chosen.
     property real stepSize: 0.01
+    // How the value reads beside the label. A fraction, as a percentage, unless told otherwise.
+    property var formatValue: value => Math.round(value * 100) + "%"
 
     // Live as the handle moves, so the change is visible while choosing it.
     signal moved(real value)
@@ -66,7 +68,7 @@ Item {
             }
 
             Text {
-                text: Math.round(slider.value * 100) + "%"
+                text: root.formatValue(slider.value)
                 color: T.Config.outline
                 font.pixelSize: T.Config.fontSizeSubtext
                 Layout.alignment: Qt.AlignVCenter

@@ -313,15 +313,24 @@ RowLayout {
     // Only the chosen one exists. Both answer to the same panel names ("wifi", "audio", "system",
     // ...), so a keybinding opens whichever is in use -- and two at once would leave PopupManager
     // with two panels under one name.
+    // A Loader keeps the size of the last thing it held after it is switched off, so the style
+    // switched away from would go on taking its old width as a gap. Hidden while off, the row
+    // leaves it out; while on, it is sized by what it holds.
     Loader {
         Layout.alignment: Qt.AlignVCenter
         active: T.Config.statusStyle === "dashboard"
+        visible: active
+        Layout.preferredWidth: item ? item.implicitWidth : 0
+        Layout.preferredHeight: item ? item.implicitHeight : 0
         sourceComponent: dashboardStatus
     }
 
     Loader {
         Layout.alignment: Qt.AlignVCenter
         active: T.Config.statusStyle !== "dashboard"
+        visible: active
+        Layout.preferredWidth: item ? item.implicitWidth : 0
+        Layout.preferredHeight: item ? item.implicitHeight : 0
         sourceComponent: individualStatus
     }
 

@@ -29,6 +29,7 @@ Singleton {
     property var wallpaperOverlay: null
     // The theme switcher, for the same reason again.
     property var themeOverlay: null
+    property var settingsOverlay: null
 
     function register(popup, name) {
         if (openPopups.indexOf(popup) === -1) {
@@ -62,6 +63,10 @@ Singleton {
 
     function registerThemeOverlay(overlay) {
         root.themeOverlay = overlay;
+    }
+
+    function registerSettingsOverlay(overlay) {
+        root.settingsOverlay = overlay;
     }
 
     function popupsFor(name) {

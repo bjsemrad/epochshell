@@ -33,6 +33,7 @@ ShellRoot {
 
     // And the theme switcher, likewise one for the session.
     ThemeOverlay {}
+    SettingsOverlay {}
 
     // The session lock. Last, so nothing declared after it can end up drawn above it -- though the
     // compositor puts lock surfaces above everything regardless.

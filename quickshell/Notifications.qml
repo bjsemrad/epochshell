@@ -40,7 +40,7 @@ Scope {
                 anchors {
                     top: parent.top
                     right: parent.right
-                    topMargin: T.Config.barHeight + T.Config.popupPadding
+                    topMargin: T.Config.barBottom + T.Config.popupPadding
                     rightMargin: T.Config.popupPadding * 2
                 }
                 spacing: T.Config.popupLayoutSpacing

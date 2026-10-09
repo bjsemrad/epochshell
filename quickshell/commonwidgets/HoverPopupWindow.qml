@@ -75,11 +75,18 @@ PopupWindow {
     property bool snapRight: false
     readonly property bool atRightEdge: attached && !inIsland && snapRight
     readonly property real snapDistance: T.Config.popupRadius * 2
+    // A floating bar's corners are rounded, so its end is a curve a panel cannot sit flush with:
+    // there a snapped panel stops a corner's width short of the end, keeping its right flare, so it
+    // grows out of the flat of the bar's underside like any other. Panels near the left end are
+    // nudged in by the same amount rather than left for the compositor to slide to the screen's
+    // edge, past the bar's.
+    readonly property real _barInset: barStrip && barStrip.radius > 0 ? barStrip.radius : 0
+    property real _nudge: 0
 
     // The flares reach outside the card, so an attached window is that much wider on each side --
     // or, snapped to the right edge, on the left only.
     readonly property real flare: attached ? T.Config.popupRadius : 0
-    readonly property real _flareRight: atRightEdge ? 0 : flare
+    readonly property real _flareRight: atRightEdge && _barInset === 0 ? 0 : flare
 
     readonly property real cardHeight: contentLayout.implicitHeight + padding + bottomPadding
 
@@ -112,10 +119,14 @@ PopupWindow {
         island = _findUp("barIsland");
         barStrip = _findUp("barStrip");
         snapRight = false;
+        _nudge = 0;
         if (attached && !inIsland && barStrip && trigger) {
             const centre = trigger.mapToItem(barStrip, trigger.width / 2, 0).x;
             const centredWidth = popupWidth + flare * 2;
-            snapRight = barStrip.width - (centre + centredWidth / 2) < snapDistance;
+            snapRight = barStrip.width - _barInset - (centre + centredWidth / 2) < snapDistance;
+            const left = centre - centredWidth / 2;
+            if (!snapRight && _barInset > 0 && left < _barInset)
+                _nudge = _barInset - left;
         }
         if (attached) {
             const bar = _findUp("barPanels");
@@ -188,7 +199,7 @@ PopupWindow {
             }
         }
     }
-    readonly property real _barBottomRectY: T.Config.barHeight - _triggerTop - 1 - 1
+    readonly property real _barBottomRectY: T.Config.barBottom - _triggerTop - 1 - 1
 
     // From an island, the anchor is a point on the island's bottom edge, and the panel's left edge
     // goes there; the island's body starts at the top of the bar, so its bottom edge is the bar's.
@@ -208,13 +219,15 @@ PopupWindow {
         // exactly anyway, leaving a 4px strip of desktop between it and the edge.
         adjustment: popup.atRightEdge ? PopupAdjustment.None
             : popup.attached ? PopupAdjustment.Slide : PopupAdjustment.Slide | PopupAdjustment.Flip
-        rect.x: popup.inIsland ? popup._islandLeft : popup.atRightEdge ? popup.barStrip.width - 1 : 0
+        rect.x: popup.inIsland ? popup._islandLeft
+            : popup.atRightEdge ? popup.barStrip.width - 1 - popup._barInset
+            : popup._nudge
         rect.width: popup.inIsland || popup.atRightEdge ? 1 : popup.trigger ? popup.trigger.width : 1
         // An island's body and the bar strip both start at the top of the bar, so their bottom
         // edge is the bar's. A floating card from the bar sits `floatingGap` below it.
         rect.y: popup.inIsland || popup.atRightEdge ? T.Config.barHeight - 2
             : popup.attached ? popup._barBottomRectY
-            : popup.fromBar ? T.Config.barHeight - popup._triggerTop - 1 + popup.floatingGap
+            : popup.fromBar ? T.Config.barBottom - popup._triggerTop - 1 + popup.floatingGap
             : popup.anchorRectY
         rect.height: 1
     }
@@ -240,7 +253,7 @@ PopupWindow {
             height: popup.cardHeight * popup.reveal
             flare: popup.flare
             // Square at the screen's right edge, when snapped there.
-            rightFlush: popup.atRightEdge
+            rightFlush: popup.atRightEdge && popup._barInset === 0
             fillColor: T.Config.panelBackground
             // Carries on the bar's outline round the rest of the shape, or is the only outline --
             // or, faded, an outline that only appears below the join (T.Config.panelOutline).

@@ -39,7 +39,9 @@ Scope {
             // in a Rectangle that can change whenever it likes.
             color: "transparent"
 
-            implicitHeight: T.Config.barHeight
+            // Floating, the window takes the gap above the bar too, so the space it reserves
+            // ends where the bar does.
+            implicitHeight: T.Config.barBottom
 
             // Clicks on the bar, or in the island style on the island only: the screen showing
             // either side of it is the desktop's, not the bar's.
@@ -50,7 +52,14 @@ Scope {
             // First child, so it sits behind everything else the bar draws.
             Rectangle {
                 id: barArea
-                anchors.fill: parent
+                // Floating, held in from the screen's top and sides with its corners rounded; the
+                // gaps around it are outside the input mask, so clicks there reach the desktop.
+                x: T.Config.barSideGap
+                y: T.Config.barTopGap
+                width: parent.width - T.Config.barSideGap * 2
+                height: T.Config.barHeight
+                radius: T.Config.barFloating ? T.Config.popupRadius : 0
+                antialiasing: true
                 // In the island style the ground is the island below, and the strip is only the
                 // frame the modules are laid out in.
                 color: barWindow.island ? "transparent" : T.Config.barBackground
@@ -107,8 +116,9 @@ Scope {
             Rectangle {
                 visible: !barWindow.island && T.Config.panelOutline === "bar" && opacity > 0
                 opacity: panelTracker.openness
-                y: T.Config.barHeight - 1
-                width: parent.width
+                x: barArea.x + barArea.radius
+                y: T.Config.barBottom - 1
+                width: barArea.width - barArea.radius * 2
                 height: 1
                 color: T.Config.outline
             }
@@ -122,10 +132,10 @@ Scope {
                 enabled: S.StayAwake.enabled
             }
 
-            // Left: the launcher and the workspaces. A strip of many workspaces is capped at a share
-            // of the bar and scrolls rather than pushing into the groups beside it.
-            Flickable {
+            // Left: the launcher and what is playing.
+            RowLayout {
                 id: leftSide
+                spacing: T.Config.barModuleSpacing
                 // Found by panels opened from in here; see HoverPopupWindow.
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
@@ -134,51 +144,51 @@ Scope {
                 // leaves the item where the anchor put it -- an x binding underneath does not take
                 // over until something it reads changes -- so switching to the island style after
                 // startup, as reading config.toml does, left the groups at the screen's edges.
-                x: (barWindow.island ? barWindow.islandContentX : 0) + T.Config.barModuleSpacing
-                width: Math.min(leftContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
-                contentWidth: leftContent.implicitWidth
+                x: (barWindow.island ? barWindow.islandContentX : barArea.x) + T.Config.barModuleSpacing
+
+                anchors {
+                    top: barArea.top
+                    bottom: barArea.bottom
+                }
+
+                children: [
+                    ApplicationLauncher {},
+                    MediaIndicator {
+                        id: mediaIndicator
+                        popup: mediaPanel
+                    }
+                ]
+            }
+
+            // Centre: the workspaces, the thing glanced at most, where the eye lands. A strip of
+            // many workspaces is capped at a share of the bar and scrolls rather than pushing into
+            // the groups either side.
+            Flickable {
+                id: centerSide
+                readonly property var barPanels: panelTracker
+                readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property Item barStrip: barArea
+                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
+                    : Math.round((parent.width - width) / 2)
+                width: Math.min(centerContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
+                contentWidth: centerContent.implicitWidth
                 contentHeight: height
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
                 interactive: contentWidth > width
 
                 anchors {
-                    top: parent.top
-                    bottom: parent.bottom
+                    top: barArea.top
+                    bottom: barArea.bottom
                 }
 
                 RowLayout {
-                    id: leftContent
+                    id: centerContent
                     height: parent.height
                     spacing: T.Config.barModuleSpacing
 
-                    ApplicationLauncher {}
                     Workspaces {}
                 }
-            }
-
-            // Centre: what is playing, when anything is. As wide as the media title needs, centred
-            // on the bar -- or placed after the left group in the island.
-            RowLayout {
-                id: centerSide
-                spacing: T.Config.barModuleSpacing
-                readonly property var barPanels: panelTracker
-                readonly property Item barIsland: barWindow.island ? islandBody : null
-                readonly property Item barStrip: barArea
-                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
-                    : Math.round((parent.width - width) / 2)
-
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                }
-
-                children: [
-                    MediaIndicator {
-                        id: mediaIndicator
-                        popup: mediaPanel
-                    }
-                ]
             }
 
             RowLayout {
@@ -191,12 +201,12 @@ Scope {
                 readonly property Item barIsland: barWindow.island ? islandBody : null
                 readonly property Item barStrip: barArea
                 x: barWindow.island ? centerSide.x + centerSide.width + barWindow.islandGap
-                    : parent.width - width - T.Config.barModuleSpacing
+                    : barArea.x + barArea.width - width - T.Config.barModuleSpacing
                 Layout.alignment: Qt.AlignVCenter
 
                 anchors {
-                    top: parent.top
-                    bottom: parent.bottom
+                    top: barArea.top
+                    bottom: barArea.bottom
                 }
 
                 IndividualBarRight {}

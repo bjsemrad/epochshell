@@ -292,6 +292,10 @@ HoverPopupWindow {
             menu: dash
         }
 
+        AppearanceRow {
+            menu: dash
+        }
+
         ComponentSplitter {}
 
         SessionActions {}

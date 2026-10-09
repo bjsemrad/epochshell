@@ -216,6 +216,32 @@ Scope {
         }
     }
 
+    // The appearance settings window.
+    IpcHandler {
+        target: "settings"
+
+        function toggle(): string {
+            const overlay = S.PopupManager.settingsOverlay;
+            if (!overlay) return root.fail("settings window is not loaded");
+            overlay.toggle();
+            return root.ok({ open: overlay._visible });
+        }
+
+        function open(): string {
+            const overlay = S.PopupManager.settingsOverlay;
+            if (!overlay) return root.fail("settings window is not loaded");
+            overlay.open();
+            return root.ok({ open: true });
+        }
+
+        function close(): string {
+            const overlay = S.PopupManager.settingsOverlay;
+            if (!overlay) return root.fail("settings window is not loaded");
+            overlay.close();
+            return root.ok({ open: false });
+        }
+    }
+
     // The wallpaper switcher. `next`/`previous` exist so a keybinding can cycle without opening
     // anything, which is the way most people actually change wallpaper.
     IpcHandler {

@@ -88,14 +88,14 @@ Singleton {
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
     readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
-    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle"]
+    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
     readonly property string themeKey: "theme"
     // Handled the same way and for the same reason: it decides where values come from rather than
     // being one of them.
     readonly property string extendsKey: "extends"
-    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "panelBottomMarginMedium", "barHeight", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
+    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "panelBottomMarginMedium", "barHeight", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
 
     property color accent: blue
     property color accentLightShade: Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10)
@@ -129,7 +129,8 @@ Singleton {
     /* Misc */
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
 
-    // "full": one strip across the top of the screen. "island": every module in a single island
+    // "full": one strip across the top of the screen. "floating": the same strip, held off the
+    // screen's top and sides with its corners rounded. "island": every module in a single island
     // centred at the top, as wide as what is showing in it. Anything else reads as "full".
     //
     // Defaults to $EPOCHSHELL_BAR_STYLE when set, so a style can be tried for one run without
@@ -137,6 +138,17 @@ Singleton {
     // config.toml or settings.toml still wins.
     readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "full"
     property string barStyle: defaultBarStyle
+
+    // The floating bar's distance from the screen's top and sides. Best matched to the
+    // compositor's outer gap between windows and the screen's edge (niri's `gaps`), so the bar's
+    // ends line up with the windows below it.
+    property int barFloatingGap: 4
+    // Where any bar's bottom edge falls -- which is what panels and toasts below the bar are
+    // placed from.
+    readonly property bool barFloating: barStyle === "floating"
+    readonly property int barTopGap: barFloating ? barFloatingGap : 0
+    readonly property int barSideGap: barFloating ? barFloatingGap : 0
+    readonly property int barBottom: barTopGap + barHeight
 
     // An outline while a panel is open. "none": no outline. "panel": round the panel only.
     // "fade": round the panel only, fading in down its sides from nothing at the bar, so the
@@ -158,6 +170,12 @@ Singleton {
     // ...). "dashboard": one status cluster opening quick settings (DashboardPanel). Anything else
     // reads as "individual".
     property string statusStyle: "individual"
+
+    // The workspace strip. "pill": each workspace a ringed pill holding its number and its windows'
+    // icons, the current one ringed in the accent. "bubble": the same, with the number in a small
+    // badge on the pill's edge instead. "plain": the number, with the windows' icons beside it.
+    // Anything else reads as "pill".
+    property string workspaceStyle: "pill"
 
     property int popupPadding: 10
     property int popupRadius: 10
@@ -547,6 +565,7 @@ Singleton {
         panelOutline = "fade";
         panelStyle = "attached";
         statusStyle = "individual";
+        workspaceStyle = "pill";
         popupPadding = 10;
         popupRadius = 10;
         popupLayoutSpacing = 8;
@@ -579,6 +598,7 @@ Singleton {
         tailscalePeersFontSize = 14;
         panelBottomMarginMedium = 15;
         barHeight = 40;
+        barFloatingGap = 4;
         headerSize = 40;
         switchHeight = 42;
         switchWidth = 24;

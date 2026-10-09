@@ -121,6 +121,10 @@ HoverPopupWindow {
         WallpaperRow {
             menu: systemMenuPopup
         }
+
+        AppearanceRow {
+            menu: systemMenuPopup
+        }
     }
 
     ComponentSplitter {}
