@@ -74,12 +74,16 @@ Scope {
     // long after the session moved to niri, and trusting it sent the command to a dead Hyprland.
     // Hyprland's Lua dispatcher is tried before the classic one, since which a given Hyprland speaks
     // depends on its config.
-    function screens(on) {
+    function screens(on, force) {
         // On Hyprland an "on" sent to a lit screen blanks it (see the unlock handling below), so
         // only the first "on" after this shell's own "off" goes out. Waking from an idle suspend
         // has the screen and suspend stages both report activity at once -- measured, two "on"s
         // 20ms apart: lit, black, lit again, and only then the lock screen.
-        if (on && !root.screensOff && root.compositor === "hypr") return;
+        // `force` skips this for the retry after waking: the first "on" can land before Hyprland
+        // has its outputs back and be lost, and the guard then dropped the retry -- measured, the
+        // screen left dark after every idle suspend. hypr_ below asks Hyprland whether any output
+        // is actually off before sending, so a forced "on" to a lit screen sends nothing.
+        if (on && !force && !root.screensOff && root.compositor === "hypr") return;
         // Logged: a screen left dark is otherwise impossible to trace back to who asked.
         console.log("idle: screens " + (on ? "on" : "off") + " (" + (root.compositor || "unknown") + ")");
         root.screensOff = !on;
@@ -96,6 +100,9 @@ Scope {
             }
             hypr_() {
                 if [ "$on" = 1 ]; then lua=enable; classic=on; else lua=disable; classic=off; fi
+                # Nothing to light: every output already on.
+                if [ "$on" = 1 ] && mons=$(hyprctl monitors -j 2>/dev/null) && [ -n "$mons" ] \
+                    && ! printf '%s' "$mons" | grep -q '"dpmsStatus": *false'; then return 0; fi
                 out=$(hyprctl dispatch "hl.dsp.dpms({ action = \"$lua\" })" 2>/dev/null)
                 [ "$out" = ok ] || [ "$(hyprctl dispatch dpms "$classic" 2>/dev/null)" = ok ]
             }
@@ -385,8 +392,8 @@ Scope {
         S.Lock.resumeFingerprint();
         sleepRelease.stop();
         root.delayReleased = false;
-        // On Hyprland, which lights its outputs again by itself, both of these are dropped unless
-        // this shell turned the screens off (see screens()).
+        // On Hyprland this one is dropped unless this shell turned the screens off; the retry
+        // below always goes out, and is a no-op there if the outputs are already lit (see screens()).
         root.screens(true);
         // And again shortly after: PrepareForSleep(false) arrives the moment the kernel is back,
         // which can be before the compositor has its outputs again, and an "on" sent then is lost.
@@ -418,7 +425,7 @@ Scope {
     Timer {
         id: screensAfterWake
         interval: 2000
-        onTriggered: root.screens(true)
+        onTriggered: root.screens(true, true)
     }
 
     Process {
