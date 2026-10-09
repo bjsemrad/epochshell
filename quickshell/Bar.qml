@@ -43,10 +43,33 @@ Scope {
             // ends where the bar does.
             implicitHeight: T.Config.barBottom
 
-            // Clicks on the bar, or in the island style on the island only: the screen showing
-            // either side of it is the desktop's, not the bar's.
-            mask: Region {
-                item: barWindow.island ? islandShape : barArea
+            // Clicks on the bar, or in the islands style on the islands only: the screen showing
+            // between them is the desktop's, not the bar's.
+            mask: barWindow.islands ? islandsMask : barMask
+            Region {
+                id: barMask
+                item: barArea
+            }
+            Region {
+                id: islandsMask
+                Region { item: leftIsland }
+                Region { item: centerIsland }
+                Region { item: rightIsland }
+            }
+
+            // Blur behind the bar while it is see-through (T.Config.barBlur), in its own shape:
+            // the strip with its corners, or each island.
+            BackgroundEffect.blurRegion: !T.Config.barBlur ? null : barWindow.islands ? islandsBlur : barBlur
+            Region {
+                id: barBlur
+                item: barArea
+                radius: barArea.radius
+            }
+            Region {
+                id: islandsBlur
+                Region { item: leftIsland; radius: leftIsland.radius }
+                Region { item: centerIsland; radius: centerIsland.radius }
+                Region { item: rightIsland; radius: rightIsland.radius }
             }
 
             // First child, so it sits behind everything else the bar draws.
@@ -60,53 +83,88 @@ Scope {
                 height: T.Config.barHeight
                 radius: T.Config.barFloating ? T.Config.popupRadius : 0
                 antialiasing: true
-                // In the island style the ground is the island below, and the strip is only the
-                // frame the modules are laid out in.
-                color: barWindow.island ? "transparent" : T.Config.barBackground
+                // In the islands style the ground is the islands, and the strip is only the frame
+                // they are laid out in.
+                color: barWindow.islands ? "transparent" : T.Config.barBackground
             }
 
-            // --- Island ------------------------------------------------------------------------
+            // --- Islands -----------------------------------------------------------------------
             //
-            // In the island style the three groups sit side by side, in one island hanging from the
-            // top of the screen and centred on it. Its width is whatever they need -- so it moves
-            // as the drawer opens, workspaces come and go, or the media title appears -- or, while
-            // a panel too wide for it is open, enough to carry that panel (BarPanels.widthAround).
-            readonly property bool island: T.Config.barStyle === "island"
-            // Between one group and the next, and after the last.
-            readonly property int islandGap: T.Config.barModuleSpacing * 2
-            readonly property real islandNatural: T.Config.barModuleSpacing + leftSide.width + islandGap
-                + centerSide.width + islandGap + rightSide.width + T.Config.barModuleSpacing
-            readonly property real islandWidth: panelTracker.widthAround(islandNatural, T.Config.popupRadius)
-            readonly property real islandX: Math.round((width - islandWidth) / 2)
-            // Where the groups start: centred in the island, which is only wider than them while
-            // it carries a wide panel.
-            readonly property real islandContentX: islandX + Math.round((islandWidth - islandNatural) / 2)
+            // The floating bar in three pieces -- left, centre and right, each as wide as what it
+            // holds -- with the desktop between them. A panel hangs from its own island, kept
+            // within that island's flat bottom edge; one wider than its island widens it to carry
+            // the panel (BarPanels), away from the screen's edge: the left island to the right, the
+            // right island to the left, the centre one both ways.
+            readonly property bool islands: T.Config.barIslands
+            // Between an island's ends and what it holds.
+            readonly property int islandPadding: T.Config.barModuleSpacing
 
-            AttachedSurface {
-                id: islandShape
-                visible: barWindow.island
-                x: barWindow.islandX
-                width: barWindow.islandWidth
+            component Island: Rectangle {
+                // The panels opened from this island.
+                required property var tracker
+                // As wide as what it holds; the drawn width follows a panel as it opens.
+                required property real natural
+                readonly property real targetWidth: tracker.targetWidth(natural, T.Config.popupRadius)
+                visible: barWindow.islands
+                y: T.Config.barTopGap
+                width: tracker.widthAround(natural, T.Config.popupRadius)
                 height: T.Config.barHeight
-                // Square where it meets the top of the screen; only its bottom corners are round.
-                flare: 0
-                // Round its sides and along its bottom while a panel is open; the panel covers
-                // the bottom line where it hangs, and outlines the rest of itself.
-                outlineOpacity: T.Config.panelOutline === "bar" ? panelTracker.openness : 0
+                radius: T.Config.popupRadius
+                antialiasing: true
+                color: T.Config.barBackground
+                // With a panel open and the bar outline asked for, the island is outlined, and the
+                // panel outlines the rest of the shape.
+                border.width: T.Config.panelOutline === "bar" && tracker.openness > 0 ? 1 : 0
+                border.color: Qt.rgba(T.Config.outline.r, T.Config.outline.g, T.Config.outline.b, tracker.openness)
             }
 
-            // The island's body, for panels to anchor to.
-            Item {
-                id: islandBody
-                x: barWindow.islandX
-                width: barWindow.islandWidth
+            // Where a panel anchors to its island: the island at the width it is growing to, so a
+            // panel is placed once, for where the island will be, rather than chasing it.
+            component IslandBody: Item {
+                y: T.Config.barTopGap
                 height: T.Config.barHeight
             }
 
-            // How far open the most-open panel from this bar is: panels attach here on opening
-            // (see HoverPopupWindow), and the outline below fades in with them.
-            BarPanels {
-                id: panelTracker
+            BarPanels { id: leftPanels }
+            BarPanels { id: centerPanels }
+            BarPanels { id: rightPanels }
+            // The full and floating bars' panels.
+            BarPanels { id: panelTracker }
+
+            Island {
+                id: leftIsland
+                tracker: leftPanels
+                natural: leftSide.width + barWindow.islandPadding * 2
+                x: T.Config.barSideGap
+            }
+            IslandBody {
+                id: leftIslandBody
+                x: leftIsland.x
+                width: leftIsland.targetWidth
+            }
+
+            Island {
+                id: centerIsland
+                tracker: centerPanels
+                natural: centerSide.width + barWindow.islandPadding * 2
+                x: Math.round((barWindow.width - width) / 2)
+            }
+            IslandBody {
+                id: centerIslandBody
+                x: Math.round((barWindow.width - width) / 2)
+                width: centerIsland.targetWidth
+            }
+
+            Island {
+                id: rightIsland
+                tracker: rightPanels
+                natural: rightSide.width + barWindow.islandPadding * 2
+                x: barWindow.width - T.Config.barSideGap - width
+            }
+            IslandBody {
+                id: rightIslandBody
+                x: barWindow.width - T.Config.barSideGap - width
+                width: rightIsland.targetWidth
             }
 
             // With a panel open, an outline along the bar's bottom edge. The panel draws the rest
@@ -114,7 +172,7 @@ Scope {
             // shape. The panel covers this line where it hangs, since it overlaps the bar by a
             // pixel.
             Rectangle {
-                visible: !barWindow.island && T.Config.panelOutline === "bar" && opacity > 0
+                visible: !barWindow.islands && T.Config.panelOutline === "bar" && opacity > 0
                 opacity: panelTracker.openness
                 x: barArea.x + barArea.radius
                 y: T.Config.barBottom - 1
@@ -137,14 +195,14 @@ Scope {
                 id: leftSide
                 spacing: T.Config.barModuleSpacing
                 // Found by panels opened from in here; see HoverPopupWindow.
-                readonly property var barPanels: panelTracker
-                readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property var barPanels: barWindow.islands ? leftPanels : panelTracker
+                readonly property Item barIsland: barWindow.islands ? leftIslandBody : null
                 readonly property Item barStrip: barArea
-                // Placed by x rather than anchors, in both styles. An anchor removed at runtime
+                // Placed by x rather than anchors, in every style. An anchor removed at runtime
                 // leaves the item where the anchor put it -- an x binding underneath does not take
-                // over until something it reads changes -- so switching to the island style after
-                // startup, as reading config.toml does, left the groups at the screen's edges.
-                x: (barWindow.island ? barWindow.islandContentX : barArea.x) + T.Config.barModuleSpacing
+                // over until something it reads changes -- so switching style after startup, as
+                // reading config.toml does, left the groups where the first style put them.
+                x: barWindow.islands ? leftIsland.x + barWindow.islandPadding : barArea.x + T.Config.barModuleSpacing
 
                 anchors {
                     top: barArea.top
@@ -165,11 +223,10 @@ Scope {
             // the groups either side.
             Flickable {
                 id: centerSide
-                readonly property var barPanels: panelTracker
-                readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property var barPanels: barWindow.islands ? centerPanels : panelTracker
+                readonly property Item barIsland: barWindow.islands ? centerIslandBody : null
                 readonly property Item barStrip: barArea
-                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
-                    : Math.round((parent.width - width) / 2)
+                x: Math.round((parent.width - width) / 2)
                 width: Math.min(centerContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
                 contentWidth: centerContent.implicitWidth
                 contentHeight: height
@@ -197,10 +254,10 @@ Scope {
                 // after them sits at the same distance as one icon from the next rather than
                 // standing off as a group of its own.
                 spacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
-                readonly property var barPanels: panelTracker
-                readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property var barPanels: barWindow.islands ? rightPanels : panelTracker
+                readonly property Item barIsland: barWindow.islands ? rightIslandBody : null
                 readonly property Item barStrip: barArea
-                x: barWindow.island ? centerSide.x + centerSide.width + barWindow.islandGap
+                x: barWindow.islands ? rightIsland.x + rightIsland.width - width - barWindow.islandPadding
                     : barArea.x + barArea.width - width - T.Config.barModuleSpacing
                 Layout.alignment: Qt.AlignVCenter
 

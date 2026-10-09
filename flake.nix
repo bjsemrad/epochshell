@@ -263,7 +263,7 @@
               );
               default = { };
               example = {
-                barStyle = "island";
+                barStyle = "floating";
                 panelOutline = "panel";
                 barHeight = 40;
               };
@@ -855,7 +855,7 @@ os.replace(tmp, path)
               echo "EpochShell dev shell."
               echo "  nix run .#preview            run this checkout (a second bar; stop"
               echo "                               epochshell.service first)"
-              echo "    EPOCHSHELL_BAR_STYLE=island      ...with the bar as one centred island"
+              echo "    EPOCHSHELL_BAR_STYLE=islands     ...with the bar as three floating islands"
               echo "  qs-lint                      qmllint the config, imports resolved"
               echo "  epochctl doctor              check the running session"
             '';

@@ -102,7 +102,7 @@ RowLayout {
             height: 30
             radius: 15
             antialiasing: true
-            color: T.Config.surfaceContainerHighest
+            color: T.Config.onPanel(T.Config.surfaceContainerHighest)
             anchors.verticalCenter: parent.verticalCenter
             x: volume.visualPosition * (volume.width - width)
             Text {

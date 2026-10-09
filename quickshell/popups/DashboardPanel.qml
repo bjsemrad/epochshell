@@ -398,7 +398,7 @@ HoverPopupWindow {
         antialiasing: true
         opacity: enabled ? 1 : 0.5
         color: active ? T.Config.accentLightShade
-            : tileMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+            : tileMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
         border.width: active ? 1 : 0
         border.color: T.Config.accent
 
@@ -486,7 +486,7 @@ HoverPopupWindow {
         implicitWidth: T.Config.barIconSize + T.Config.popupPadding * 2
         implicitHeight: implicitWidth
         radius: T.Config.cardRadius
-        color: chevMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
+        color: chevMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
         Text {
             anchors.centerIn: parent
@@ -512,7 +512,7 @@ HoverPopupWindow {
         implicitWidth: backRow.implicitWidth + T.Config.popupPadding * 2
         implicitHeight: backRow.implicitHeight + T.Config.popupPadding
         radius: T.Config.cardRadius
-        color: backMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
+        color: backMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
         RowLayout {
             id: backRow
@@ -553,7 +553,7 @@ HoverPopupWindow {
         radius: width / 2
         antialiasing: true
         opacity: enabled ? 1 : 0.4
-        color: accent ? T.Config.accent : rbMouse.containsMouse ? T.Config.surfaceContainerHighest : T.Config.surfaceContainer
+        color: accent ? T.Config.accent : rbMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHighest) : T.Config.onPanel(T.Config.surfaceContainer)
 
         Text {
             anchors.centerIn: parent

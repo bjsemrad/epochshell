@@ -92,7 +92,7 @@ HoverPopupWindow {
                     implicitHeight: 26
                     radius: 13
                     antialiasing: true
-                    color: sourceMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+                    color: sourceMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
                     border.width: selected ? 2 : 0
                     border.color: T.Config.accent
 
@@ -201,7 +201,7 @@ HoverPopupWindow {
                 Layout.alignment: Qt.AlignVCenter
                 radius: T.Config.cardRadius
                 antialiasing: true
-                color: T.Config.surfaceContainer
+                color: T.Config.onPanel(T.Config.surfaceContainer)
                 clip: true
 
                 Image {
@@ -248,7 +248,7 @@ HoverPopupWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     height: 4
                     radius: 2
-                    color: T.Config.surfaceContainerHigh
+                    color: T.Config.onPanel(T.Config.surfaceContainerHigh)
 
                     Rectangle {
                         width: seekRow.length > 0 ? parent.width * seekRow.position / seekRow.length : 0
@@ -362,7 +362,7 @@ HoverPopupWindow {
         opacity: enabled ? 1 : 0.35
         color: tile.filled ? T.Config.accent
             : tile.active ? T.Config.accentLightShade
-            : tileMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+            : tileMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
         border.width: tile.active && !tile.filled ? 1 : 0
         border.color: T.Config.accent
 

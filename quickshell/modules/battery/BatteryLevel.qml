@@ -36,7 +36,7 @@ Rectangle {
             implicitHeight: T.Config.connectedIconSize
             radius: width / 2
             antialiasing: true
-            color: T.Config.surfaceContainerHigh
+            color: T.Config.onPanel(T.Config.surfaceContainerHigh)
 
             Text {
                 anchors.centerIn: parent
@@ -79,7 +79,7 @@ Rectangle {
         anchors.margins: T.Config.popupPadding
         height: 4
         radius: 2
-        color: T.Config.surfaceContainerHigh
+        color: T.Config.onPanel(T.Config.surfaceContainerHigh)
 
         Rectangle {
             width: parent.width * card.level / 100

@@ -40,7 +40,7 @@ Item {
             Layout.preferredHeight: 24
             radius: T.Config.cardRadius
             antialiasing: true
-            color: refreshMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
+            color: refreshMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
             Text {
                 anchors.centerIn: parent

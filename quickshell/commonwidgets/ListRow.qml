@@ -31,7 +31,7 @@ Rectangle {
     implicitHeight: Math.max(T.Config.cardHeight - 8, content.implicitHeight + T.Config.popupPadding)
     radius: T.Config.cardRadius
     antialiasing: true
-    color: row.clickable && mouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
+    color: row.clickable && mouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
     // Below the content, so whatever sits on the right gets its own clicks.
     MouseArea {

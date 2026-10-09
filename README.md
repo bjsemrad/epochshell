@@ -590,30 +590,31 @@ bg_yellow = "#e8c88c"
 
 Derived colors such as `accentLightShade`, `inactive`, `active`, and `activeSelection` update automatically from their source colors unless explicitly overridden.
 
-### Opacity
+### Opacity and blur
 
 ```toml
-barOpacity = 1.0      # how solid the bar is, 0 fully see-through to 1 solid
-popupOpacity = 1.0    # the same for every panel, OSD and overlay
+barOpacity = 0.8      # the bar: 0 fully see-through, 1 solid
+panelOpacity = 0.8    # the panels that grow out of the bar
+popupOpacity = 0.9    # everything that floats free: OSDs, notifications, the launcher
+blur = true           # blur behind the bar and panels while they are see-through
 ```
 
-Both ship solid: translucency is a taste rather than an improvement, so the shell looks the way it
-always has until you ask otherwise.
+The bar and its panels ship frosted: 80%, with the compositor blurring what is behind them, so the
+two read as one sheet of glass. Set all three to `1.0` for a solid shell.
 
-The **Themes panel** carries a slider for each, which is the easy way to ask. Moving one applies it
-live and writes nothing; letting go writes it to `~/.local/state/epochshell/settings.toml`. That
-matters on a home-manager install, where `config.toml` cannot exist -- the settings file is
-writable and wins over both the theme and `config.toml`.
+The **Appearance** window (system menu, or `epochctl settings toggle`) has a slider for each and a
+switch for blur. Moving a slider applies it live; letting go writes it to
+`~/.local/state/epochshell/settings.toml`. That matters on a home-manager install, where
+`config.toml` cannot be written -- the settings file is writable and wins over both the theme and
+`config.toml`.
 
-The percentage counts the same way the key does: **100% is solid**, lower lets the wallpaper
-through. Both apply the theme's `background` at that alpha, so a theme that changes the ground
-changes these with it, and a theme may set either key itself.
+Each applies the theme's `background` at that alpha, so a theme that changes the ground changes
+these with it, and a theme may set any of them itself. Fills drawn on a see-through surface --
+hovers on the bar, tiles and rows in a panel -- become a wash of the text colour rather than a solid
+grey, so the frost carries through them.
 
-`popupOpacity` covers every floating surface: bar panels, the launcher, notification cards, the
-polkit prompt and all four OSDs. Containers drawn *inside* a panel paint no ground of their own,
-so they show the card's rather than stacking a second layer of translucency on it.
-
-Turning the bar down works best with a compositor blur behind it. On Hyprland:
+Blur uses the `ext-background-effect` protocol, which niri (26.04 and later) applies with no
+configuration. On Hyprland, a layer rule blurs the bar:
 
 ```lua
 hl.layer_rule({

@@ -36,7 +36,7 @@ Item {
             Layout.preferredHeight: S.Tailscale.hasIncomingFiles ? Math.min(incomingList.contentHeight + 18, 110) : 34
             radius: T.Config.cardRadius
             antialiasing: true
-            color: T.Config.surfaceContainer
+            color: T.Config.onPanel(T.Config.surfaceContainer)
             border.width: S.Tailscale.hasIncomingFiles ? 1 : 0
             border.color: T.Config.accent
             clip: true
@@ -115,7 +115,7 @@ Item {
                 Layout.preferredHeight: 28
                 radius: T.Config.cardRadius
                 antialiasing: true
-                color: receiveMouse.containsMouse ? T.Config.accentLightShade : T.Config.surfaceContainer
+                color: receiveMouse.containsMouse ? T.Config.accentLightShade : T.Config.onPanel(T.Config.surfaceContainer)
                 border.width: S.Tailscale.hasIncomingFiles ? 1 : 0
                 border.color: T.Config.accent
 

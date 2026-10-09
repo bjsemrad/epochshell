@@ -122,19 +122,19 @@ PanelWindow {
 
                     SegmentedSetting {
                         label: "Style"
-                        current: T.Config.barStyle === "floating" || T.Config.barStyle === "island" ? T.Config.barStyle : "full"
+                        current: T.Config.barStyle === "floating" || T.Config.barStyle === "islands" ? T.Config.barStyle : "full"
                         options: [
                             { value: "full", label: "Full" },
                             { value: "floating", label: "Floating" },
-                            { value: "island", label: "Island" }
+                            { value: "islands", label: "Islands" }
                         ]
                         onPicked: value => root.choose("barStyle", value)
                     }
 
                     SettingSlider {
                         visible: T.Config.barFloating
-                        label: "Gap"
-                        hint: "From the screen's top and sides"
+                        label: "Top gap"
+                        hint: "From the top of the screen"
                         from: 0
                         to: 24
                         stepSize: 1
@@ -142,6 +142,19 @@ PanelWindow {
                         settingValue: T.Config.barFloatingGap
                         onMoved: value => T.Config.barFloatingGap = Math.round(value)
                         onCommitted: value => T.Config.setSetting("barFloatingGap", Math.round(value))
+                    }
+
+                    SettingSlider {
+                        visible: T.Config.barFloating
+                        label: "Side gap"
+                        hint: "Match your window gaps to line up"
+                        from: 0
+                        to: 48
+                        stepSize: 1
+                        formatValue: value => Math.round(value) + " px"
+                        settingValue: T.Config.barFloatingSideGap
+                        onMoved: value => T.Config.barFloatingSideGap = Math.round(value)
+                        onCommitted: value => T.Config.setSetting("barFloatingSideGap", Math.round(value))
                     }
 
                     SettingSlider {
@@ -219,6 +232,39 @@ PanelWindow {
                         settingValue: T.Config.panelOpacity
                         onMoved: value => T.Config.panelOpacity = value
                         onCommitted: value => T.Config.setSetting("panelOpacity", value)
+                    }
+
+                    // Blur only shows while something is see-through, so it says so rather than
+                    // looking broken at 100%.
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: T.Config.layoutMarginSmall
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+
+                            Text {
+                                text: "Blur"
+                                color: T.Config.surfaceText
+                                font.pixelSize: T.Config.fontSizeNormal
+                            }
+
+                            Text {
+                                text: T.Config.barOpacity >= 0.99 && T.Config.panelOpacity >= 0.99
+                                    ? "Shows when the bar or panels are below 100%"
+                                    : "Behind the bar and panels"
+                                color: T.Config.outline
+                                font.pixelSize: T.Config.fontSizeSubtext
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        RoundedSwitch {
+                            checked: T.Config.blur
+                            onToggled: requested => root.choose("blur", requested)
+                        }
                     }
 
                     SettingSlider {

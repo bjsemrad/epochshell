@@ -24,7 +24,7 @@ Item {
             Layout.preferredHeight: 34
             radius: T.Config.cardRadius
             antialiasing: true
-            color: pickerMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+            color: pickerMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
             border.width: 0
             border.color: "transparent"
 

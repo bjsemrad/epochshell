@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Widgets
 import QtQuick
 import QtQuick.Controls
@@ -58,8 +59,8 @@ PopupWindow {
         return null;
     }
 
-    // In the island style, the island's body (see Bar.qml): the panel hangs from it, kept within
-    // its ends so the flares land on it. Null under the full bar.
+    // In the islands style, the body of the island the trigger is on (see Bar.qml): the panel
+    // hangs from it, kept within its ends so the flares land on it. Null under the full bar.
     property Item island: null
     readonly property bool inIsland: attached && island !== null
 
@@ -180,8 +181,8 @@ PopupWindow {
     property real _triggerTop: 0
     // From an island: where the panel's left edge goes, relative to the island. Centred under the
     // trigger, but kept a corner's width inside the island's ends so the flares clear its rounded
-    // corners; a panel wider than the island is centred on it instead, and the island widens to
-    // carry it (BarPanels.widthAround) -- about its centre, so the panel stays centred as it does.
+    // corners. The island's body is already as wide as it will grow to carry this panel
+    // (BarPanels.targetWidth), so there is always room; centring on it is only the fallback.
     property real _islandLeft: 0
     Connections {
         target: popup.anchor
@@ -199,10 +200,15 @@ PopupWindow {
             }
         }
     }
-    readonly property real _barBottomRectY: T.Config.barBottom - _triggerTop - 1 - 1
+    // The pixel the panel overlaps the bar by -- only while the bar is solid. With the bar
+    // see-through, that row is painted twice, by the bar and by the panel, and shows as a dark line
+    // along the join; the two edges meet exactly instead, at the same logical position, which
+    // rounds to the same physical row on both surfaces.
+    readonly property int _overlap: T.Config.barOpacity >= 0.99 ? 1 : 0
+    readonly property real _barBottomRectY: T.Config.barBottom - _triggerTop - 1 - _overlap
 
     // From an island, the anchor is a point on the island's bottom edge, and the panel's left edge
-    // goes there; the island's body starts at the top of the bar, so its bottom edge is the bar's.
+    // goes there; the island's body is the bar's height, so its bottom edge is the bar's.
     //
     // Snapped to the right edge, the anchor is the bar strip's bottom-right corner, and the panel
     // grows leftwards from it.
@@ -223,9 +229,9 @@ PopupWindow {
             : popup.atRightEdge ? popup.barStrip.width - 1 - popup._barInset
             : popup._nudge
         rect.width: popup.inIsland || popup.atRightEdge ? 1 : popup.trigger ? popup.trigger.width : 1
-        // An island's body and the bar strip both start at the top of the bar, so their bottom
-        // edge is the bar's. A floating card from the bar sits `floatingGap` below it.
-        rect.y: popup.inIsland || popup.atRightEdge ? T.Config.barHeight - 2
+        // An island's body and the bar strip are both the bar's height, so their bottom edge is the
+        // bar's. A floating card from the bar sits `floatingGap` below it.
+        rect.y: popup.inIsland || popup.atRightEdge ? T.Config.barHeight - 1 - popup._overlap
             : popup.attached ? popup._barBottomRectY
             : popup.fromBar ? T.Config.barBottom - popup._triggerTop - 1 + popup.floatingGap
             : popup.anchorRectY
@@ -240,6 +246,30 @@ PopupWindow {
     Region {
         id: attachedMask
         item: attachedBody
+    }
+
+    // Blur behind the panel while it is see-through (T.Config.panelBlur), as far as it has grown.
+    // Attached: the card's body, square along the top where it meets the bar -- a rounded region
+    // with a strip over its top corners -- and rounded at the bottom. The flares are left out: a
+    // region cannot follow their inward curve, and a square of blur there would show past it.
+    // Floating: the card, rounded all round.
+    BackgroundEffect.blurRegion: !T.Config.panelBlur ? null : popup.attached ? attachedBlur : floatingBlur
+    Region {
+        id: attachedBlur
+        Region {
+            item: attachedBody
+            radius: T.Config.popupRadius
+        }
+        Region {
+            x: attachedBody.x
+            width: attachedBody.width
+            height: Math.min(attachedBody.height, T.Config.popupRadius)
+        }
+    }
+    Region {
+        id: floatingBlur
+        item: contentSection
+        radius: T.Config.popupRadius
     }
 
     Item {

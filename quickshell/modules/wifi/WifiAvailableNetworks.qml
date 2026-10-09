@@ -30,7 +30,7 @@ ColumnLayout {
         Layout.fillWidth: true
         implicitHeight: headerRow.implicitHeight + T.Config.popupPadding
         radius: T.Config.cardRadius
-        color: headerMouse.containsMouse && !networksSection.expanded ? T.Config.surfaceContainerHigh : "transparent"
+        color: headerMouse.containsMouse && !networksSection.expanded ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
         RowLayout {
             id: headerRow

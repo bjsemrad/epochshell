@@ -44,7 +44,7 @@ ColumnLayout {
         implicitHeight: 32
         radius: T.Config.popupRadius
         antialiasing: true
-        color: T.Config.surfaceContainer
+        color: T.Config.onPanel(T.Config.surfaceContainer)
 
         RowLayout {
             anchors.fill: parent
@@ -64,7 +64,7 @@ ColumnLayout {
                     radius: T.Config.popupRadius - 3
                     antialiasing: true
                     color: segment.selected ? T.Config.accent
-                        : segmentMouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
+                        : segmentMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
                     Text {
                         anchors.centerIn: parent

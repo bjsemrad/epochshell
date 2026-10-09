@@ -82,7 +82,7 @@ Item {
                             Layout.preferredHeight: 38
                             radius: T.Config.cardRadius
                             antialiasing: true
-                            color: deviceMouse.containsMouse && sendable ? T.Config.surfaceContainerHigh : "transparent"
+                            color: deviceMouse.containsMouse && sendable ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
                             RowLayout {
                                 anchors {

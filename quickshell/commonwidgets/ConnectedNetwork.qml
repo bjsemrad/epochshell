@@ -48,7 +48,7 @@ Rectangle {
             implicitHeight: T.Config.connectedIconSize
             radius: width / 2
             antialiasing: true
-            color: T.Config.surfaceContainerHigh
+            color: T.Config.onPanel(T.Config.surfaceContainerHigh)
 
             Text {
                 anchors.centerIn: parent

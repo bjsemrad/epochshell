@@ -46,7 +46,7 @@ Item {
         border.width: 1
         border.color: root.displayChecked ? T.Config.accent : T.Config.surfaceVariant
 
-        color: root.displayChecked ? T.Config.accent : T.Config.surfaceContainer
+        color: root.displayChecked ? T.Config.accent : T.Config.onPanel(T.Config.surfaceContainer)
         Behavior on color {
             ColorAnimation {
                 duration: 160

@@ -86,7 +86,7 @@ Singleton {
     property bool themeFromUserDir: true
     onThemeNameChanged: themeFromUserDir = true
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
-    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons"]
+    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
     readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
@@ -95,7 +95,7 @@ Singleton {
     // Handled the same way and for the same reason: it decides where values come from rather than
     // being one of them.
     readonly property string extendsKey: "extends"
-    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "panelBottomMarginMedium", "barHeight", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
+    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "barFloatingSideGap", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "panelBottomMarginMedium", "barHeight", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
 
     property color accent: blue
     property color accentLightShade: Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10)
@@ -130,32 +130,35 @@ Singleton {
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
 
     // "full": one strip across the top of the screen. "floating": the same strip, held off the
-    // screen's top and sides with its corners rounded. "island": every module in a single island
-    // centred at the top, as wide as what is showing in it. Anything else reads as "full".
+    // screen's top and sides with its corners rounded. "islands": the floating bar in three
+    // pieces -- left, centre and right, each as wide as what it holds. "floating" by default;
+    // anything unrecognised reads as "full".
     //
     // Defaults to $EPOCHSHELL_BAR_STYLE when set, so a style can be tried for one run without
-    // touching a config file: `EPOCHSHELL_BAR_STYLE=island qs -p .../shell.qml`. A `barStyle` in
+    // touching a config file: `EPOCHSHELL_BAR_STYLE=islands qs -p .../shell.qml`. A `barStyle` in
     // config.toml or settings.toml still wins.
-    readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "full"
+    readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "floating"
     property string barStyle: defaultBarStyle
 
-    // The floating bar's distance from the screen's top and sides. Best matched to the
-    // compositor's outer gap between windows and the screen's edge (niri's `gaps`), so the bar's
-    // ends line up with the windows below it.
+    // The floating bar's distance from the screen's top, and from its sides. The side gap is best
+    // matched to the compositor's outer gap between windows and the screen's edge (niri's `gaps`),
+    // so the bar's ends line up with the windows below it.
     property int barFloatingGap: 4
+    property int barFloatingSideGap: 16
     // Where any bar's bottom edge falls -- which is what panels and toasts below the bar are
     // placed from.
-    readonly property bool barFloating: barStyle === "floating"
+    readonly property bool barIslands: barStyle === "islands"
+    readonly property bool barFloating: barStyle === "floating" || barIslands
     readonly property int barTopGap: barFloating ? barFloatingGap : 0
-    readonly property int barSideGap: barFloating ? barFloatingGap : 0
+    readonly property int barSideGap: barFloating ? barFloatingSideGap : 0
     readonly property int barBottom: barTopGap + barHeight
 
     // An outline while a panel is open. "none": no outline. "panel": round the panel only.
     // "fade": round the panel only, fading in down its sides from nothing at the bar, so the
     // join stays seamless and only the edges that get lost against what is behind are drawn.
     // "bar": round the bar and the panel together, as one shape -- along the bar's bottom edge
-    // under the full bar, round the island in the island style. Anything else reads as "none".
-    // "fade" by default.
+    // under the full bar, round the island the panel hangs from in the islands style. Anything
+    // else reads as "none". "fade" by default.
     property string panelOutline: "fade"
 
     // How the bar's panels are drawn. "attached": growing out of the bar in its colour, its edge
@@ -254,6 +257,13 @@ Singleton {
 
     property bool hideInactiveWorkspaces: true
     property bool workspaceIcons: true
+
+    // Blur what shows through the bar and its panels, where the compositor offers it
+    // (ext-background-effect: niri does). Only while they are see-through -- a solid surface has
+    // nothing behind it to blur -- so with every opacity at 100% it does nothing at all.
+    property bool blur: true
+    readonly property bool barBlur: blur && barOpacity < 0.99
+    readonly property bool panelBlur: blur && panelOpacity < 0.99
     property real workspaceStripMaxWidthRatio: 0.45
 
     // How much of the wallpaper shows through the bar and the panels, 0 transparent to 1 solid.
@@ -274,9 +284,12 @@ Singleton {
     // Three grounds: the bar; the panels that grow out of it (HoverPopupWindow, attached); and
     // everything that floats free -- OSDs, notifications, the launcher. Panels are their own so
     // the bar can stay solid while they let a little through, or the reverse.
-    property real barOpacity: 1.0
-    property real panelOpacity: 1.0
-    property real popupOpacity: 1.0
+    //
+    // Frosted by default: the bar and its panels at 80% with blur behind them, so they read as one
+    // sheet of glass; the floating surfaces nearer solid, having no blur of their own yet.
+    property real barOpacity: 0.8
+    property real panelOpacity: 0.8
+    property real popupOpacity: 0.9
 
     // The ground with its opacity applied, which is what actually gets painted. Bindings rather
     // than values written by updateDerived(): they depend on `background`, which a theme may set,
@@ -285,12 +298,29 @@ Singleton {
     readonly property color panelBackground: Qt.rgba(background.r, background.g, background.b, panelOpacity)
     readonly property color popupBackground: Qt.rgba(background.r, background.g, background.b, popupOpacity)
 
-    // A fill drawn on the bar -- an icon's hover or open pill -- at the bar's own opacity, so a
-    // see-through bar does not carry solid buttons. Never under 25%: below that a hover stops
-    // showing at all, and the pointer is left with no sign of what it is over.
-    readonly property real barFillOpacity: Math.max(0.25, barOpacity)
+    // A fill drawn on something see-through -- an icon's hover on the bar, a tile in a panel. While
+    // the surface is solid it is the colour as given. While it is see-through it is instead a wash
+    // of the text colour, strong enough that over the surface's own ground it comes out as that
+    // same colour: a solid fill on a frosted surface reads as a sticker stuck on top, where a wash
+    // lets the frost carry on through it -- and still shows at any opacity, where a fill faded with
+    // its surface disappears.
+    function tint(c) {
+        const w = surfaceText;
+        const b = background;
+        const span = (w.r - b.r) + (w.g - b.g) + (w.b - b.b);
+        const strength = span === 0 ? 0.1
+            : Math.max(0, Math.min(1, ((c.r - b.r) + (c.g - b.g) + (c.b - b.b)) / span));
+        return Qt.rgba(w.r, w.g, w.b, strength * c.a);
+    }
+
+    // On the bar: an icon's hover or open pill.
     function onBar(c) {
-        return Qt.rgba(c.r, c.g, c.b, c.a * barFillOpacity);
+        return barOpacity >= 0.99 ? c : tint(c);
+    }
+
+    // In a panel: a tile, a row's hover, a disc.
+    function onPanel(c) {
+        return panelOpacity >= 0.99 ? c : tint(c);
     }
 
     // config.toml says which theme to use and overrides anything it wants on top of it. Both
@@ -599,6 +629,7 @@ Singleton {
         panelBottomMarginMedium = 15;
         barHeight = 40;
         barFloatingGap = 4;
+        barFloatingSideGap = 16;
         headerSize = 40;
         switchHeight = 42;
         switchWidth = 24;
@@ -616,10 +647,11 @@ Singleton {
         volumeSliderSpacing = 10;
         hideInactiveWorkspaces = true;
         workspaceIcons = true;
+        blur = true;
         workspaceStripMaxWidthRatio = 0.45;
-        barOpacity = 1.0;
-        panelOpacity = 1.0;
-        popupOpacity = 1.0;
+        barOpacity = 0.8;
+        panelOpacity = 0.8;
+        popupOpacity = 0.9;
 
         updateDerived({});
     }

@@ -20,7 +20,7 @@ Rectangle {
     antialiasing: true
     opacity: enabled ? 1 : 0.4
     color: button.accent ? T.Config.accent
-        : mouse.containsMouse ? T.Config.surfaceContainerHigh : "transparent"
+        : mouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
 
     Text {
         anchors.centerIn: parent

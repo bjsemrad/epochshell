@@ -20,7 +20,7 @@ Rectangle {
     antialiasing: true
     opacity: enabled ? 1 : 0.4
     color: button.active ? T.Config.accentLightShade
-        : mouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+        : mouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
     border.width: button.active ? 1 : 0
     border.color: T.Config.accent
 

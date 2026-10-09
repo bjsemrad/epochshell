@@ -40,7 +40,7 @@ Item {
             Layout.preferredHeight: S.LocalSend.hasIncomingFiles ? Math.min(incomingList.contentHeight + 18, 150) : 34
             radius: T.Config.cardRadius
             antialiasing: true
-            color: T.Config.surfaceContainer
+            color: T.Config.onPanel(T.Config.surfaceContainer)
             border.width: S.LocalSend.hasIncomingFiles ? 1 : 0
             border.color: T.Config.accent
             clip: true
@@ -150,7 +150,7 @@ Item {
                                         Layout.preferredHeight: 26
                                         radius: T.Config.cardRadius
                                         antialiasing: true
-                                        color: acceptMouse.containsMouse ? T.Config.accentLightShade : T.Config.surfaceContainer
+                                        color: acceptMouse.containsMouse ? T.Config.accentLightShade : T.Config.onPanel(T.Config.surfaceContainer)
                                         border.width: 1
                                         border.color: T.Config.accent
 
@@ -175,7 +175,7 @@ Item {
                                         Layout.preferredHeight: 26
                                         radius: T.Config.cardRadius
                                         antialiasing: true
-                                        color: declineMouse.containsMouse ? T.Config.surfaceContainerHigh : T.Config.surfaceContainer
+                                        color: declineMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
 
                                         Text {
                                             anchors.centerIn: parent

@@ -53,7 +53,7 @@ Rectangle {
     antialiasing: true
     clip: true
     color: root.embedded
-        ? (root.hovered ? T.Config.surfaceContainerHigh : "transparent")
+        ? (root.hovered ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent")
         : (root.hovered ? T.Config.surfaceContainerHigh : T.Config.popupBackground)
     border.width: root.critical || !root.embedded ? 1 : 0
     border.color: root.critical ? T.Config.red : T.Config.surfaceVariant
@@ -104,7 +104,7 @@ Rectangle {
                 visible: !iconImage.visible
                 radius: width / 2
                 antialiasing: true
-                color: T.Config.surfaceContainerHigh
+                color: T.Config.onPanel(T.Config.surfaceContainerHigh)
 
                 Text {
                     anchors.centerIn: parent

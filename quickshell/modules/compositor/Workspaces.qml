@@ -155,10 +155,12 @@ Rectangle {
                         anchors.bottom: parent.bottom
                         width: bubble.pillWidth
                         height: bubble.diameter
-                        radius: height / 2
+                        // In the pill style, the rounded rectangle every selection and row in the
+                        // shell is drawn with, rather than a capsule; the bubble style stays round.
+                        radius: bubble.numberInside ? Math.min(height / 2, T.Config.cardRadius) : height / 2
                         antialiasing: true
                         color: bubbleMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainerHigh) : "transparent"
-                        border.width: workspaceWrapper.active || workspaceWrapper.urgent ? 2 : 1
+                        border.width: 1
                         border.color: bubble.ring
                         opacity: workspaceWrapper.occupied || workspaceWrapper.active ? 1 : 0.6
 
