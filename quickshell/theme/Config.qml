@@ -131,13 +131,13 @@ Singleton {
 
     // "full": one strip across the top of the screen. "floating": the same strip, held off the
     // screen's top and sides with its corners rounded. "islands": the floating bar in three
-    // pieces -- left, centre and right, each as wide as what it holds. "floating" by default;
-    // anything unrecognised reads as "full".
+    // pieces -- left, centre and right, each as wide as what it holds. Anything else, and the
+    // default, is "full".
     //
     // Defaults to $EPOCHSHELL_BAR_STYLE when set, so a style can be tried for one run without
     // touching a config file: `EPOCHSHELL_BAR_STYLE=islands qs -p .../shell.qml`. A `barStyle` in
     // config.toml or settings.toml still wins.
-    readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "floating"
+    readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "full"
     property string barStyle: defaultBarStyle
 
     // The floating bar's distance from the screen's top, and from its sides. The side gap is best
@@ -285,11 +285,11 @@ Singleton {
     // everything that floats free -- OSDs, notifications, the launcher. Panels are their own so
     // the bar can stay solid while they let a little through, or the reverse.
     //
-    // Frosted by default: the bar and its panels at 80% with blur behind them, so they read as one
-    // sheet of glass; the floating surfaces nearer solid, having no blur of their own yet.
-    property real barOpacity: 0.8
-    property real panelOpacity: 0.8
-    property real popupOpacity: 0.9
+    // Solid by default. Turned down, the bar and its panels are best kept at the same value -- they
+    // read as one sheet of glass -- with blur behind them (`blur`).
+    property real barOpacity: 1.0
+    property real panelOpacity: 1.0
+    property real popupOpacity: 1.0
 
     // The ground with its opacity applied, which is what actually gets painted. Bindings rather
     // than values written by updateDerived(): they depend on `background`, which a theme may set,
@@ -649,9 +649,9 @@ Singleton {
         workspaceIcons = true;
         blur = true;
         workspaceStripMaxWidthRatio = 0.45;
-        barOpacity = 0.8;
-        panelOpacity = 0.8;
-        popupOpacity = 0.9;
+        barOpacity = 1.0;
+        panelOpacity = 1.0;
+        popupOpacity = 1.0;
 
         updateDerived({});
     }

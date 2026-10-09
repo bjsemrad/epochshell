@@ -593,14 +593,14 @@ Derived colors such as `accentLightShade`, `inactive`, `active`, and `activeSele
 ### Opacity and blur
 
 ```toml
-barOpacity = 0.8      # the bar: 0 fully see-through, 1 solid
-panelOpacity = 0.8    # the panels that grow out of the bar
-popupOpacity = 0.9    # everything that floats free: OSDs, notifications, the launcher
+barOpacity = 1.0      # the bar: 0 fully see-through, 1 solid
+panelOpacity = 1.0    # the panels that grow out of the bar
+popupOpacity = 1.0    # everything that floats free: OSDs, notifications, the launcher
 blur = true           # blur behind the bar and panels while they are see-through
 ```
 
-The bar and its panels ship frosted: 80%, with the compositor blurring what is behind them, so the
-two read as one sheet of glass. Set all three to `1.0` for a solid shell.
+Everything ships solid. For a frosted look, turn the bar and panels down together -- 80% works
+well -- so the two read as one sheet of glass, with the compositor blurring what is behind them.
 
 The **Appearance** window (system menu, or `epochctl settings toggle`) has a slider for each and a
 switch for blur. Moving a slider applies it live; letting go writes it to
