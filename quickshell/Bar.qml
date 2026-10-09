@@ -122,10 +122,10 @@ Scope {
                 enabled: S.StayAwake.enabled
             }
 
-            // Left: the launcher and what is playing.
-            RowLayout {
+            // Left: the launcher and the workspaces. A strip of many workspaces is capped at a share
+            // of the bar and scrolls rather than pushing into the groups beside it.
+            Flickable {
                 id: leftSide
-                spacing: T.Config.barModuleSpacing
                 // Found by panels opened from in here; see HoverPopupWindow.
                 readonly property var barPanels: panelTracker
                 readonly property Item barIsland: barWindow.island ? islandBody : null
@@ -135,33 +135,8 @@ Scope {
                 // over until something it reads changes -- so switching to the island style after
                 // startup, as reading config.toml does, left the groups at the screen's edges.
                 x: (barWindow.island ? barWindow.islandContentX : 0) + T.Config.barModuleSpacing
-
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                }
-
-                children: [
-                    ApplicationLauncher {},
-                    MediaIndicator {
-                        id: mediaIndicator
-                        popup: mediaPanel
-                    }
-                ]
-            }
-
-            // Centre: the workspaces, the thing glanced at most, where the eye lands. A strip of
-            // many workspaces is capped at a share of the bar and scrolls rather than pushing into
-            // the groups either side.
-            Flickable {
-                id: centerSide
-                readonly property var barPanels: panelTracker
-                readonly property Item barIsland: barWindow.island ? islandBody : null
-                readonly property Item barStrip: barArea
-                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
-                    : Math.round((parent.width - width) / 2)
-                width: Math.min(centerContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
-                contentWidth: centerContent.implicitWidth
+                width: Math.min(leftContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
+                contentWidth: leftContent.implicitWidth
                 contentHeight: height
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
@@ -173,12 +148,37 @@ Scope {
                 }
 
                 RowLayout {
-                    id: centerContent
+                    id: leftContent
                     height: parent.height
                     spacing: T.Config.barModuleSpacing
 
+                    ApplicationLauncher {}
                     Workspaces {}
                 }
+            }
+
+            // Centre: what is playing, when anything is. As wide as the media title needs, centred
+            // on the bar -- or placed after the left group in the island.
+            RowLayout {
+                id: centerSide
+                spacing: T.Config.barModuleSpacing
+                readonly property var barPanels: panelTracker
+                readonly property Item barIsland: barWindow.island ? islandBody : null
+                readonly property Item barStrip: barArea
+                x: barWindow.island ? leftSide.x + leftSide.width + barWindow.islandGap
+                    : Math.round((parent.width - width) / 2)
+
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                }
+
+                children: [
+                    MediaIndicator {
+                        id: mediaIndicator
+                        popup: mediaPanel
+                    }
+                ]
             }
 
             RowLayout {
