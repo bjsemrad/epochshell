@@ -158,6 +158,18 @@ HoverPopupWindow {
                 S.Capture.setIncludeCursor(checked);
             }
         }
+
+        // Annotate first: the shot opens in satty, and Enter there copies and saves it as the
+        // switches above say.
+        ToggleRow {
+            visible: S.Capture.annotateAvailable
+            label: "Annotate"
+            hint: "Open in satty before keeping it"
+            checkedValue: S.Capture.annotate
+            function handleToggled(checked) {
+                S.Capture.setAnnotate(checked);
+            }
+        }
     }
 
     ComponentSplitter {}

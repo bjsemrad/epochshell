@@ -29,6 +29,8 @@ Singleton {
     property string ocrLanguage: ""
     // Recording needs wf-recorder, installed separately again.
     property bool recordAvailable: false
+    // satty is installed, so a shot can be opened to annotate before it is kept.
+    property bool annotateAvailable: false
     property string recordingDirectory: ""
 
     // The recording in progress, as the backend reports it. `recordingSeconds` is counted here
@@ -43,6 +45,9 @@ Singleton {
     property bool copyToClipboard: true
     property bool saveToDisk: true
     property bool includeCursor: false
+    // Open each shot in satty first; copying and saving then happen from the editor, as the two
+    // switches above say. Off by default: most shots are kept as taken.
+    property bool annotate: false
 
     property bool busy: false
     property string status: ""
@@ -97,6 +102,7 @@ Singleton {
             cursor: root.includeCursor,
             copy: root.copyToClipboard,
             save: root.saveToDisk,
+            annotate: root.annotate && root.annotateAvailable,
             delay: interactive ? 0 : root.settleDelay
         }, { kind: "screenshot", mode: String(mode) });
     }
@@ -162,6 +168,10 @@ Singleton {
         includeCursor = value === true;
     }
 
+    function setAnnotate(value) {
+        annotate = value === true;
+    }
+
     function applyStatus(ok, data, error) {
         if (!ok) {
             available = false;
@@ -173,6 +183,7 @@ Singleton {
         ocrAvailable = data.ocr === true;
         ocrLanguage = String(data.ocr_language || "");
         recordAvailable = data.record === true;
+        annotateAvailable = data.annotate === true;
         recordingDirectory = String(data.recording_directory || "");
         // capture.status answers even when the group cannot run, which is exactly when the tool
         // list matters: a missing required tool is what makes capture unavailable.
@@ -195,6 +206,11 @@ Singleton {
             return;
         }
         lastPath = String(data.path || "");
+        // In the editor: nothing is copied or saved yet -- that happens from satty.
+        if (data.annotating === true) {
+            status = "Opened in the editor";
+            return;
+        }
         const where = data.saved === true ? ("Saved " + root.fileName(lastPath)) : "Copied to the clipboard";
         const also = data.saved === true && data.copied === true ? ", copied" : "";
         status = where + also;

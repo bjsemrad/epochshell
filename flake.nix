@@ -533,8 +533,10 @@
                       slurp
                       wf-recorder
                       libnotify
-                      # Night mode: holds a wlr-gamma-control object while it runs. hyprsunset
-                      # works on niri too, which implements the same protocol.
+                      # Annotating a screenshot before it is copied or saved (capture's annotate).
+                      satty
+                      # Night mode. hyprsunset under Hyprland, whose own protocol it speaks;
+                      # gammastep everywhere else -- niri, sway -- through wlr-gamma-control.
                       hyprsunset
                       gammastep
                     ];
