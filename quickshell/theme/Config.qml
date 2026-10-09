@@ -144,7 +144,7 @@ Singleton {
     // matched to the compositor's outer gap between windows and the screen's edge (niri's `gaps`),
     // so the bar's ends line up with the windows below it.
     property int barFloatingGap: 4
-    property int barFloatingSideGap: 16
+    property int barFloatingSideGap: 10
     // Where any bar's bottom edge falls -- which is what panels and toasts below the bar are
     // placed from.
     readonly property bool barIslands: barStyle === "islands"
@@ -629,7 +629,7 @@ Singleton {
         panelBottomMarginMedium = 15;
         barHeight = 40;
         barFloatingGap = 4;
-        barFloatingSideGap = 16;
+        barFloatingSideGap = 10;
         headerSize = 40;
         switchHeight = 42;
         switchWidth = 24;
