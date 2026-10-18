@@ -6,10 +6,10 @@ import Quickshell.Io
 
 // Normalized compositor state, streamed from EpochOxide.
 //
-// Nothing here knows what compositor is running. EpochOxide watches Hyprland's event socket or
-// niri's event stream, maps what it finds onto one shape, and pushes a whole snapshot whenever it
-// changes; this service holds the subscription and republishes it to the bar. Raw compositor
-// payloads and dispatch strings deliberately do not appear in QML.
+// Nothing here knows what compositor is running. EpochOxide watches Hyprland's event socket,
+// niri's event stream or mango's IPC socket, maps what it finds onto one shape, and pushes a
+// whole snapshot whenever it changes; this service holds the subscription and republishes it to
+// the bar. Raw compositor payloads and dispatch strings deliberately do not appear in QML.
 //
 // While EpochOxide is unreachable the state stays empty rather than falling back to a
 // compositor-specific path, and the subscription reconnects on its own once it is back.
@@ -18,7 +18,7 @@ Singleton {
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
-    // Which backend answered, e.g. "hypr" or "niri". Empty until the first snapshot lands.
+    // Which backend answered, e.g. "hypr", "niri" or "mango". Empty until the first snapshot lands.
     property string backend: ""
     property var windows: []
     property var workspaces: []
@@ -27,6 +27,7 @@ Singleton {
 
     readonly property bool isHyprland: backend === "hypr"
     readonly property bool isNiri: backend === "niri"
+    readonly property bool isMango: backend === "mango"
     readonly property string activeWindowClass: activeWindow ? String(activeWindow.app_id || "") : ""
     readonly property bool connected: subscription.item !== null && subscription.item.connected
     property string backendError: ""
