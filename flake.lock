@@ -27,11 +27,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792355134,
-        "narHash": "sha256-Ef9F/W3JjXhPuxQcD1BaPWqZDDWORJUqv8ZFa1jsGjQ=",
+        "lastModified": 1792357156,
+        "narHash": "sha256-eJo6NlvehOG1lU+S3stvuMerKwuEjniu8Fh7lr1z2/w=",
         "owner": "bjsemrad",
         "repo": "epochoxide",
-        "rev": "c13a5416275c6eaf8b6a80cd26e7f7ed0510a8d5",
+        "rev": "11ad7908f71ebdff1ea8939f57130a9b649bf27d",
         "type": "github"
       },
       "original": {
