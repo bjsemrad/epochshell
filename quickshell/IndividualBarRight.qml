@@ -32,21 +32,13 @@ RowLayout {
         property bool expanded: false
         property bool menuOpen: false
         property bool hovered: hoverHandler.hovered
-        readonly property bool servicePopupOpen: (homeAssistantPanel.open && homeAssistantPanel.visible) || (localSendPanel.open && localSendPanel.visible) || (tailscaleNetworkPanel.open && tailscaleNetworkPanel.visible) || (capturePanel.open && capturePanel.visible) || (recordPanel.open && recordPanel.visible) || (nixPanel.open && nixPanel.visible) || (firmwarePanel.open && firmwarePanel.visible)
+        readonly property bool servicePopupOpen: (homeAssistantPanel.open && homeAssistantPanel.visible) || (capturePanel.open && capturePanel.visible) || (recordPanel.open && recordPanel.visible) || (alertItems.item !== null && alertItems.item.panelOpen)
 
         readonly property int drawerSpacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
-        readonly property bool wantsExpanded: hovered || menuOpen || servicePopupOpen
-        readonly property bool showLocalSendAlert: S.LocalSend.hasIncomingFiles || (expanded && S.LocalSend.connected)
-        // Updates waiting are worth seeing with the drawer shut; a system that is up to date is
-        // only worth a look when the drawer is open anyway.
-        // Stay awake is an alert and nothing else: it says the machine is being held awake, which
-        // has consequences you cannot see -- a laptop that never sleeps in a bag -- and is not
-        // worth an icon saying it is not happening. Night mode has no alert: a warm screen is its
-        // own indicator. Neither joins the drawer on expand; the system menu is where you go to
-        // turn them on.
-        readonly property bool showIdleAlert: S.StayAwake.enabled
-        readonly property bool showNixAlert: S.NixUpdates.hasUpdates || (expanded && S.NixUpdates.available)
-        readonly property bool showTailscaleAlert: S.Tailscale.hasIncomingFiles || (expanded && S.Tailscale.available)
+        // Compact (T.Config.barCompact), no drawer at all: the alerts are a dot on the capsule and
+        // a list in its menu instead (compactStatus), and the tools and tray are left out.
+        readonly property bool compact: T.Config.barCompact
+        readonly property bool wantsExpanded: !compact && (hovered || menuOpen || servicePopupOpen)
         // The drawer's width is measured from what is actually in it rather than counted.
         //
         // Counting items and multiplying by an icon width only holds while every item is an icon:
@@ -58,11 +50,11 @@ RowLayout {
         // Alerts are always on show, so their width belongs to the collapsed drawer. That width is
         // animated because the set changes on expand -- Tailscale and LocalSend show themselves
         // when the drawer opens even with nothing waiting -- and a jump there reads as a glitch.
-        property int alertExtent: alertItems.implicitWidth > 0 ? alertItems.implicitWidth + drawerSpacing : 0
+        property int alertExtent: alertItems.item && alertItems.item.implicitWidth > 0 ? alertItems.item.implicitWidth + drawerSpacing : 0
         readonly property int toolsExtent: drawerItems.implicitWidth > 0 ? drawerItems.implicitWidth + drawerSpacing : 0
         property real revealProgress: expanded ? 1 : 0
 
-        implicitWidth: chevron.implicitWidth + alertExtent + toolsExtent * revealProgress
+        implicitWidth: (compact ? 0 : chevron.implicitWidth) + alertExtent + toolsExtent * revealProgress
 
         Behavior on alertExtent {
             NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
@@ -103,9 +95,10 @@ RowLayout {
         RowLayout {
             id: drawerItems
             anchors.right: alertItems.left
-            anchors.rightMargin: alertItems.width > 0 ? drawer.drawerSpacing : 0
+            anchors.rightMargin: drawer.alertExtent > 0 ? drawer.drawerSpacing : 0
             anchors.verticalCenter: parent.verticalCenter
             spacing: drawer.drawerSpacing
+            visible: !drawer.compact
 
             Repeater {
                 model: S.SystemTray.trayItems
@@ -221,43 +214,22 @@ RowLayout {
             }
         }
 
-        RowLayout {
+        Loader {
             id: alertItems
             anchors.right: chevron.left
             anchors.verticalCenter: parent.verticalCenter
-            spacing: drawer.drawerSpacing
-
-            NixTrigger {
-                id: nixUpdates
-                Layout.alignment: Qt.AlignVCenter
-                visible: S.NixUpdates.connected && drawer.showNixAlert
-                popup: nixPanel
-            }
-            FirmwareTrigger {
-                id: firmwareUpdates
-                Layout.alignment: Qt.AlignVCenter
-                popup: firmwarePanel
-            }
-            IdleInhibitorToggle {
-                Layout.alignment: Qt.AlignVCenter
-                visible: S.StayAwake.connected && drawer.showIdleAlert
-            }
-            LocalSendNetwork {
-                id: localSend
-                Layout.alignment: Qt.AlignVCenter
-                visible: drawer.showLocalSendAlert
-                popup: localSendPanel
-            }
-            TailscaleNetwork {
-                id: tailNet
-                Layout.alignment: Qt.AlignVCenter
-                visible: drawer.showTailscaleAlert
-                popup: tailscaleNetworkPanel
+            active: !drawer.compact
+            sourceComponent: Component {
+                BarAlerts {
+                    spacing: drawer.drawerSpacing
+                    expanded: drawer.expanded
+                }
             }
         }
 
         Rectangle {
             id: chevron
+            visible: !drawer.compact
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             color: chevronMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
@@ -306,8 +278,9 @@ RowLayout {
 
     // Connection, sound, battery and the session, in one of two styles (T.Config.statusStyle):
     //
-    //   dashboard   one status cluster -- one pill, one click -- opening DashboardPanel, which
-    //               holds everything below on pages of its own, and the power actions
+    //   dashboard   the status capsule (compactStatus, below) -- network, battery, the time and
+    //               an attention dot -- opening DashboardPanel, which holds everything else on
+    //               pages of its own; the drawer, alert icons, bell and clock go (T.Config.barCompact)
     //   individual  an icon each, each opening its own panel, and a power icon for the system menu
     //
     // Only the chosen one exists. Both answer to the same panel names ("wifi", "audio", "system",
@@ -318,102 +291,121 @@ RowLayout {
     // leaves it out; while on, it is sized by what it holds.
     Loader {
         Layout.alignment: Qt.AlignVCenter
-        active: T.Config.statusStyle === "dashboard"
-        visible: active
-        Layout.preferredWidth: item ? item.implicitWidth : 0
-        Layout.preferredHeight: item ? item.implicitHeight : 0
-        sourceComponent: dashboardStatus
-    }
-
-    Loader {
-        Layout.alignment: Qt.AlignVCenter
-        active: T.Config.statusStyle !== "dashboard"
+        active: !T.Config.barCompact
         visible: active
         Layout.preferredWidth: item ? item.implicitWidth : 0
         Layout.preferredHeight: item ? item.implicitHeight : 0
         sourceComponent: individualStatus
     }
 
+    // The compact bar's (T.Config.barCompact) whole right end: the network and battery at a glance,
+    // the time, and a dot on its corner when something wants attention. One click opens quick
+    // settings, which holds everything else -- the alerts, the tools and the tray included.
+    Loader {
+        id: compactLoader
+        Layout.alignment: Qt.AlignVCenter
+        active: T.Config.barCompact
+        visible: active
+        Layout.preferredWidth: item ? item.implicitWidth : 0
+        Layout.preferredHeight: item ? item.implicitHeight : 0
+        sourceComponent: compactStatus
+    }
+
     BarFill {}
 
     Component {
-        id: dashboardStatus
+        id: compactStatus
 
-        // The bell, in front of the cluster: notifications are not part of quick settings, and
-        // keep their own panel.
-        RowLayout {
-            spacing: 0
+        Rectangle {
+            id: capsule
+            implicitWidth: capsuleRow.implicitWidth + T.Config.barModuleHorizontalPadding
+            implicitHeight: T.Config.barIconSize + T.Config.barModuleVerticalPadding
+            radius: T.Config.popupRadius
+            antialiasing: true
+            color: compactDashboard.open || capsuleMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
 
-            NotificationIndicator {
-                id: clusterNotificationIndicator
-                popup: clusterNotificationPanel
+            SystemClock {
+                id: capsuleClock
+                precision: SystemClock.Minutes
             }
-            NotificationPanel {
-                id: clusterNotificationPanel
-                trigger: clusterNotificationIndicator
+
+            RowLayout {
+                id: capsuleRow
+                anchors.centerIn: parent
+                spacing: T.Config.barIconTextSpacing + 2
+
+                // The status glyphs say this is the system menu and not only a clock -- and are
+                // worth a glance on their own. Dimmed a little, so the time leads.
+                Text {
+                    text: S.Network.currentNetworkIcon
+                    visible: text.length > 0
+                    color: T.Config.inactive
+                    font.pixelSize: T.Config.barIconSize - 2
+                    font.family: T.Config.fontFamily
+                    Layout.alignment: Qt.AlignVCenter
+                }
+                Text {
+                    text: S.BatteryService.batteryIcon()
+                    visible: S.BatteryService.hasBattery
+                    color: T.Config.inactive
+                    font.pixelSize: T.Config.barIconSize - 2
+                    font.family: T.Config.fontFamily
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                Text {
+                    // Unpadded, as the full bar's clock and the lock screen have it.
+                    text: Qt.formatDateTime(capsuleClock.date, "h:mm AP")
+                    color: T.Config.surfaceText
+                    font.pixelSize: T.Config.barClockSize
+                    font.family: T.Config.fontFamily
+                    font.weight: Font.Medium
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
             }
 
-            // The icons inside are the same modules as the individual style's, made inert: no pill,
-            // no click. The cluster draws one pill round all of them and takes the click itself.
+            // Something wants attention: updates, the machine held awake, files coming in, unread
+            // notifications. A badge on the capsule's corner, as on an app icon; which, and the way
+            // to each, are in the menu.
             Rectangle {
-                id: statusCluster
-                implicitWidth: clusterRow.implicitWidth
-                implicitHeight: clusterRow.implicitHeight
-                radius: T.Config.popupRadius
+                visible: compactDashboard.needsAttention
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.rightMargin: 2
+                anchors.topMargin: 2
+                width: 7
+                height: 7
+                radius: 3.5
                 antialiasing: true
-                color: dashboardPanel.open || clusterMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
+                color: T.Config.accent
+            }
 
-                RowLayout {
-                    id: clusterRow
-                    spacing: 0
-
-                    WifiNetwork {
-                        mouseEnabled: false
-                        color: "transparent"
-                        popup: dashboardPanel
-                    }
-                    EthernetNetwork {
-                        mouseEnabled: false
-                        color: "transparent"
-                        popup: dashboardPanel
-                    }
-                    Bluetooth {
-                        mouseEnabled: false
-                        color: "transparent"
-                        popup: dashboardPanel
-                    }
-                    Volume {
-                        mouseEnabled: false
-                        color: "transparent"
-                        popup: dashboardPanel
-                    }
-                    Battery {
-                        mouseEnabled: false
-                        color: "transparent"
-                        popup: dashboardPanel
+            MouseArea {
+                id: capsuleMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (compactDashboard.open) {
+                        compactDashboard.hidePanel();
+                    } else {
+                        S.PopupManager.closeOthers(compactDashboard);
+                        compactDashboard.page = "main";
+                        compactDashboard.showPanel();
                     }
                 }
+            }
 
-                MouseArea {
-                    id: clusterMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (dashboardPanel.open) {
-                            dashboardPanel.hidePanel();
-                        } else {
-                            S.PopupManager.closeOthers(dashboardPanel);
-                            dashboardPanel.page = "main";
-                            dashboardPanel.showPanel();
-                        }
-                    }
-                }
+            DashboardPanel {
+                id: compactDashboard
+                trigger: capsule
+            }
 
-                DashboardPanel {
-                    id: dashboardPanel
-                    trigger: statusCluster
-                }
+            // The alerts' panels, opened from the menu's list, hanging from the capsule.
+            BarAlerts {
+                withNotifications: true
+                panelTrigger: capsule
             }
         }
     }
@@ -484,38 +476,21 @@ RowLayout {
         }
     }
 
-    TailscaleNetworkPanel {
-        id: tailscaleNetworkPanel
-        trigger: tailNet
-    }
-
-    LocalSendPanel {
-        id: localSendPanel
-        trigger: localSend
-    }
-
     CapturePanel {
         id: capturePanel
-        trigger: capture
+        // Compact, opened from quick settings and hanging from the capsule.
+        trigger: compactLoader.item || capture
     }
 
     RecordPanel {
         id: recordPanel
-        trigger: recordTool
-    }
-
-    NixPanel {
-        id: nixPanel
-        trigger: nixUpdates
-    }
-
-    FirmwarePanel {
-        id: firmwarePanel
-        trigger: firmwareUpdates
+        // Compact, opened from quick settings and hanging from the capsule.
+        trigger: compactLoader.item || recordTool
     }
 
     HomeAssistantPanel {
         id: homeAssistantPanel
-        trigger: hass
+        // Compact, opened from quick settings and hanging from the capsule.
+        trigger: compactLoader.item || hass
     }
 }

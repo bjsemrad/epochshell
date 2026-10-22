@@ -11,12 +11,15 @@ Rectangle {
     readonly property var player: S.AudioService.player
     readonly property bool active: S.AudioService.hasMedia
     readonly property bool hovered: mouseArea.containsMouse
+    // The centered bar's form: the play/pause button alone, no title. What is playing is shown by
+    // hovering, which opens the player panel.
+    readonly property bool buttonOnly: T.Config.barCentered
 
     visible: active
     color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
-    implicitWidth: Math.min(content.implicitWidth + T.Config.barModuleHorizontalPadding, 220)
+    implicitWidth: buttonOnly ? implicitHeight : Math.min(content.implicitWidth + T.Config.barModuleHorizontalPadding, 220)
     implicitHeight: content.implicitHeight + T.Config.barModuleVerticalPadding
 
     MouseArea {
@@ -40,11 +43,33 @@ Rectangle {
             if (wheel.angleDelta.y > 0) S.AudioService.runAction("previous", true);
             else if (wheel.angleDelta.y < 0) S.AudioService.runAction("next", true);
         }
-        onExited: if (popup && popup.open && popup._updateHover) popup._updateHover()
+        onEntered: if (root.buttonOnly && popup && !popup.open) hoverOpen.restart()
+        onExited: {
+            hoverOpen.stop();
+            if (popup && popup.open && popup._updateHover) popup._updateHover();
+        }
+    }
+
+    // A moment's rest on the button before the panel comes, so crossing the bar does not open it.
+    Timer {
+        id: hoverOpen
+        interval: 250
+        onTriggered: if (root.hovered && root.popup && !root.popup.open) root.popup.showPanel()
+    }
+
+    // The button: the action it takes, as a media key would show it.
+    Text {
+        visible: root.buttonOnly
+        anchors.centerIn: parent
+        text: player && player.isPlaying ? "󰏤" : "󰐊"
+        color: player && player.isPlaying ? T.Config.surfaceText : T.Config.inactive
+        font.pixelSize: T.Config.barIconSize
+        font.family: T.Config.fontFamily
     }
 
     RowLayout {
         id: content
+        visible: !root.buttonOnly
         anchors.centerIn: parent
         width: Math.min(implicitWidth, root.width - T.Config.barModuleHorizontalPadding)
         spacing: T.Config.barIconTextSpacing

@@ -131,8 +131,10 @@ Singleton {
 
     // "full": one strip across the top of the screen. "floating": the same strip, held off the
     // screen's top and sides with its corners rounded. "islands": the floating bar in three
-    // pieces -- left, centre and right, each as wide as what it holds. Anything else, and the
-    // default, is "full".
+    // pieces -- left, centre and right, each as wide as what it holds. "centered": one floating
+    // bar in the middle of the screen, as wide as what it holds: no launcher, a play/pause button
+    // for media, and the status capsule (barCompact) whatever statusStyle says. Anything else, and
+    // the default, is "full".
     //
     // Defaults to $EPOCHSHELL_BAR_STYLE when set, so a style can be tried for one run without
     // touching a config file: `EPOCHSHELL_BAR_STYLE=islands qs -p .../shell.qml`. A `barStyle` in
@@ -147,7 +149,13 @@ Singleton {
     property int barFloatingSideGap: 10
     // Where any bar's bottom edge falls -- which is what panels and toasts below the bar are
     // placed from.
-    readonly property bool barIslands: barStyle === "islands"
+    readonly property bool barIslands: barStyle === "islands" || barCentered
+    readonly property bool barCentered: barStyle === "centered"
+    // The right end as one capsule -- the network and battery glyphs, the time, and a dot when
+    // something wants attention -- opening quick settings, which holds the rest: the alerts, the
+    // tools, the tray. No drawer, no alert icons, no bell, no separate clock. The dashboard status
+    // style on any bar, and always on the centered one.
+    readonly property bool barCompact: barCentered || statusStyle === "dashboard"
     readonly property bool barFloating: barStyle === "floating" || barIslands
     readonly property int barTopGap: barFloating ? barFloatingGap : 0
     readonly property int barSideGap: barFloating ? barFloatingSideGap : 0
@@ -170,8 +178,9 @@ Singleton {
 
     // The right end of the bar. "individual": an icon each for Wi-Fi, Bluetooth, sound, battery
     // and power, each with its own panel, like every other icon on the bar (Tailscale, capture,
-    // ...). "dashboard": one status cluster opening quick settings (DashboardPanel). Anything else
-    // reads as "individual".
+    // ...). "dashboard": one capsule -- network, battery, the time, a dot for anything wanting
+    // attention -- opening quick settings (DashboardPanel), which takes in the drawer's tools, the
+    // tray and the alerts too (barCompact). Anything else reads as "individual".
     property string statusStyle: "individual"
 
     // The workspace strip. "pill": each workspace a ringed pill holding its number and its windows'

@@ -341,7 +341,11 @@ PopupWindow {
             HoverHandler {
                 onHoveredChanged: {
                     popup.popupHover = hovered;
-                    popup._updateHover();
+                    // A turn of the event loop later, never inside the hover delivery: a hover
+                    // change can come from the window resizing under a still pointer, and closing
+                    // the window from inside that delivery crashed Qt (6.11) as it went on to map
+                    // the pointer into items of the window just hidden.
+                    Qt.callLater(popup._updateHover);
                 }
             }
 

@@ -122,11 +122,12 @@ PanelWindow {
 
                     SegmentedSetting {
                         label: "Style"
-                        current: T.Config.barStyle === "floating" || T.Config.barStyle === "islands" ? T.Config.barStyle : "full"
+                        current: ["floating", "islands", "centered"].indexOf(T.Config.barStyle) >= 0 ? T.Config.barStyle : "full"
                         options: [
                             { value: "full", label: "Full" },
                             { value: "floating", label: "Floating" },
-                            { value: "islands", label: "Islands" }
+                            { value: "islands", label: "Islands" },
+                            { value: "centered", label: "Centered" }
                         ]
                         onPicked: value => root.choose("barStyle", value)
                     }

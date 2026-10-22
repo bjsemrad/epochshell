@@ -140,8 +140,15 @@ Rectangle {
                     // The badge hangs mostly outside the bubble's top-left, far enough out that its
                     // disc stays clear of the icon's corner and only crosses the bubble's ring.
                     // With the number inside there is no badge, and the bubble is all there is.
-                    width: pillWidth + (numberInside ? 0 : Math.round(badge * 0.75))
-                    height: diameter + (numberInside ? 0 : Math.round(badge * 0.45))
+                    //
+                    // The circle stays on the bar's centre line, with the same room above and below
+                    // it, so the badge only rises into the space above the circle. Grown by the
+                    // badge's height instead, as it first was, the circle sat low: 11px of bar above
+                    // it and 2px below.
+                    readonly property int badgeRise: numberInside ? 0
+                        : Math.min(Math.round(badge * 0.45), Math.floor((T.Config.barHeight - diameter) / 2) - 1)
+                    width: pillWidth + (numberInside ? 0 : Math.round(badge * 0.85))
+                    height: diameter + badgeRise * 2
                     // Only the current workspace's ring stands out. The others are a hint of a
                     // boundary, close to the bar's own colour -- a row of strong outlines on a
                     // strip that is always on screen is busy, and the ring's job there is only to
@@ -152,7 +159,7 @@ Rectangle {
                     Rectangle {
                         id: circle
                         anchors.right: parent.right
-                        anchors.bottom: parent.bottom
+                        anchors.verticalCenter: parent.verticalCenter
                         width: bubble.pillWidth
                         height: bubble.diameter
                         // In the pill style, the rounded rectangle every selection and row in the

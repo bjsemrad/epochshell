@@ -856,6 +856,7 @@ os.replace(tmp, path)
               echo "  nix run .#preview            run this checkout (a second bar; stop"
               echo "                               epochshell.service first)"
               echo "    EPOCHSHELL_BAR_STYLE=islands     ...with the bar as three floating islands"
+              echo "    EPOCHSHELL_BAR_STYLE=centered    ...as one short floating bar in the centre"
               echo "  qs-lint                      qmllint the config, imports resolved"
               echo "  epochctl doctor              check the running session"
             '';

@@ -95,9 +95,23 @@ Scope {
             // within that island's flat bottom edge; one wider than its island widens it to carry
             // the panel (BarPanels), away from the screen's edge: the left island to the right, the
             // right island to the left, the centre one both ways.
+            //
+            // Centered is the same machinery with a single island: the centre one, holding all three
+            // groups side by side, on the screen's centre and as wide as they are. It grows both
+            // ways to carry a panel, as the centre island always has, with the groups kept in the
+            // middle of it. The left and right islands stay empty, and so are not drawn.
             readonly property bool islands: T.Config.barIslands
+            readonly property bool centered: T.Config.barCentered
             // Between an island's ends and what it holds.
             readonly property int islandPadding: T.Config.barModuleSpacing
+            // Centered, between one group and the next, with a hairline down the middle of the gap
+            // between the workspaces and the capsule; none before an empty group.
+            readonly property int groupGap: T.Config.barModuleSpacing
+            readonly property real centeredContentWidth: (leftSide.width > 0 ? leftSide.width + groupGap : 0)
+                + centerSide.width + groupGap + rightSide.width
+            // Where the groups start: centred in the island as drawn, so they stay put while it
+            // grows evenly either side to carry a panel.
+            readonly property real centeredContentX: centerIsland.x + Math.round((centerIsland.width - centeredContentWidth) / 2)
 
             component Island: Rectangle {
                 // The panels opened from this island.
@@ -134,7 +148,7 @@ Scope {
             Island {
                 id: leftIsland
                 tracker: leftPanels
-                natural: leftSide.width + barWindow.islandPadding * 2
+                natural: barWindow.centered ? 0 : leftSide.width + barWindow.islandPadding * 2
                 x: T.Config.barSideGap
             }
             IslandBody {
@@ -146,7 +160,7 @@ Scope {
             Island {
                 id: centerIsland
                 tracker: centerPanels
-                natural: centerSide.width + barWindow.islandPadding * 2
+                natural: (barWindow.centered ? barWindow.centeredContentWidth : centerSide.width) + barWindow.islandPadding * 2
                 x: Math.round((barWindow.width - width) / 2)
             }
             IslandBody {
@@ -158,7 +172,7 @@ Scope {
             Island {
                 id: rightIsland
                 tracker: rightPanels
-                natural: rightSide.width + barWindow.islandPadding * 2
+                natural: barWindow.centered ? 0 : rightSide.width + barWindow.islandPadding * 2
                 x: barWindow.width - T.Config.barSideGap - width
             }
             IslandBody {
@@ -181,6 +195,25 @@ Scope {
                 color: T.Config.outline
             }
 
+            // Centered, hairlines either side of the workspaces: before them when there is a media
+            // button, and between them and the capsule.
+            Rectangle {
+                visible: barWindow.centered && leftSide.width > 0
+                x: Math.round(centerSide.x - (barWindow.groupGap + width) / 2)
+                y: T.Config.barTopGap + Math.round((T.Config.barHeight - height) / 2)
+                width: 1
+                height: Math.round(T.Config.barHeight * 0.45)
+                color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.18)
+            }
+            Rectangle {
+                visible: barWindow.centered && rightSide.width > 0
+                x: Math.round(centerSide.x + centerSide.width + (barWindow.groupGap - width) / 2)
+                y: T.Config.barTopGap + Math.round((T.Config.barHeight - height) / 2)
+                width: 1
+                height: Math.round(T.Config.barHeight * 0.45)
+                color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.18)
+            }
+
             // Stay awake, at the compositor's level. The backend holds a logind inhibitor, which
             // is what hypridle and systemd watch; this is the belt to that pair of braces, because
             // a Wayland idle-inhibit stops the compositor reporting idle at all -- and it has to
@@ -195,14 +228,15 @@ Scope {
                 id: leftSide
                 spacing: T.Config.barModuleSpacing
                 // Found by panels opened from in here; see HoverPopupWindow.
-                readonly property var barPanels: barWindow.islands ? leftPanels : panelTracker
-                readonly property Item barIsland: barWindow.islands ? leftIslandBody : null
+                readonly property var barPanels: barWindow.centered ? centerPanels : barWindow.islands ? leftPanels : panelTracker
+                readonly property Item barIsland: barWindow.centered ? centerIslandBody : barWindow.islands ? leftIslandBody : null
                 readonly property Item barStrip: barArea
                 // Placed by x rather than anchors, in every style. An anchor removed at runtime
                 // leaves the item where the anchor put it -- an x binding underneath does not take
                 // over until something it reads changes -- so switching style after startup, as
                 // reading config.toml does, left the groups where the first style put them.
-                x: barWindow.islands ? leftIsland.x + barWindow.islandPadding : barArea.x + T.Config.barModuleSpacing
+                x: barWindow.centered ? barWindow.centeredContentX
+                    : barWindow.islands ? leftIsland.x + barWindow.islandPadding : barArea.x + T.Config.barModuleSpacing
 
                 anchors {
                     top: barArea.top
@@ -210,7 +244,10 @@ Scope {
                 }
 
                 children: [
-                    ApplicationLauncher {},
+                    ApplicationLauncher {
+                        visible: !T.Config.barCentered
+                    },
+                    // Centered, a play/pause button only (see MediaIndicator).
                     MediaIndicator {
                         id: mediaIndicator
                         popup: mediaPanel
@@ -226,7 +263,8 @@ Scope {
                 readonly property var barPanels: barWindow.islands ? centerPanels : panelTracker
                 readonly property Item barIsland: barWindow.islands ? centerIslandBody : null
                 readonly property Item barStrip: barArea
-                x: Math.round((parent.width - width) / 2)
+                x: barWindow.centered ? barWindow.centeredContentX + (leftSide.width > 0 ? leftSide.width + barWindow.groupGap : 0)
+                    : Math.round((parent.width - width) / 2)
                 width: Math.min(centerContent.implicitWidth, parent.width * T.Config.workspaceStripMaxWidthRatio)
                 contentWidth: centerContent.implicitWidth
                 contentHeight: height
@@ -254,10 +292,11 @@ Scope {
                 // after them sits at the same distance as one icon from the next rather than
                 // standing off as a group of its own.
                 spacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
-                readonly property var barPanels: barWindow.islands ? rightPanels : panelTracker
-                readonly property Item barIsland: barWindow.islands ? rightIslandBody : null
+                readonly property var barPanels: barWindow.centered ? centerPanels : barWindow.islands ? rightPanels : panelTracker
+                readonly property Item barIsland: barWindow.centered ? centerIslandBody : barWindow.islands ? rightIslandBody : null
                 readonly property Item barStrip: barArea
-                x: barWindow.islands ? rightIsland.x + rightIsland.width - width - barWindow.islandPadding
+                x: barWindow.centered ? centerSide.x + centerSide.width + barWindow.groupGap
+                    : barWindow.islands ? rightIsland.x + rightIsland.width - width - barWindow.islandPadding
                     : barArea.x + barArea.width - width - T.Config.barModuleSpacing
                 Layout.alignment: Qt.AlignVCenter
 
@@ -269,8 +308,10 @@ Scope {
                 IndividualBarRight {}
 
                 // The time at the far right, after the system icons, where most desktops keep it.
+                // Compact, the time is in the status capsule instead (IndividualBarRight).
                 ClickableClock {
                     id: clock
+                    visible: !T.Config.barCompact
                     Layout.alignment: Qt.AlignVCenter
                     popup: calendarPanel
                 }
