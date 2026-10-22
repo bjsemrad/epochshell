@@ -1,35 +1,26 @@
-import Quickshell
-import Quickshell.Wayland
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
-import Quickshell.Widgets
 import qs.commonwidgets
-import qs.modules
-import qs.modules.bluetooth
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
+import qs.popups.pages
 
+// Bluetooth in the Readout design, for the individual status icons (BluetoothPage).
 HoverPopupWindow {
-    id: bluetoothPopup
-    trigger: trigger
-    popupWidth:  T.Config.bluetoothPopupWidth
+    id: panel
+
+    popupWidth: 420
+
+    Component.onDestruction: S.PopupManager.unregister(panel)
+    Component.onCompleted: S.PopupManager.register(panel, "bluetooth")
 
     onVisibleChanged: {
         if (visible) {
-            S.PopupManager.closeOthers(bluetoothPopup)
+            S.PopupManager.closeOthers(panel);
         }
     }
 
-    Component.onDestruction: S.PopupManager.unregister(bluetoothPopup)
-    Component.onCompleted: {
-        S.PopupManager.register(bluetoothPopup, "bluetooth")
+    BluetoothPage {
+        Keys.onEscapePressed: panel.hidePanel()
     }
-
-    BluetoothOnOff {}
-    ComponentSplitter{}
-    BluetoothPairedDevices{}
-    ComponentSplitter{}
-    BluetoothAvailableDevices{}
-    ComponentSpacer { bottomMargin: 6 }
 }

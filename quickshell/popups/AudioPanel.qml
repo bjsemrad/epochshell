@@ -1,49 +1,26 @@
-import Quickshell
-import Quickshell.Wayland
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
-import Quickshell.Widgets
 import qs.commonwidgets
-import qs.modules.audio
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
+import qs.popups.pages
 
+// Sound in the Readout design, for the individual status icons (AudioPage).
 HoverPopupWindow {
-    id: audioPopup
-    trigger: trigger
-    popupWidth: Math.max(T.Config.audioPopupWidth, header.implicitWidth, vol.implicitWidth, output.implicitWidth, mic.implicitWidth, input.implicitWidth)
+    id: panel
 
-    AudioHeader{
-        id: header
-    }
-    ComponentSplitter{}
-    AudioVolumeRow {
-        id: vol
-    }
-    ComponentSplitter{}
-    AvailableAudioOutputs{
-        id: output
-    }
-    ComponentSplitter{}
-    MicVolumeRow{
-        id: mic
-    }
-    ComponentSplitter{}
-    AvailableAudioInputs{
-        id: input
-    }
-    ComponentSpacer{}
+    popupWidth: 420
+
+    Component.onDestruction: S.PopupManager.unregister(panel)
+    Component.onCompleted: S.PopupManager.register(panel, "audio")
 
     onVisibleChanged: {
-        if (visible){
-            S.PopupManager.closeOthers(audioPopup)
+        if (visible) {
+            S.PopupManager.closeOthers(panel);
         }
     }
 
-    Component.onDestruction: S.PopupManager.unregister(audioPopup)
-    Component.onCompleted: {
-        S.PopupManager.register(audioPopup, "audio")
+    AudioPage {
+        Keys.onEscapePressed: panel.hidePanel()
     }
 }
-

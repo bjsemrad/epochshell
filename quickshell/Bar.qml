@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import qs.theme as T
@@ -43,33 +44,30 @@ Scope {
             // ends where the bar does.
             implicitHeight: T.Config.barBottom
 
-            // Clicks on the bar, or in the islands style on the islands only: the screen showing
-            // between them is the desktop's, not the bar's.
-            mask: barWindow.islands ? islandsMask : barMask
+            // Clicks on the bar, or centered on the pill only: the screen either side of it is the
+            // desktop's, not the bar's.
+            mask: barWindow.centered ? pillMask : barMask
             Region {
                 id: barMask
                 item: barArea
             }
             Region {
-                id: islandsMask
-                Region { item: leftIsland }
-                Region { item: centerIsland }
-                Region { item: rightIsland }
+                id: pillMask
+                item: pill
             }
 
             // Blur behind the bar while it is see-through (T.Config.barBlur), in its own shape:
-            // the strip with its corners, or each island.
-            BackgroundEffect.blurRegion: !T.Config.barBlur ? null : barWindow.islands ? islandsBlur : barBlur
+            // the strip with its corners, or the pill.
+            BackgroundEffect.blurRegion: !T.Config.barBlur ? null : barWindow.centered ? pillBlur : barBlur
             Region {
                 id: barBlur
                 item: barArea
                 radius: barArea.radius
             }
             Region {
-                id: islandsBlur
-                Region { item: leftIsland; radius: leftIsland.radius }
-                Region { item: centerIsland; radius: centerIsland.radius }
-                Region { item: rightIsland; radius: rightIsland.radius }
+                id: pillBlur
+                item: pill
+                radius: pill.radius
             }
 
             // First child, so it sits behind everything else the bar draws.
@@ -83,102 +81,104 @@ Scope {
                 height: T.Config.barHeight
                 radius: T.Config.barFloating ? T.Config.popupRadius : 0
                 antialiasing: true
-                // In the islands style the ground is the islands, and the strip is only the frame
-                // they are laid out in.
-                color: barWindow.islands ? "transparent" : T.Config.barBackground
+                // Centered, the ground is the pill, and the strip is only the frame it sits in.
+                color: barWindow.centered ? "transparent" : T.Config.barBackground
             }
 
-            // --- Islands -----------------------------------------------------------------------
+            // --- Centered ----------------------------------------------------------------------
             //
-            // The floating bar in three pieces -- left, centre and right, each as wide as what it
-            // holds -- with the desktop between them. A panel hangs from its own island, kept
-            // within that island's flat bottom edge; one wider than its island widens it to carry
-            // the panel (BarPanels), away from the screen's edge: the left island to the right, the
-            // right island to the left, the centre one both ways.
-            //
-            // Centered is the same machinery with a single island: the centre one, holding all three
-            // groups side by side, on the screen's centre and as wide as they are. It grows both
-            // ways to carry a panel, as the centre island always has, with the groups kept in the
-            // middle of it. The left and right islands stay empty, and so are not drawn.
-            readonly property bool islands: T.Config.barIslands
+            // One pill in the middle of the screen holding all three groups side by side, as wide
+            // as they are. A panel hangs from it, kept within its flat bottom edge; one wider than
+            // the pill widens it evenly both ways to carry the panel (BarPanels), with the groups
+            // kept in the middle.
             readonly property bool centered: T.Config.barCentered
-            // Between an island's ends and what it holds.
-            readonly property int islandPadding: T.Config.barModuleSpacing
-            // Centered, between one group and the next, with a hairline down the middle of the gap
-            // between the workspaces and the capsule; none before an empty group.
+            // Between the pill's ends and what it holds.
+            readonly property int pillPadding: T.Config.barModuleSpacing
+            // Between one group and the next, with a hairline down the middle of the gap; none
+            // before an empty group.
             readonly property int groupGap: T.Config.barModuleSpacing
             readonly property real centeredContentWidth: (leftSide.width > 0 ? leftSide.width + groupGap : 0)
                 + centerSide.width + groupGap + rightSide.width
-            // Where the groups start: centred in the island as drawn, so they stay put while it
-            // grows evenly either side to carry a panel.
-            readonly property real centeredContentX: centerIsland.x + Math.round((centerIsland.width - centeredContentWidth) / 2)
+            // Where the groups start: centred in the pill as drawn, so they stay put while it grows
+            // evenly either side to carry a panel.
+            readonly property real centeredContentX: pill.x + Math.round((pill.width - centeredContentWidth) / 2)
 
-            component Island: Rectangle {
-                // The panels opened from this island.
-                required property var tracker
-                // As wide as what it holds; the drawn width follows a panel as it opens.
-                required property real natural
-                readonly property real targetWidth: tracker.targetWidth(natural, T.Config.popupRadius)
-                visible: barWindow.islands
-                y: T.Config.barTopGap
-                width: tracker.widthAround(natural, T.Config.popupRadius)
-                height: T.Config.barHeight
-                radius: T.Config.popupRadius
-                antialiasing: true
-                color: T.Config.barBackground
-                // With a panel open and the bar outline asked for, the island is outlined, and the
-                // panel outlines the rest of the shape.
-                border.width: T.Config.panelOutline === "bar" && tracker.openness > 0 ? 1 : 0
-                border.color: Qt.rgba(T.Config.outline.r, T.Config.outline.g, T.Config.outline.b, tracker.openness)
-            }
-
-            // Where a panel anchors to its island: the island at the width it is growing to, so a
-            // panel is placed once, for where the island will be, rather than chasing it.
-            component IslandBody: Item {
-                y: T.Config.barTopGap
-                height: T.Config.barHeight
-            }
-
-            BarPanels { id: leftPanels }
-            BarPanels { id: centerPanels }
-            BarPanels { id: rightPanels }
+            BarPanels { id: pillPanels }
             // The full and floating bars' panels.
             BarPanels { id: panelTracker }
 
-            Island {
-                id: leftIsland
-                tracker: leftPanels
-                natural: barWindow.centered ? 0 : leftSide.width + barWindow.islandPadding * 2
-                x: T.Config.barSideGap
-            }
-            IslandBody {
-                id: leftIslandBody
-                x: leftIsland.x
-                width: leftIsland.targetWidth
+            Rectangle {
+                id: pill
+                readonly property real natural: barWindow.centeredContentWidth + barWindow.pillPadding * 2
+                visible: barWindow.centered
+                x: Math.round((barWindow.width - width) / 2)
+                y: T.Config.barTopGap
+                // The drawn width follows a panel as it opens.
+                width: pillPanels.widthAround(natural, T.Config.popupRadius)
+                height: T.Config.barHeight
+                radius: T.Config.popupRadius
+                antialiasing: true
+                // As a ledge the pill is only the geometry -- where the content, the input mask and
+                // the blur go -- and the ledge below draws the ground.
+                color: T.Config.barIsLedge ? "transparent" : T.Config.barBackground
+                // With a panel open and the bar outline asked for, the pill is outlined, and the
+                // panel outlines the rest of the shape.
+                border.width: !T.Config.barIsLedge && T.Config.panelOutline === "bar" && pillPanels.openness > 0 ? 1 : 0
+                border.color: Qt.rgba(T.Config.outline.r, T.Config.outline.g, T.Config.outline.b, pillPanels.openness)
             }
 
-            Island {
-                id: centerIsland
-                tracker: centerPanels
-                natural: (barWindow.centered ? barWindow.centeredContentWidth : centerSide.width) + barWindow.islandPadding * 2
-                x: Math.round((barWindow.width - width) / 2)
-            }
-            IslandBody {
-                id: centerIslandBody
-                x: Math.round((barWindow.width - width) / 2)
-                width: centerIsland.targetWidth
+            // The ledge (T.Config.barLedge): the pill poured out of the screen's top edge, its top
+            // corners flaring into the edge and its bottom ones rounded -- the shape a panel makes
+            // growing out of the bar, so a panel opened from it reads as more of the same. The
+            // flares sit outside the body, so the shape is the pill's width plus a flare each side,
+            // with the body exactly where the pill is: nothing inside moves. It follows the pill's
+            // width as a panel widens it.
+            AttachedSurface {
+                id: ledge
+                visible: T.Config.barIsLedge
+                x: pill.x - flare
+                y: 0
+                width: pill.width + flare * 2
+                height: T.Config.barHeight
+                fillColor: T.Config.barBackground
+                // Square at the bottom while expanded into a panel: the panel carries the sides on
+                // down to its own rounded bottom.
+                radius: ledge.joined ? 0 : T.Config.popupRadius
+                flare: T.Config.popupRadius
+                readonly property bool joined: pillPanels.leadingJoin === "snap"
+                // No outline at rest. Expanded, the shape is outlined from the flares at the screen's
+                // edge down both sides -- the panel takes it on round its bottom -- unless outlines
+                // are off; the bottom is left open, as that is where the panel carries on. With a
+                // panel hanging from it instead, round the ledge as the pill is outlined, when the
+                // bar outline is asked for.
+                outlineOpacity: joined ? (T.Config.panelOutline !== "none" ? pillPanels.openness : 0)
+                    : T.Config.panelOutline === "bar" ? pillPanels.openness : 0
+                outlineBottom: !joined
+                outlineFade: joined && T.Config.panelOutline === "fade" ? flare : 0
             }
 
-            Island {
-                id: rightIsland
-                tracker: rightPanels
-                natural: barWindow.centered ? 0 : rightSide.width + barWindow.islandPadding * 2
-                x: barWindow.width - T.Config.barSideGap - width
+            // A snapped panel shares the ledge's straight sides, so nothing in the shape says where
+            // the bar ends: a hairline there gives the bar row its bottom edge back.
+            Rectangle {
+                visible: T.Config.barIsLedge && pillPanels.leadingJoin === "snap"
+                x: pill.x + T.Config.popupPadding
+                y: T.Config.barHeight - 1
+                width: pill.width - T.Config.popupPadding * 2
+                height: 1
+                color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.10)
             }
-            IslandBody {
-                id: rightIslandBody
-                x: barWindow.width - T.Config.barSideGap - width
-                width: rightIsland.targetWidth
+
+            // Where a panel anchors to the pill: the pill at the width it is growing to, so a panel
+            // is placed once, for where the pill will be, rather than chasing it.
+            Item {
+                id: pillBody
+                // What the pill holds, never widened: how a panel on the ledge decides how to join
+                // it (HoverPopupWindow.ledgeJoin).
+                readonly property real naturalWidth: pill.natural
+                width: pillPanels.targetWidth(pill.natural, T.Config.popupRadius)
+                x: Math.round((barWindow.width - width) / 2)
+                y: T.Config.barTopGap
+                height: T.Config.barHeight
             }
 
             // With a panel open, an outline along the bar's bottom edge. The panel draws the rest
@@ -186,7 +186,7 @@ Scope {
             // shape. The panel covers this line where it hangs, since it overlaps the bar by a
             // pixel.
             Rectangle {
-                visible: !barWindow.islands && T.Config.panelOutline === "bar" && opacity > 0
+                visible: !barWindow.centered && T.Config.panelOutline === "bar" && opacity > 0
                 opacity: panelTracker.openness
                 x: barArea.x + barArea.radius
                 y: T.Config.barBottom - 1
@@ -228,15 +228,14 @@ Scope {
                 id: leftSide
                 spacing: T.Config.barModuleSpacing
                 // Found by panels opened from in here; see HoverPopupWindow.
-                readonly property var barPanels: barWindow.centered ? centerPanels : barWindow.islands ? leftPanels : panelTracker
-                readonly property Item barIsland: barWindow.centered ? centerIslandBody : barWindow.islands ? leftIslandBody : null
+                readonly property var barPanels: barWindow.centered ? pillPanels : panelTracker
+                readonly property Item barIsland: barWindow.centered ? pillBody : null
                 readonly property Item barStrip: barArea
                 // Placed by x rather than anchors, in every style. An anchor removed at runtime
                 // leaves the item where the anchor put it -- an x binding underneath does not take
                 // over until something it reads changes -- so switching style after startup, as
                 // reading config.toml does, left the groups where the first style put them.
-                x: barWindow.centered ? barWindow.centeredContentX
-                    : barWindow.islands ? leftIsland.x + barWindow.islandPadding : barArea.x + T.Config.barModuleSpacing
+                x: barWindow.centered ? barWindow.centeredContentX : barArea.x + T.Config.barModuleSpacing
 
                 anchors {
                     top: barArea.top
@@ -244,9 +243,7 @@ Scope {
                 }
 
                 children: [
-                    ApplicationLauncher {
-                        visible: !T.Config.barCentered
-                    },
+                    ApplicationLauncher {},
                     // Centered, a play/pause button only (see MediaIndicator).
                     MediaIndicator {
                         id: mediaIndicator
@@ -260,8 +257,8 @@ Scope {
             // the groups either side.
             Flickable {
                 id: centerSide
-                readonly property var barPanels: barWindow.islands ? centerPanels : panelTracker
-                readonly property Item barIsland: barWindow.islands ? centerIslandBody : null
+                readonly property var barPanels: barWindow.centered ? pillPanels : panelTracker
+                readonly property Item barIsland: barWindow.centered ? pillBody : null
                 readonly property Item barStrip: barArea
                 x: barWindow.centered ? barWindow.centeredContentX + (leftSide.width > 0 ? leftSide.width + barWindow.groupGap : 0)
                     : Math.round((parent.width - width) / 2)
@@ -292,11 +289,10 @@ Scope {
                 // after them sits at the same distance as one icon from the next rather than
                 // standing off as a group of its own.
                 spacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
-                readonly property var barPanels: barWindow.centered ? centerPanels : barWindow.islands ? rightPanels : panelTracker
-                readonly property Item barIsland: barWindow.centered ? centerIslandBody : barWindow.islands ? rightIslandBody : null
+                readonly property var barPanels: barWindow.centered ? pillPanels : panelTracker
+                readonly property Item barIsland: barWindow.centered ? pillBody : null
                 readonly property Item barStrip: barArea
                 x: barWindow.centered ? centerSide.x + centerSide.width + barWindow.groupGap
-                    : barWindow.islands ? rightIsland.x + rightIsland.width - width - barWindow.islandPadding
                     : barArea.x + barArea.width - width - T.Config.barModuleSpacing
                 Layout.alignment: Qt.AlignVCenter
 

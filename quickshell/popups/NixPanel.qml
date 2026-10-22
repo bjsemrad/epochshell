@@ -1,165 +1,112 @@
-import Quickshell
 import QtQuick
 import QtQuick.Layouts
 import qs.commonwidgets
-import qs.modules.nix
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
 
-// The flake update panel: what is pinned, what could move, and the two commands that act on it.
-//
-// Nothing here changes a system on its own. "Update" and each host's "Rebuild" open a terminal
-// running a command the user configured, so what happens next is visible and interruptible rather
-// than a silent rebuild started by a panel.
+// Flake updates in the Readout design: where things stand, each input that can move, and the
+// actions -- check, update, rebuild a host -- which open a terminal as they always have.
 HoverPopupWindow {
-    id: nixPopup
-    trigger: trigger
-    popupWidth: T.Config.nixPopupWidth
+    id: panel
+
+    popupWidth: 460
+
+    Component.onDestruction: S.PopupManager.unregister(panel)
+    Component.onCompleted: S.PopupManager.register(panel, "nix")
 
     onVisibleChanged: {
         if (visible) {
             S.NixUpdates.refresh();
-            S.PopupManager.closeOthers(nixPopup);
+            S.PopupManager.closeOthers(panel);
         }
     }
 
-    Component.onDestruction: S.PopupManager.unregister(nixPopup)
-    Component.onCompleted: S.PopupManager.register(nixPopup, "nix")
-
-    // Header
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: T.Config.settingsHeaderHeight
-        spacing: T.Config.layoutMarginSmall
-
-        Text {
-            text: "Nix"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.bold: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-        }
-    }
-
-    // Where the flake stands, as a card: lit when something can move. A problem -- no flake, the
-    // daemon unreachable, a failed check -- takes the card over in red, since then it is the news.
     readonly property string problem: {
         if (S.NixUpdates.backendError.length > 0) return S.NixUpdates.backendError;
-        if (!S.NixUpdates.configured) return "No flake configured (set nix_flake)";
+        if (!S.NixUpdates.configured) return "no flake configured (set nix_flake)";
         if (!S.NixUpdates.available) return S.NixUpdates.reason;
         if (S.NixUpdates.error.length > 0) return S.NixUpdates.error;
         return "";
     }
-
-    StatusCard {
-        icon: S.NixUpdates.icon
-        active: S.NixUpdates.hasUpdates
-        problem: nixPopup.problem.length > 0
-        title: {
-            if (nixPopup.problem.length > 0) return nixPopup.problem;
-            if (S.NixUpdates.checking) return "Checking every input…";
-            if (S.NixUpdates.status.length > 0) return S.NixUpdates.status;
-            if (S.NixUpdates.checkedAt === 0) return "Not checked yet";
-            if (S.NixUpdates.updates === 0) return "Everything is current";
-            return S.NixUpdates.updates === 1 ? "1 input can be updated" : S.NixUpdates.updates + " inputs can be updated";
-        }
-        subtitle: {
-            if (!S.NixUpdates.available) return "";
-            const parts = [];
-            if (S.NixUpdates.checkedAt > 0) parts.push("checked " + S.NixUpdates.ago(S.NixUpdates.checkedAt) + " ago");
-            if (S.NixUpdates.lockedAt > 0) parts.push("locked " + S.NixUpdates.ago(S.NixUpdates.lockedAt) + " ago");
-            return parts.join(" · ");
-        }
-        detail: S.NixUpdates.configured ? S.NixUpdates.flake : ""
-    }
-
-    ComponentSplitter {
-        visible: S.NixUpdates.movable.length > 0
-    }
-
-    // What could move. Inputs that are already current are left out: a wall of unchanged names
-    // buries the answer the panel exists to give.
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: 2
-        visible: S.NixUpdates.movable.length > 0
-
-        SectionLabel {
-            text: "Can be updated"
-        }
-
-        Repeater {
-            model: S.NixUpdates.movable
-
-            delegate: NixInput {
-                required property var modelData
-                name: String(modelData.name || "")
-                source: String(modelData.source || "")
-                currentRev: String(modelData.current_rev || "")
-                latestRev: String(modelData.latest_rev || "")
-            }
-        }
-    }
-
-    ComponentSplitter {}
-
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: 4
-
-        SystemAction {
-            icon: "󰑐"
-            description: S.NixUpdates.checking ? "Checking..." : "Check for updates"
-            function onClick() {
-                S.NixUpdates.check();
-            }
-        }
-
-        SystemAction {
-            icon: "󰚰"
-            description: "Update flake"
-            visible: S.NixUpdates.updateCommand.length > 0
-            function onClick() {
-                S.PopupManager.closeAll();
-                S.NixUpdates.update();
-            }
-        }
-    }
-
-    ComponentSplitter {
-        visible: nixPopup.rebuildable.length > 0
-    }
-
-    // Every host in the flake shares one lock, so there is nothing per-host to report about
-    // updates. What is per host is the command that rebuilds it, which is why they appear here
-    // and not next to the inputs. A host with no configured command is left out rather than
-    // offered as a button that cannot do anything.
     readonly property var rebuildable: S.NixUpdates.hosts.filter(host => String(host.rebuild || "").length > 0)
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 4
-        visible: nixPopup.rebuildable.length > 0
+        spacing: 0
 
-        SectionLabel {
-            text: "Hosts"
+        Keys.onEscapePressed: panel.hidePanel()
+
+        ReadoutHeader {
+            title: "nix"
+            status: S.NixUpdates.checking ? "checking…" : S.NixUpdates.hasUpdates ? "update" : S.NixUpdates.checkedAt > 0 ? "current" : ""
+            active: S.NixUpdates.hasUpdates
+        }
+        ReadoutKeyRow {
+            visible: S.NixUpdates.configured
+            key: "flake"
+            text: S.NixUpdates.flake
+        }
+        ReadoutKeyRow {
+            visible: S.NixUpdates.checkedAt > 0
+            key: "checked"
+            text: S.NixUpdates.ago(S.NixUpdates.checkedAt) + " ago"
+        }
+        ReadoutKeyRow {
+            visible: S.NixUpdates.lockedAt > 0
+            key: "locked"
+            text: S.NixUpdates.ago(S.NixUpdates.lockedAt) + " ago"
+        }
+        ReadoutText {
+            visible: text.length > 0
+            text: (panel.problem || S.NixUpdates.status).toLowerCase()
         }
 
+        ReadoutSection {
+            visible: S.NixUpdates.movable.length > 0
+            text: "inputs"
+        }
         Repeater {
-            model: nixPopup.rebuildable
+            model: S.NixUpdates.movable
+            delegate: ReadoutRow {
+                required property var modelData
+                icon: "󰏗"
+                value: String(modelData.name || "")
+                detail: S.NixUpdates.shortRev(String(modelData.current_rev || "")) + " → " + S.NixUpdates.shortRev(String(modelData.latest_rev || ""))
+                status: "behind"
+                active: true
+                interactive: false
+            }
+        }
 
-            delegate: SystemAction {
+        ReadoutDivider {}
+
+        ReadoutRow {
+            icon: "󰑐"
+            value: S.NixUpdates.checking ? "checking…" : "check"
+            interactive: !S.NixUpdates.checking
+            onClicked: S.NixUpdates.check()
+        }
+        ReadoutRow {
+            visible: S.NixUpdates.updateCommand.length > 0
+            icon: "󰚰"
+            value: "update"
+            active: S.NixUpdates.hasUpdates
+            onClicked: {
+                S.PopupManager.closeAll();
+                S.NixUpdates.update();
+            }
+        }
+        Repeater {
+            model: panel.rebuildable
+            delegate: ReadoutRow {
                 required property var modelData
                 icon: "󰒋"
-                description: "Rebuild " + String(modelData.name || "")
-                function onClick() {
+                value: "rebuild " + String(modelData.name || "")
+                onClicked: {
                     S.PopupManager.closeAll();
                     S.NixUpdates.rebuild(String(modelData.name || ""));
                 }
             }
         }
     }
-
-    ComponentSpacer { bottomMargin: 6; Layout.preferredHeight: 1 }
 }

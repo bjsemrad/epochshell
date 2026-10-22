@@ -86,16 +86,16 @@ Singleton {
     property bool themeFromUserDir: true
     onThemeNameChanged: themeFromUserDir = true
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
-    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur"]
+    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur", "barLedge"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
-    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle"]
+    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle", "workspaceHomes"]
     // `theme` is read out of config.toml but is not a style property: it decides which file the
     // style properties come from, so it is handled before the rest rather than assigned like one.
     readonly property string themeKey: "theme"
     // Handled the same way and for the same reason: it decides where values come from rather than
     // being one of them.
     readonly property string extendsKey: "extends"
-    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "barFloatingSideGap", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingLarge", "layoutSpacingSmall", "roundRadius", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "networkPopupWidth", "tailscalePopupWidth", "localsendPopupWidth", "bluetoothPopupWidth", "audioPopupWidth", "systemTrayPopupWidth", "systemPopupWidth", "batteryPopupWidth", "homeAssistantPopupWidth", "capturePopupWidth", "nixPopupWidth", "tailscalePeersFontSize", "panelBottomMarginMedium", "barHeight", "headerSize", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius", "settingsHeaderHeight", "settingsHeaderSpacing", "systemActionSize", "systemActionRadius", "systemActionMargin", "systemActionSpacing", "volumeSliderSize", "volumeSliderRadius", "volumeSliderMargin", "volumeSliderSpacing"]
+    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "barFloatingSideGap", "workspaceIconLimit", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingSmall", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "barHeight", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius"]
 
     property color accent: blue
     property color accentLightShade: Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10)
@@ -130,14 +130,12 @@ Singleton {
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
 
     // "full": one strip across the top of the screen. "floating": the same strip, held off the
-    // screen's top and sides with its corners rounded. "islands": the floating bar in three
-    // pieces -- left, centre and right, each as wide as what it holds. "centered": one floating
-    // bar in the middle of the screen, as wide as what it holds: no launcher, a play/pause button
-    // for media, and the status capsule (barCompact) whatever statusStyle says. Anything else, and
-    // the default, is "full".
+    // screen's top and sides with its corners rounded. "centered": one floating
+    // bar in the middle of the screen, as wide as what it holds, with a play/pause button for
+    // media. Anything else, and the default, is "full".
     //
     // Defaults to $EPOCHSHELL_BAR_STYLE when set, so a style can be tried for one run without
-    // touching a config file: `EPOCHSHELL_BAR_STYLE=islands qs -p .../shell.qml`. A `barStyle` in
+    // touching a config file: `EPOCHSHELL_BAR_STYLE=centered qs -p .../shell.qml`. A `barStyle` in
     // config.toml or settings.toml still wins.
     readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "full"
     property string barStyle: defaultBarStyle
@@ -149,15 +147,19 @@ Singleton {
     property int barFloatingSideGap: 10
     // Where any bar's bottom edge falls -- which is what panels and toasts below the bar are
     // placed from.
-    readonly property bool barIslands: barStyle === "islands" || barCentered
     readonly property bool barCentered: barStyle === "centered"
+    // Centered only. true: the bar hangs from the screen's top edge as a ledge -- no gap above it,
+    // its top corners flaring into the edge, its bottom corners rounded -- instead of floating.
+    property bool barLedge: true
+    readonly property bool barIsLedge: barCentered && barLedge
     // The right end as one capsule -- the network and battery glyphs, the time, and a dot when
     // something wants attention -- opening quick settings, which holds the rest: the alerts, the
     // tools, the tray. No drawer, no alert icons, no bell, no separate clock. The dashboard status
-    // style on any bar, and always on the centered one.
-    readonly property bool barCompact: barCentered || statusStyle === "dashboard"
-    readonly property bool barFloating: barStyle === "floating" || barIslands
-    readonly property int barTopGap: barFloating ? barFloatingGap : 0
+    // style, on any bar.
+    readonly property bool barCompact: settledStatusStyle === "dashboard"
+    readonly property bool barFloating: barStyle === "floating" || barCentered
+    // A ledge hangs from the edge itself, so there is nothing above it.
+    readonly property int barTopGap: barFloating && !barIsLedge ? barFloatingGap : 0
     readonly property int barSideGap: barFloating ? barFloatingSideGap : 0
     readonly property int barBottom: barTopGap + barHeight
 
@@ -165,7 +167,7 @@ Singleton {
     // "fade": round the panel only, fading in down its sides from nothing at the bar, so the
     // join stays seamless and only the edges that get lost against what is behind are drawn.
     // "bar": round the bar and the panel together, as one shape -- along the bar's bottom edge
-    // under the full bar, round the island the panel hangs from in the islands style. Anything
+    // under the full bar, round the pill the panel hangs from under the centered one. Anything
     // else reads as "none". "fade" by default.
     property string panelOutline: "fade"
 
@@ -173,7 +175,8 @@ Singleton {
     // flaring into theirs. "floating": a bordered card a few pixels below the bar, rounded all
     // round. Anything else reads as "attached". panelOutline and edge-snapping are for attached
     // panels only; a floating card has its own border. With barOpacity under 0.5 panels float
-    // whatever this says: an attached panel needs a visible bar to grow out of.
+    // whatever this says: an attached panel needs a visible bar to grow out of. Under the centered
+    // bar they always float, so the bar never stretches to carry one.
     property string panelStyle: "attached"
 
     // The right end of the bar. "individual": an icon each for Wi-Fi, Bluetooth, sound, battery
@@ -183,11 +186,65 @@ Singleton {
     // tray and the alerts too (barCompact). Anything else reads as "individual".
     property string statusStyle: "individual"
 
+    // The status style as the bar reads it, which decides which status items and panels exist at
+    // all: settled a turn of the event loop after it changes. rebuild() puts every setting back to
+    // its default and then re-applies the files, so for an instant this reads "individual" -- and
+    // the bar, reading it directly, tore down the capsule and the open dashboard in that instant
+    // and built new, closed ones: previewing a theme from the dashboard's theme page closed the
+    // dashboard under the pointer. A change that is undone in the same turn is never seen here.
+    property string settledStatusStyle: statusStyle
+    onStatusStyleChanged: structureSettle.restart()
+    Timer {
+        id: structureSettle
+        interval: 0
+        onTriggered: root.settledStatusStyle = root.statusStyle
+    }
+
     // The workspace strip. "pill": each workspace a ringed pill holding its number and its windows'
-    // icons, the current one ringed in the accent. "bubble": the same, with the number in a small
-    // badge on the pill's edge instead. "plain": the number, with the windows' icons beside it.
-    // Anything else reads as "pill".
+    // icons, the current one ringed in the accent. "plain": the number, with the windows' icons
+    // beside it. "ledge": no boxes at all -- the number in mono and a few quiet icons, grey and dim on the
+    // workspaces you are not on, in colour on the one you are, which is marked by an accent tick on
+    // the bar's bottom edge (made for the centered ledge, though it works on any bar). Anything
+    // else reads as "pill".
     property string workspaceStyle: "pill"
+
+    // The ledge workspace style. How many window icons a workspace shows before the rest collapse
+    // into a "+n". The active workspace obeys it too.
+    property int workspaceIconLimit: 2
+
+    // Where each app normally lives, as `app:workspace` pairs separated by commas, e.g.
+    // "brave-browser:1, discord:2, thunderbird:3". An app on any other workspace is "away from
+    // home" and its icon stays in full colour so it can be found. app is matched the way
+    // CompositorService.findWindow matches: exact or contained in the window's app_id,
+    // case-insensitive.
+    property string workspaceHomes: ""
+    // The size of the small glyphs and app icons that sit beside text on the bar -- the ledge
+    // workspaces' icons, the status capsule's network and battery -- so they read as one family.
+    readonly property int barSmallIconSize: Math.max(10, barIconSize - 2)
+    // Parsed once here rather than per icon: [{ app, workspace }], app lowercased.
+    readonly property var workspaceHomeList: {
+        const homes = [];
+        for (const pair of workspaceHomes.split(",")) {
+            const at = pair.lastIndexOf(":");
+            if (at <= 0) continue;
+            const app = pair.slice(0, at).trim().toLowerCase();
+            const workspace = pair.slice(at + 1).trim();
+            if (app.length > 0 && workspace.length > 0) homes.push({ app: app, workspace: workspace });
+        }
+        return homes;
+    }
+    // The workspace an app_id calls home, or "" when it has none.
+    function workspaceHomeFor(appId) {
+        const id = String(appId || "").toLowerCase();
+        if (id.length === 0) return "";
+        for (const home of workspaceHomeList) {
+            if (id === home.app) return home.workspace;
+        }
+        for (const home of workspaceHomeList) {
+            if (id.indexOf(home.app) !== -1) return home.workspace;
+        }
+        return "";
+    }
 
     property int popupPadding: 10
     property int popupRadius: 10
@@ -205,10 +262,8 @@ Singleton {
     property int widthPaddingSmall: 14
 
     property int layoutMarginSmall: 5
-    property int layoutSpacingLarge: 20
     property int layoutSpacingSmall: 20
 
-    property int roundRadius: 20
     property int connectedIconSize: 40
 
     property int fontSizeNormal: 14
@@ -222,47 +277,12 @@ Singleton {
     property int cardHeight: 50
     property int cardSpacing: 10
 
-    property int networkPopupWidth: 400
-    // Peers are rows of name over address now, not a table of columns, so this no longer has to
-    // hold three columns abreast.
-    property int tailscalePopupWidth: 480
-    property int localsendPopupWidth: 420
-    property int bluetoothPopupWidth: 400
-    property int audioPopupWidth: 550
-    property int systemTrayPopupWidth: 300
-    // Wide enough for the session actions (SessionActions) to sit five abreast with their names
-    // and room around them -- the dashboard's width, so the two menus match.
-    property int systemPopupWidth: 420
-    property int batteryPopupWidth: 320
-    property int homeAssistantPopupWidth: 420
-    property int capturePopupWidth: 320
-    property int nixPopupWidth: 380
-
-    property int tailscalePeersFontSize: 14
-
-    property int panelBottomMarginMedium: 15
-
     property int barHeight: 40
-
-    property int headerSize: 40
 
     property int switchHeight: 42
     property int switchWidth: 24
     property int switchKnobSize: 20
     property int switchKnobRadius: 10
-
-    property int settingsHeaderHeight: 30
-    property int settingsHeaderSpacing: 10
-
-    property int systemActionSize: 40
-    property int systemActionRadius: 10
-    property int systemActionMargin: 30
-    property int systemActionSpacing: 10
-
-    property int volumeSliderSize: 40
-    property int volumeSliderRadius: 20
-    property int volumeSliderMargin: 30
-    property int volumeSliderSpacing: 10
 
     property bool hideInactiveWorkspaces: true
     property bool workspaceIcons: true
@@ -605,15 +625,16 @@ Singleton {
         panelStyle = "attached";
         statusStyle = "individual";
         workspaceStyle = "pill";
+        barLedge = true;
+        workspaceIconLimit = 2;
+        workspaceHomes = "";
         popupPadding = 10;
         popupRadius = 10;
         popupLayoutSpacing = 8;
         barIconSize = 18;
         widthPaddingSmall = 14;
         layoutMarginSmall = 5;
-        layoutSpacingLarge = 20;
         layoutSpacingSmall = 20;
-        roundRadius = 20;
         connectedIconSize = 40;
         fontSizeNormal = 14;
         fontSizeMedium = 16;
@@ -623,37 +644,13 @@ Singleton {
         cardRadius = 10;
         cardHeight = 50;
         cardSpacing = 10;
-        networkPopupWidth = 400;
-        tailscalePopupWidth = 480;
-        localsendPopupWidth = 420;
-        bluetoothPopupWidth = 400;
-        audioPopupWidth = 550;
-        systemTrayPopupWidth = 300;
-        systemPopupWidth = 420;
-        batteryPopupWidth = 320;
-        homeAssistantPopupWidth = 420;
-        capturePopupWidth = 320;
-        nixPopupWidth = 380;
-        tailscalePeersFontSize = 14;
-        panelBottomMarginMedium = 15;
         barHeight = 40;
         barFloatingGap = 4;
         barFloatingSideGap = 10;
-        headerSize = 40;
         switchHeight = 42;
         switchWidth = 24;
         switchKnobSize = 20;
         switchKnobRadius = 10;
-        settingsHeaderHeight = 30;
-        settingsHeaderSpacing = 10;
-        systemActionSize = 40;
-        systemActionRadius = 10;
-        systemActionMargin = 30;
-        systemActionSpacing = 10;
-        volumeSliderSize = 40;
-        volumeSliderRadius = 20;
-        volumeSliderMargin = 30;
-        volumeSliderSpacing = 10;
         hideInactiveWorkspaces = true;
         workspaceIcons = true;
         blur = true;

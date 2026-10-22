@@ -1,50 +1,38 @@
-import Quickshell
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
+// The month in the Readout design: a mono grid, today marked by the accent tick under its number,
+// the days of the months either side dimmed. The header's status goes back to today.
 HoverPopupWindow {
     id: popup
-    trigger: trigger
-    popupWidth: 360
+
+    popupWidth: 380
 
     property date today: new Date()
     property int viewYear: today.getFullYear()
     property int viewMonth: today.getMonth()
-    readonly property var labelLocale: Qt.locale("en_US")
 
-    // Today again on every opening, so a panel left open across midnight -- or opened days after
-    // the shell started -- does not ring the wrong date.
-    onOpenChanged: if (open) today = new Date()
-
-    function daysInMonth(year, month) {
-        return new Date(year, month + 1, 0).getDate();
-    }
+    onOpenChanged: if (open) goToToday()
 
     function firstVisibleDate() {
         const first = new Date(viewYear, viewMonth, 1);
-        const offset = first.getDay();
-        return new Date(viewYear, viewMonth, 1 - offset);
+        return new Date(viewYear, viewMonth, 1 - first.getDay());
     }
-
     function cellDate(index) {
         const start = firstVisibleDate();
         return new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
     }
-
-    function sameDay(left, right) {
-        return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
+    function sameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
     }
-
     function moveMonth(delta) {
         const next = new Date(viewYear, viewMonth + delta, 1);
         viewYear = next.getFullYear();
         viewMonth = next.getMonth();
     }
-
     function goToToday() {
         today = new Date();
         viewYear = today.getFullYear();
@@ -52,126 +40,105 @@ HoverPopupWindow {
     }
 
     Component.onDestruction: S.PopupManager.unregister(popup)
-    Component.onCompleted: {
-        S.PopupManager.register(popup, "calendar");
-    }
-
-    onVisibleChanged: {
-        if (visible) {
-            S.PopupManager.closeOthers(popup);
-        }
-    }
+    Component.onCompleted: S.PopupManager.register(popup, "calendar")
+    onVisibleChanged: if (visible) S.PopupManager.closeOthers(popup)
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 14
+        spacing: 0
 
-        RowLayout {
-            Layout.fillWidth: true
+        Keys.onEscapePressed: popup.hidePanel()
 
-            Text {
-                text: Qt.formatDate(today, "dddd, MMMM d")
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeMedium
-                font.bold: true
-                Layout.fillWidth: true
-            }
-
-            Text {
-                text: "Today"
-                color: todayArea.containsMouse ? T.Config.accent : T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeSubtext
-
-                MouseArea {
-                    id: todayArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: popup.goToToday()
-                }
-            }
+        ReadoutHeader {
+            title: Qt.formatDate(popup.today, "dddd d MMMM").toLowerCase()
+            status: popup.viewYear === popup.today.getFullYear() && popup.viewMonth === popup.today.getMonth() ? "" : "today"
+            switchable: true
+            onStatusClicked: popup.goToToday()
         }
 
+        // ‹ month ›
         RowLayout {
             Layout.fillWidth: true
+            Layout.topMargin: 4
+            Layout.bottomMargin: 4
+            spacing: 0
 
-            Text {
-                text: "<"
-                color: previousArea.containsMouse ? T.Config.accent : T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeXLarge
-
-                MouseArea {
-                    id: previousArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: popup.moveMonth(-1)
-                }
-            }
-
-            Text {
-                text: Qt.formatDate(new Date(viewYear, viewMonth, 1), "MMMM yyyy")
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeNormal
-                font.bold: true
+            component Arrow: Text {
+                id: arrow
+                property int by: 1
+                Layout.preferredWidth: Readout.iconColumn
                 horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-            }
-
-            Text {
-                text: ">"
-                color: nextArea.containsMouse ? T.Config.accent : T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeXLarge
-
+                color: arrowMouse.containsMouse ? Readout.value : Readout.detail
+                font.pixelSize: Readout.chevronSize
+                font.family: Readout.font
                 MouseArea {
-                    id: nextArea
+                    id: arrowMouse
                     anchors.fill: parent
+                    anchors.margins: -4
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: popup.moveMonth(1)
+                    onClicked: popup.moveMonth(arrow.by)
                 }
             }
+
+            Arrow { text: "‹"; by: -1 }
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: Qt.formatDate(new Date(popup.viewYear, popup.viewMonth, 1), "MMMM yyyy").toLowerCase()
+                color: Readout.value
+                font.pixelSize: Readout.valueSize
+                font.family: Readout.font
+            }
+            Arrow { text: "›"; by: 1 }
         }
 
         GridLayout {
             Layout.fillWidth: true
+            Layout.bottomMargin: 6
             columns: 7
-            rowSpacing: 6
-            columnSpacing: 6
+            rowSpacing: 2
+            columnSpacing: 0
 
             Repeater {
-                model: ["S", "M", "T", "W", "T", "F", "S"]
-
+                model: ["s", "m", "t", "w", "t", "f", "s"]
                 delegate: Text {
-                    text: modelData
-                    color: T.Config.inactive
-                    font.pixelSize: T.Config.fontSizeSubtext
-                    font.bold: true
-                    horizontalAlignment: Text.AlignHCenter
+                    required property string modelData
                     Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
+                    text: modelData
+                    color: Readout.key
+                    font.pixelSize: Readout.detailSize
+                    font.family: Readout.font
                 }
             }
 
             Repeater {
                 model: 42
-
-                delegate: Rectangle {
-                    property date day: popup.cellDate(index)
-                    property bool currentMonth: day.getMonth() === popup.viewMonth
-                    property bool currentDay: popup.sameDay(day, popup.today)
-
+                delegate: Item {
+                    required property int index
+                    readonly property date day: popup.cellDate(index)
+                    readonly property bool inMonth: day.getMonth() === popup.viewMonth
+                    readonly property bool isToday: popup.sameDay(day, popup.today)
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 34
-                    radius: 999
-                    antialiasing: true
-                    color: currentDay ? T.Config.accentLightShade : "transparent"
+                    implicitHeight: Readout.rowHeight
 
                     Text {
+                        id: number
                         anchors.centerIn: parent
-                        text: day.getDate()
-                        color: currentDay ? T.Config.accent : currentMonth ? T.Config.surfaceText : T.Config.inactive
-                        font.pixelSize: T.Config.fontSizeNormal
-                        font.bold: currentDay
+                        text: parent.day.getDate()
+                        color: parent.isToday ? Readout.value : parent.inMonth ? Readout.value : Readout.segmentOff
+                        font.pixelSize: Readout.valueSize
+                        font.family: Readout.font
+                        font.bold: parent.isToday
+                    }
+                    Rectangle {
+                        visible: parent.isToday
+                        anchors.top: number.bottom
+                        anchors.horizontalCenter: number.horizontalCenter
+                        width: number.width + 4
+                        height: Readout.tick
+                        color: Readout.accent
                     }
                 }
             }

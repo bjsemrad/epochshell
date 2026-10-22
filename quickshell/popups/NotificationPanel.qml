@@ -1,139 +1,147 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
+// Notifications in the Readout design: one row each -- the app's icon, the summary, how long ago
+// -- with the body under only the newest (or any you click open). A click on the summary goes to
+// the app; the status clears one on hover. Do-not-disturb is the header's switch.
 HoverPopupWindow {
-    id: notificationPopup
-    trigger: trigger
-    popupWidth: T.Config.systemTrayPopupWidth + 120
+    id: panel
 
-    property int scrollBarPadding: 14
+    popupWidth: 460
+
+    // Which notifications have their body shown, by id, beyond the newest.
+    property var expanded: ({})
+
+    Component.onDestruction: S.PopupManager.unregister(panel)
+    Component.onCompleted: S.PopupManager.register(panel, "notifications")
 
     onVisibleChanged: {
         if (visible) {
-            S.PopupManager.closeOthers(notificationPopup);
+            S.PopupManager.closeOthers(panel);
             S.Notifications.markRead();
+        } else {
+            expanded = ({});
         }
     }
 
-    Component.onDestruction: S.PopupManager.unregister(notificationPopup)
-    Component.onCompleted: S.PopupManager.register(notificationPopup, "notifications")
-
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: T.Config.settingsHeaderHeight
-        spacing: T.Config.layoutMarginSmall
-
-        Text {
-            text: "Notifications"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.bold: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-        }
-
-        // Do not disturb: the bell crossed out and lit in the accent while it is on.
-        IconButton {
-            icon: S.Notifications.doNotDisturb ? "󰂛" : "󰂚"
-            iconColor: S.Notifications.doNotDisturb ? T.Config.accent : T.Config.surfaceText
-            onClicked: S.Notifications.toggleDoNotDisturb()
-        }
-
-        PanelHeaderIcon {
-            iconText: "󰎟"
-            function onClick() {
-                S.Notifications.clearHistory();
-            }
-        }
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
     }
 
-    ComponentSplitter {}
+    function iconSourceOf(icon) {
+        const value = String(icon || "");
+        if (value.length === 0) return "";
+        if (value.startsWith("file:") || value.startsWith("http") || value.startsWith("data:") || value.startsWith("image:")) return value;
+        if (value.startsWith("/")) return "file://" + value;
+        return Quickshell.iconPath(value, true);
+    }
+    function ago(timestamp) {
+        const minutes = Math.max(0, Math.round((clock.date.getTime() - timestamp) / 60000));
+        if (minutes < 1) return "now";
+        if (minutes < 60) return minutes + "m";
+        return Math.round(minutes / 60) + "h";
+    }
+    function plain(text) {
+        return String(text || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+    }
 
-    // Nothing here: said quietly, with the bell, in the middle.
     ColumnLayout {
-        visible: S.Notifications.historyModel.count === 0
-        Layout.alignment: Qt.AlignHCenter
-        Layout.topMargin: T.Config.popupPadding * 2
-        Layout.bottomMargin: T.Config.popupPadding * 2
-        spacing: 4
-
-        Text {
-            text: S.Notifications.doNotDisturb ? "󰂛" : "󰂚"
-            color: T.Config.outline
-            font.pixelSize: T.Config.fontSizeXLarge
-            font.family: T.Config.fontFamily
-            Layout.alignment: Qt.AlignHCenter
-        }
-
-        Text {
-            text: S.Notifications.doNotDisturb ? "Do not disturb is on" : "No notifications"
-            color: T.Config.inactive
-            font.pixelSize: T.Config.fontSizeNormal
-            Layout.alignment: Qt.AlignHCenter
-        }
-    }
-
-    ListView {
-        id: notificationList
-        visible: S.Notifications.historyModel.count > 0
         Layout.fillWidth: true
-        implicitHeight: Math.min(contentHeight, Screen.height * 0.75)
-        clip: true
-        model: S.Notifications.historyModel
-        spacing: T.Config.popupLayoutSpacing
-        boundsBehavior: Flickable.StopAtBounds
+        spacing: 0
 
-        footer: Item {
-            width: notificationList.width
-            height: T.Config.popupPadding * 2
+        Keys.onEscapePressed: panel.hidePanel()
+
+        ReadoutHeader {
+            title: "notifications"
+            status: "do not disturb"
+            active: S.Notifications.doNotDisturb
+            hasSwitch: true
+            checked: S.Notifications.doNotDisturb
+            onToggled: S.Notifications.toggleDoNotDisturb()
         }
 
-        delegate: Item {
-            id: historySlot
-            required property int notificationId
-            required property string appName
-            required property string appIcon
-            required property string windowClass
-            required property string summary
-            required property string body
-            required property string image
-            required property int urgency
-            required property int index
+        ReadoutText {
+            visible: S.Notifications.historyModel.count === 0
+            text: S.Notifications.doNotDisturb ? "do not disturb is on" : "nothing new"
+        }
 
-            width: notificationList.width - notificationPopup.scrollBarPadding
-            height: card.implicitHeight
+        Flickable {
+            visible: S.Notifications.historyModel.count > 0
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.min(list.implicitHeight, 420)
+            contentWidth: width
+            contentHeight: list.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
 
-            NotificationCard {
-                id: card
+            ColumnLayout {
+                id: list
                 width: parent.width
-                appName: historySlot.appName
-                appIcon: historySlot.appIcon
-                summary: historySlot.summary
-                body: historySlot.body
-                image: historySlot.image
-                urgency: historySlot.urgency
-                embedded: true
-                closeVisible: true
-                onClicked: S.Notifications.focusFromHistory(historySlot.notificationId, historySlot.appName, historySlot.index, historySlot.windowClass)
-                onDismissRequested: S.Notifications.dismissHistory(historySlot.index)
+                spacing: 0
+
+                Repeater {
+                    model: S.Notifications.historyModel
+                    delegate: ColumnLayout {
+                        id: item
+                        required property int index
+                        required property int notificationId
+                        required property string appName
+                        required property string appIcon
+                        required property string windowClass
+                        required property string summary
+                        required property string body
+                        required property string image
+                        required property int urgency
+                        required property real timestamp
+                        readonly property bool open: index === 0 || panel.expanded[notificationId] === true
+                        readonly property string bodyText: panel.plain(body)
+                        Layout.fillWidth: true
+                        spacing: 0
+
+                        ReadoutRow {
+                            iconSource: panel.iconSourceOf(item.image.length > 0 ? item.image : item.appIcon)
+                            icon: "󰂚"
+                            value: item.summary.length > 0 ? item.summary : item.appName
+                            detail: item.summary.length > 0 ? item.appName : ""
+                            status: panel.ago(item.timestamp)
+                            statusColor: item.urgency === 2 ? Readout.danger : Readout.detail
+                            hoverStatus: "dismiss · right-click"
+                            active: item.urgency === 2
+                            onClicked: {
+                                if (!item.open && item.bodyText.length > 0) {
+                                    const next = Object.assign({}, panel.expanded);
+                                    next[item.notificationId] = true;
+                                    panel.expanded = next;
+                                    return;
+                                }
+                                S.Notifications.focusFromHistory(item.notificationId, item.appName, item.index, item.windowClass);
+                            }
+                            onSecondaryClicked: S.Notifications.dismissHistory(item.index)
+                        }
+                        ReadoutText {
+                            visible: item.open && item.bodyText.length > 0
+                            Layout.leftMargin: Readout.iconColumn + 12
+                            Layout.bottomMargin: 6
+                            text: item.bodyText
+                            maximumLineCount: 4
+                            elide: Text.ElideRight
+                        }
+                    }
+                }
             }
         }
 
-        ScrollBar.vertical: ScrollBar {
-            policy: notificationList.contentHeight > notificationList.height ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
-            contentItem: Rectangle {
-                implicitWidth: 3
-                radius: 3
-                antialiasing: true
-                color: T.Config.surfaceText
-            }
+        ReadoutDivider { visible: S.Notifications.historyModel.count > 0 }
+        ReadoutRow {
+            visible: S.Notifications.historyModel.count > 0
+            icon: "󰎟"
+            value: "clear all"
+            onClicked: S.Notifications.clearHistory()
         }
     }
-
-    ComponentSpacer { bottomMargin: 6 }
 }

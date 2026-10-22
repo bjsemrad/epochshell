@@ -1,107 +1,85 @@
-import Quickshell
 import QtQuick
 import QtQuick.Layouts
 import qs.commonwidgets
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
 
-// Firmware waiting to be installed.
-//
-// The panel lists what fwupd is offering and hands the job to fwupd: "Install updates" opens
-// `fwupdmgr update` in a terminal, because it asks for a password, prints what it is about to
-// write, and often ends by asking for a reboot. A shell panel is the wrong place for any of that.
+// Firmware in the Readout design, the same shape as Nix: the machine, each update waiting, and the
+// actions.
 HoverPopupWindow {
-    id: firmwarePopup
-    trigger: trigger
-    popupWidth: T.Config.nixPopupWidth
+    id: panel
+
+    popupWidth: 460
+
+    Component.onDestruction: S.PopupManager.unregister(panel)
+    Component.onCompleted: S.PopupManager.register(panel, "firmware")
 
     onVisibleChanged: {
         if (visible) {
             S.SystemInfo.refreshFirmware(false);
-            S.PopupManager.closeOthers(firmwarePopup);
+            S.PopupManager.closeOthers(panel);
         }
     }
-
-    Component.onDestruction: S.PopupManager.unregister(firmwarePopup)
-    Component.onCompleted: S.PopupManager.register(firmwarePopup, "firmware")
-
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: T.Config.settingsHeaderHeight
-        spacing: T.Config.layoutMarginSmall
-
-        Text {
-            text: "Firmware"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.bold: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-        }
-    }
-
-    StatusCard {
-        icon: S.SystemInfo.firmwareIcon
-        active: S.SystemInfo.hasFirmwareUpdates
-        problem: !S.SystemInfo.firmwareAvailable
-        title: {
-            const count = S.SystemInfo.firmwareUpdates.length;
-            if (!S.SystemInfo.firmwareAvailable) return "fwupd is not available";
-            if (count === 0) return "Everything is up to date";
-            return count === 1 ? "1 update waiting" : (count + " updates waiting");
-        }
-        subtitle: [S.SystemInfo.vendor, S.SystemInfo.product].filter(x => x && x.length > 0).join(" ")
-        detail: S.SystemInfo.biosVersion.length > 0 ? "BIOS " + S.SystemInfo.biosVersion : ""
-    }
-
-    ComponentSplitter {}
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 2
+        spacing: 0
 
-        SectionLabel {
-            visible: S.SystemInfo.firmwareUpdates.length > 0
-            text: "Updates"
+        Keys.onEscapePressed: panel.hidePanel()
+
+        ReadoutHeader {
+            title: "firmware"
+            status: !S.SystemInfo.firmwareAvailable ? "unavailable" : S.SystemInfo.hasFirmwareUpdates ? "update" : "current"
+            active: S.SystemInfo.hasFirmwareUpdates
+        }
+        ReadoutKeyRow {
+            visible: text.length > 0
+            key: "machine"
+            text: [S.SystemInfo.vendor, S.SystemInfo.product].filter(x => x && x.length > 0).join(" ")
+        }
+        ReadoutKeyRow {
+            visible: S.SystemInfo.biosVersion.length > 0
+            key: "bios"
+            text: S.SystemInfo.biosVersion
+        }
+        ReadoutText {
+            visible: !S.SystemInfo.firmwareAvailable
+            text: "fwupd is not available"
         }
 
+        ReadoutSection {
+            visible: S.SystemInfo.firmwareUpdates.length > 0
+            text: "updates"
+        }
         Repeater {
             model: S.SystemInfo.firmwareUpdates
-
-            delegate: ListRow {
+            delegate: ReadoutRow {
                 required property var modelData
-                icon: "󰍛"
-                title: String(modelData.name || "")
-                subtitle: String(modelData.current || "?") + " → " + String(modelData.available || "?")
-                clickable: false
+                icon: S.SystemInfo.firmwareIcon
+                value: String(modelData.name || "")
+                detail: String(modelData.current || "?") + " → " + String(modelData.available || "?")
+                status: "behind"
+                active: true
+                interactive: false
             }
         }
-    }
 
-    ComponentSplitter {}
+        ReadoutDivider {}
 
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: 4
-
-        SystemAction {
+        ReadoutRow {
             icon: "󰑐"
-            description: "Check again"
-            function onClick() {
-                S.SystemInfo.refreshFirmware(true);
-            }
+            value: "check again"
+            onClicked: S.SystemInfo.refreshFirmware(true)
         }
-
-        SystemAction {
-            icon: "󰚰"
-            description: "Install updates"
+        ReadoutRow {
             visible: S.SystemInfo.hasFirmwareUpdates
-            function onClick() {
+            icon: "󰚰"
+            value: "install updates"
+            active: true
+            onClicked: {
                 S.PopupManager.closeAll();
                 S.SystemInfo.updateFirmware();
             }
         }
     }
-
-    ComponentSpacer { bottomMargin: 6; Layout.preferredHeight: 1 }
 }

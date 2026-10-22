@@ -122,18 +122,48 @@ PanelWindow {
 
                     SegmentedSetting {
                         label: "Style"
-                        current: ["floating", "islands", "centered"].indexOf(T.Config.barStyle) >= 0 ? T.Config.barStyle : "full"
+                        current: ["floating", "centered"].indexOf(T.Config.barStyle) >= 0 ? T.Config.barStyle : "full"
                         options: [
                             { value: "full", label: "Full" },
                             { value: "floating", label: "Floating" },
-                            { value: "islands", label: "Islands" },
                             { value: "centered", label: "Centered" }
                         ]
                         onPicked: value => root.choose("barStyle", value)
                     }
 
+                    // Centered only: hanging from the top edge, or floating like the others.
+                    RowLayout {
+                        visible: T.Config.barCentered
+                        Layout.fillWidth: true
+                        spacing: T.Config.layoutMarginSmall
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+
+                            Text {
+                                text: "Ledge"
+                                color: T.Config.surfaceText
+                                font.pixelSize: T.Config.fontSizeNormal
+                            }
+
+                            Text {
+                                text: "Hang from the top edge instead of floating"
+                                color: T.Config.outline
+                                font.pixelSize: T.Config.fontSizeSubtext
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        RoundedSwitch {
+                            checked: T.Config.barLedge
+                            onToggled: requested => root.choose("barLedge", requested)
+                        }
+                    }
+
                     SettingSlider {
-                        visible: T.Config.barFloating
+                        visible: T.Config.barFloating && !T.Config.barIsLedge
                         label: "Top gap"
                         hint: "From the top of the screen"
                         from: 0
@@ -169,11 +199,11 @@ PanelWindow {
 
                     SegmentedSetting {
                         label: "Workspaces"
-                        current: T.Config.workspaceStyle === "plain" || T.Config.workspaceStyle === "bubble" ? T.Config.workspaceStyle : "pill"
+                        current: ["plain", "ledge"].indexOf(T.Config.workspaceStyle) >= 0 ? T.Config.workspaceStyle : "pill"
                         options: [
                             { value: "pill", label: "Pills" },
-                            { value: "bubble", label: "Bubbles" },
-                            { value: "plain", label: "Plain" }
+                            { value: "plain", label: "Plain" },
+                            { value: "ledge", label: "Ledge" }
                         ]
                         onPicked: value => root.choose("workspaceStyle", value)
                     }

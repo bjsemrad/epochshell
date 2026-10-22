@@ -1,189 +1,137 @@
-import Quickshell
-import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Io
 import qs.commonwidgets
-import qs.modules.capture
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
 
-// The capture drawer panel: pick what to photograph, and say what should happen to it.
-//
-// Every action closes the panel on its way out. A screenshot of the screenshot panel is not a
-// screenshot anyone wanted, and the delay that covers the compositor's next frame is applied in
-// the Capture service rather than here.
+// Capture in the Readout design: what to take and how to keep it as key rows, then the one action.
+// Text (OCR) is offered for a region, which is what reading text needs.
 HoverPopupWindow {
-    id: capturePopup
-    trigger: trigger
-    popupWidth: T.Config.capturePopupWidth
+    id: panel
 
-    // Where shots land and whether this compositor can hand over a window rectangle can both
-    // change under a running shell -- a compositor restart is enough -- so they are asked for
-    // when the panel opens rather than once at startup.
+    popupWidth: 420
+
+    // "region", "window", "pick", "screen", "all".
+    property string target: "region"
+    property bool readText: false
+
+    Component.onDestruction: S.PopupManager.unregister(panel)
+    Component.onCompleted: S.PopupManager.register(panel, "capture")
+
     onVisibleChanged: {
         if (visible) {
             S.Capture.refresh();
-            S.PopupManager.closeOthers(capturePopup);
+            S.PopupManager.closeOthers(panel);
         }
     }
-
-    Component.onDestruction: S.PopupManager.unregister(capturePopup)
-    Component.onCompleted: S.PopupManager.register(capturePopup, "capture")
 
     Process {
         id: openFolder
     }
 
-    // Header
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: T.Config.settingsHeaderHeight
-        spacing: T.Config.layoutMarginSmall
+    readonly property var modes: ({
+        "region": ["region", false],
+        "window": ["window", false],
+        "pick": ["window", true],
+        "screen": ["fullscreen", false],
+        "all": ["all", false]
+    })
+    readonly property bool ocr: readText && target === "region" && S.Capture.ocrAvailable
 
-        Text {
-            text: "Capture"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.bold: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-        }
+    function go() {
+        const mode = modes[target] || modes.region;
+        if (ocr) S.Capture.readText(mode[0], mode[1]);
+        else S.Capture.shoot(mode[0], mode[1]);
     }
-
-    // What just happened, or what is stopping it from happening.
-    Text {
-        Layout.fillWidth: true
-        visible: text.length > 0
-        text: {
-            if (S.Capture.backendError.length > 0) return S.Capture.backendError;
-            if (!S.Capture.available && S.Capture.unavailableReason.length > 0) return S.Capture.unavailableReason;
-            if (S.Capture.status.length > 0) return S.Capture.status;
-            // Rows that hide themselves leave no trace, so the one thing missing is named here.
-            if (!S.Capture.ocrAvailable) return "tesseract is not installed, so text capture is off";
-            return "";
-        }
-        color: (S.Capture.backendError.length > 0 || !S.Capture.available) ? T.Config.red : T.Config.outline
-        font.pixelSize: T.Config.fontSizeSubtext
-        elide: Text.ElideRight
-        Layout.rightMargin: T.Config.systemActionSpacing
-    }
-
-    ComponentSplitter {}
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 4
+        spacing: 0
 
-        SystemAction {
-            icon: "󰆞"
-            description: "Region"
-            function onClick() {
-                S.Capture.shoot("region", false);
+        Keys.onEscapePressed: panel.hidePanel()
+
+        ReadoutHeader {
+            title: "capture"
+            status: S.Capture.busy ? "busy…" : ""
+        }
+        ReadoutText {
+            visible: text.length > 0
+            text: {
+                if (S.Capture.backendError.length > 0) return S.Capture.backendError.toLowerCase();
+                if (!S.Capture.available && S.Capture.unavailableReason.length > 0) return S.Capture.unavailableReason.toLowerCase();
+                return S.Capture.status.toLowerCase();
             }
         }
 
-        SystemAction {
-            icon: "󰖯"
-            description: "Focused window"
-            visible: S.Capture.windowCapture
-            function onClick() {
-                S.Capture.shoot("window", false);
+        ReadoutKeyRow {
+            key: "target"
+            ReadoutChoice {
+                options: S.Capture.windowCapture ? ["region", "window", "pick", "screen", "all"] : ["region", "screen", "all"]
+                current: panel.target
+                onPicked: v => panel.target = v
+            }
+        }
+        ReadoutKeyRow {
+            visible: S.Capture.ocrAvailable && panel.target === "region"
+            key: "text"
+            ReadoutSwitch {
+                checked: panel.readText
+                onToggled: panel.readText = !panel.readText
+            }
+        }
+        ReadoutKeyRow {
+            key: "clipboard"
+            ReadoutSwitch {
+                checked: S.Capture.copyToClipboard
+                onToggled: S.Capture.setCopyToClipboard(!S.Capture.copyToClipboard)
+            }
+        }
+        ReadoutKeyRow {
+            visible: !panel.ocr
+            key: "save"
+            ReadoutSwitch {
+                checked: S.Capture.saveToDisk
+                onToggled: S.Capture.setSaveToDisk(!S.Capture.saveToDisk)
+            }
+        }
+        ReadoutKeyRow {
+            visible: !panel.ocr
+            key: "pointer"
+            ReadoutSwitch {
+                checked: S.Capture.includeCursor
+                onToggled: S.Capture.setIncludeCursor(!S.Capture.includeCursor)
+            }
+        }
+        ReadoutKeyRow {
+            visible: S.Capture.annotateAvailable && !panel.ocr
+            key: "annotate"
+            ReadoutSwitch {
+                checked: S.Capture.annotate
+                onToggled: S.Capture.setAnnotate(!S.Capture.annotate)
             }
         }
 
-        SystemAction {
-            icon: "󰆟"
-            description: "Pick a window"
-            visible: S.Capture.windowCapture
-            function onClick() {
-                S.Capture.shoot("window", true);
-            }
+        ReadoutDivider {}
+
+        ReadoutRow {
+            icon: panel.ocr ? "󰈙" : S.Capture.icon
+            value: panel.ocr ? "read text" : "capture"
+            status: "↵"
+            active: true
+            interactive: !S.Capture.busy
+            onClicked: panel.go()
         }
-
-        SystemAction {
-            icon: "󰍹"
-            description: "This monitor"
-            function onClick() {
-                S.Capture.shoot("fullscreen", false);
-            }
-        }
-
-        SystemAction {
-            icon: "󰍺"
-            description: "All monitors"
-            function onClick() {
-                S.Capture.shoot("all", false);
-            }
-        }
-
-        // Reading text is a capture like the others, so it sits with them rather than in a
-        // section of its own. It needs tesseract, which the status query reports on.
-        SystemAction {
-            icon: "󰈙"
-            description: "Text from region"
-            visible: S.Capture.ocrAvailable
-            function onClick() {
-                S.Capture.readText("region", false);
-            }
-        }
-    }
-
-    ComponentSplitter {}
-
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: T.Config.layoutMarginSmall
-
-        ToggleRow {
-            label: "Copy to clipboard"
-            checkedValue: S.Capture.copyToClipboard
-            function handleToggled(checked) {
-                S.Capture.setCopyToClipboard(checked);
-            }
-        }
-
-        ToggleRow {
-            label: "Save to file"
-            hint: S.Capture.directory
-            checkedValue: S.Capture.saveToDisk
-            function handleToggled(checked) {
-                S.Capture.setSaveToDisk(checked);
-            }
-        }
-
-        ToggleRow {
-            label: "Include pointer"
-            checkedValue: S.Capture.includeCursor
-            function handleToggled(checked) {
-                S.Capture.setIncludeCursor(checked);
-            }
-        }
-
-        // Annotate first: the shot opens in satty, and Enter there copies and saves it as the
-        // switches above say.
-        ToggleRow {
-            visible: S.Capture.annotateAvailable
-            label: "Annotate"
-            hint: "Open in satty before keeping it"
-            checkedValue: S.Capture.annotate
-            function handleToggled(checked) {
-                S.Capture.setAnnotate(checked);
+        ReadoutRow {
+            visible: S.Capture.directory.length > 0
+            icon: "󰉋"
+            value: "open folder"
+            detail: S.Capture.directory
+            onClicked: {
+                S.PopupManager.closeAll();
+                openFolder.command = ["xdg-open", S.Capture.directory];
+                openFolder.running = true;
             }
         }
     }
-
-    ComponentSplitter {}
-
-    SystemAction {
-        icon: "󰉋"
-        description: "Open folder"
-        function onClick() {
-            if (S.Capture.directory.length === 0) return;
-            S.PopupManager.closeAll();
-            openFolder.command = ["xdg-open", S.Capture.directory];
-            openFolder.running = true;
-        }
-    }
-
-    ComponentSpacer { bottomMargin: 6; Layout.preferredHeight: 1 }
 }

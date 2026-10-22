@@ -201,7 +201,7 @@ Singleton {
             });
         }
         tail.peers = arr;
-        measureWidths();
+
     }
 
     function formatBytes(size) {
@@ -330,35 +330,6 @@ Singleton {
                     tail.finishRequest();
                 }
             }
-        }
-    }
-
-    property real colHostWidth: 0
-    property real colIpWidth: 0
-    property real colDnsWidth: 0
-
-    function measureWidths() {
-        var maxH = 0, maxI = 0, maxD = 0;
-
-        for (let i = 0; i < peers.length; i++) {
-            const p = peers[i];
-            maxH = Math.max(maxH, metrics.widthOf(p.hostName || ""));
-            maxI = Math.max(maxI, metrics.widthOf(p.ip || ""));
-            maxD = Math.max(maxD, metrics.widthOf(p.dnsName || ""));
-        }
-
-        colHostWidth = maxH + 12;
-        colIpWidth = maxI + 12;
-        colDnsWidth = maxD + 12;
-    }
-
-    TextMetrics {
-        id: metrics
-        font.pixelSize: T.Config.tailscalePeersFontSize
-
-        function widthOf(str) {
-            text = str;
-            return advanceWidth;
         }
     }
 }

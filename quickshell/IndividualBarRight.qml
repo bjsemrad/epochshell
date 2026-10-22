@@ -32,7 +32,10 @@ RowLayout {
         property bool expanded: false
         property bool menuOpen: false
         property bool hovered: hoverHandler.hovered
-        readonly property bool servicePopupOpen: (homeAssistantPanel.open && homeAssistantPanel.visible) || (capturePanel.open && capturePanel.visible) || (recordPanel.open && recordPanel.visible) || (alertItems.item !== null && alertItems.item.panelOpen)
+        readonly property bool servicePopupOpen: drawer.shown(homeAssistantPanel) || drawer.shown(capturePanel) || drawer.shown(recordPanel) || (alertItems.item !== null && alertItems.item.panelOpen)
+        function shown(panel) {
+            return panel !== null && panel !== undefined && panel.open && panel.visible;
+        }
 
         readonly property int drawerSpacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
         // Compact (T.Config.barCompact), no drawer at all: the alerts are a dot on the capsule and
@@ -322,7 +325,12 @@ RowLayout {
             implicitHeight: T.Config.barIconSize + T.Config.barModuleVerticalPadding
             radius: T.Config.popupRadius
             antialiasing: true
-            color: compactDashboard.open || capsuleMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
+            // On the ledge, no pill: a filled chip on a shape that otherwise has none reads as a
+            // stray button. Hover brightens its text instead, as the workspace numbers do, and the
+            // panel itself says it is open.
+            readonly property bool chipless: T.Config.barIsLedge
+            readonly property bool lit: chipless && capsuleMouse.containsMouse
+            color: !chipless && ((capsule.dashboard && capsule.dashboard.open) || capsuleMouse.containsMouse) ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
 
             SystemClock {
                 id: capsuleClock
@@ -339,16 +347,16 @@ RowLayout {
                 Text {
                     text: S.Network.currentNetworkIcon
                     visible: text.length > 0
-                    color: T.Config.inactive
-                    font.pixelSize: T.Config.barIconSize - 2
+                    color: capsule.lit ? T.Config.active : T.Config.inactive
+                    font.pixelSize: T.Config.barSmallIconSize
                     font.family: T.Config.fontFamily
                     Layout.alignment: Qt.AlignVCenter
                 }
                 Text {
                     text: S.BatteryService.batteryIcon()
                     visible: S.BatteryService.hasBattery
-                    color: T.Config.inactive
-                    font.pixelSize: T.Config.barIconSize - 2
+                    color: capsule.lit ? T.Config.active : T.Config.inactive
+                    font.pixelSize: T.Config.barSmallIconSize
                     font.family: T.Config.fontFamily
                     Layout.alignment: Qt.AlignVCenter
                 }
@@ -356,7 +364,7 @@ RowLayout {
                 Text {
                     // Unpadded, as the full bar's clock and the lock screen have it.
                     text: Qt.formatDateTime(capsuleClock.date, "h:mm AP")
-                    color: T.Config.surfaceText
+                    color: capsule.lit ? T.Config.active : T.Config.surfaceText
                     font.pixelSize: T.Config.barClockSize
                     font.family: T.Config.fontFamily
                     font.weight: Font.Medium
@@ -369,7 +377,7 @@ RowLayout {
             // notifications. A badge on the capsule's corner, as on an app icon; which, and the way
             // to each, are in the menu.
             Rectangle {
-                visible: compactDashboard.needsAttention
+                visible: capsule.dashboard !== null && capsule.dashboard.needsAttention
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.rightMargin: 2
@@ -387,18 +395,22 @@ RowLayout {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    if (compactDashboard.open) {
-                        compactDashboard.hidePanel();
+                    const dashboard = capsule.dashboard;
+                    if (!dashboard) return;
+                    if (dashboard.open) {
+                        dashboard.hidePanel();
                     } else {
-                        S.PopupManager.closeOthers(compactDashboard);
-                        compactDashboard.page = "main";
-                        compactDashboard.showPanel();
+                        S.PopupManager.closeOthers(dashboard);
+                        dashboard.page = "main";
+                        dashboard.showPanel();
                     }
                 }
             }
 
+            // Quick settings.
+            readonly property var dashboard: dashboardPanel
             DashboardPanel {
-                id: compactDashboard
+                id: dashboardPanel
                 trigger: capsule
             }
 
@@ -445,13 +457,13 @@ RowLayout {
                 popup: systemPanelPopup
             }
 
-            WifiNetworkPanel {
+            WifiPanel {
                 id: wifiNetworkPanel
                 trigger: wifiNet
             }
-            EthernetNetworkPanel {
+            EthernetPanel {
                 id: ethernetNetworkPanel
-                trigger: ethNet
+                    trigger: ethNet
             }
             BluetoothPanel {
                 id: bluetoothPanel
@@ -459,7 +471,7 @@ RowLayout {
             }
             AudioPanel {
                 id: audioPanel
-                trigger: vol
+                    trigger: vol
             }
             BatteryPanel {
                 id: batteryPanel
@@ -467,7 +479,7 @@ RowLayout {
             }
             SystemMenuPanel {
                 id: systemPanelPopup
-                trigger: systemOptions
+                    trigger: systemOptions
             }
             NotificationPanel {
                 id: notificationPanel

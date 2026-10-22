@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
+import QtQuick.Effects
 import qs.theme as T
 import qs.services as S
 
@@ -18,12 +19,14 @@ Rectangle {
 
     property int padding: 7
     property int verticalPadding: 10
-    readonly property bool bubbles: T.Config.workspaceStyle !== "plain"
-    // The pill style, the default: the bubble, with the number inside it at the bar's size instead
-    // of in a badge.
-    readonly property bool numberInside: T.Config.workspaceStyle !== "bubble"
+    // The ledge style: no boxes, a mono number and quiet icons, an accent tick under the current
+    // workspace on the bar's bottom edge. A path of its own below, not folded into the others.
+    readonly property bool ledgeStyle: T.Config.workspaceStyle === "ledge"
+    // The pill style, the default: each workspace a ringed pill holding its number and its icons.
+    readonly property bool pills: T.Config.workspaceStyle !== "plain" && !ledgeStyle
 
-    implicitHeight: inner.implicitHeight + verticalPadding
+    // The ledge style takes the bar's whole height, so the tick can sit on the bar's bottom edge.
+    implicitHeight: ledgeStyle ? T.Config.barHeight : inner.implicitHeight + verticalPadding
     implicitWidth: inner.implicitWidth + padding * 2
 
     // Nothing to show until EpochOxide has answered; the strip collapses rather than holding
@@ -32,7 +35,7 @@ Rectangle {
 
     RowLayout {
         id: inner
-        spacing: workspaceFrame.bubbles ? 6 : padding / 2
+        spacing: workspaceFrame.ledgeStyle ? T.Config.barModuleSpacing : workspaceFrame.pills ? 6 : padding / 2
         anchors.centerIn: parent
 
         Repeater {
@@ -51,9 +54,10 @@ Rectangle {
 
                 // An empty, inactive workspace is not worth a slot in the bar.
                 visible: !T.Config.hideInactiveWorkspaces || active || occupied
-                readonly property bool bubbled: workspaceFrame.bubbles
-                Layout.preferredWidth: !visible ? 0 : bubbled ? bubble.width : innerRow.implicitWidth + padding * 2
-                Layout.preferredHeight: !visible ? 0 : bubbled ? bubble.height : innerRow.implicitHeight + verticalPadding / 2
+                readonly property bool pilled: workspaceFrame.pills
+                readonly property bool ledged: workspaceFrame.ledgeStyle
+                Layout.preferredWidth: !visible ? 0 : ledged ? ledgeRow.implicitWidth : pilled ? pill.width : innerRow.implicitWidth + padding * 2
+                Layout.preferredHeight: !visible ? 0 : ledged ? T.Config.barHeight : pilled ? pill.height : innerRow.implicitHeight + verticalPadding / 2
 
                 // No pill for the active workspace. The one it had was surfaceContainer, which is
                 // the exact colour every bar icon paints on hover -- so the active workspace read
@@ -64,13 +68,13 @@ Rectangle {
                 // Deliberately not the accent. A colour here would be the brightest thing on the
                 // bar and would pull the eye every time focus moved, which is a lot of noise for
                 // something you already know you just did.
-                color: !bubbled && mwrap.containsMouse ? T.Config.onBar(T.Config.activeSelection) : "transparent"
+                color: !pilled && !ledged && mwrap.containsMouse ? T.Config.onBar(T.Config.activeSelection) : "transparent"
                 radius: 10
                 antialiasing: true
 
                 WrapperMouseArea {
                     id: mwrap
-                    visible: !workspaceWrapper.bubbled
+                    visible: !workspaceWrapper.pilled && !workspaceWrapper.ledged
                     anchors.centerIn: parent
                     implicitWidth: visible ? innerRow.implicitWidth : 0
                     implicitHeight: visible ? innerRow.implicitHeight : 0
@@ -109,46 +113,24 @@ Rectangle {
                     }
                 }
 
-                // --- The bubble and pill styles --------------------------------------------------
-                // A ringed circle holding the workspace's window, the number in a badge over its
-                // top-left edge -- stretching into an oval to hold every window when there is more
-                // than one, the focused one at full strength and the rest dimmed, as the plain
-                // style shows them. Sized so the badge stays inside the bar.
-                //
-                // The pill style puts the number inside instead, ahead of the icons and at the
-                // bar's own text size: no badge, so nothing small to read.
+                // --- The pill style ----------------------------------------------------------------
+                // A ringed pill holding the number at the bar's own text size and then the
+                // workspace's windows, the focused one at full strength and the rest dimmed, as the
+                // plain style shows them. A square for an empty workspace or a lone window.
                 Item {
-                    id: bubble
-                    visible: workspaceWrapper.bubbled
+                    id: pill
+                    visible: workspaceWrapper.pilled
                     anchors.centerIn: parent
                     readonly property int diameter: T.Config.barHeight - 14
-                    readonly property int badge: Math.round(diameter * 0.72)
                     readonly property int iconSize: Math.round(diameter * 0.58)
                     readonly property int iconSpacing: 6
                     readonly property var shownWindows: T.Config.workspaceIcons ? workspaceWrapper.windows : []
-                    // A circle for none or one. Stretched for more, it pads its icons in from the
-                    // round ends by about half its height, or they crowd into the curve.
+                    // Padding in from the ends, about half the height, or the icons crowd the corners.
                     readonly property int sidePadding: Math.round(diameter * 0.45)
-                    readonly property bool numberInside: workspaceFrame.numberInside
                     readonly property int iconsWidth: shownWindows.length * iconSize + Math.max(0, shownWindows.length - 1) * iconSpacing
-                    // Everything inside: the icons, and in the pill style the number ahead of them.
-                    readonly property int itemCount: shownWindows.length + (numberInside ? 1 : 0)
-                    readonly property int innerWidth: numberInside
-                        ? number.implicitWidth + (shownWindows.length > 0 ? iconSpacing + iconsWidth : 0)
-                        : iconsWidth
-                    readonly property int pillWidth: itemCount <= 1 ? diameter : innerWidth + sidePadding * 2
-                    // The badge hangs mostly outside the bubble's top-left, far enough out that its
-                    // disc stays clear of the icon's corner and only crosses the bubble's ring.
-                    // With the number inside there is no badge, and the bubble is all there is.
-                    //
-                    // The circle stays on the bar's centre line, with the same room above and below
-                    // it, so the badge only rises into the space above the circle. Grown by the
-                    // badge's height instead, as it first was, the circle sat low: 11px of bar above
-                    // it and 2px below.
-                    readonly property int badgeRise: numberInside ? 0
-                        : Math.min(Math.round(badge * 0.45), Math.floor((T.Config.barHeight - diameter) / 2) - 1)
-                    width: pillWidth + (numberInside ? 0 : Math.round(badge * 0.85))
-                    height: diameter + badgeRise * 2
+                    readonly property int innerWidth: number.implicitWidth + (shownWindows.length > 0 ? iconSpacing + iconsWidth : 0)
+                    width: shownWindows.length === 0 ? diameter : innerWidth + sidePadding * 2
+                    height: diameter
                     // Only the current workspace's ring stands out. The others are a hint of a
                     // boundary, close to the bar's own colour -- a row of strong outlines on a
                     // strip that is always on screen is busy, and the ring's job there is only to
@@ -157,27 +139,22 @@ Rectangle {
                         : workspaceWrapper.active ? T.Config.accent : T.Config.surfaceVariant
 
                     Rectangle {
-                        id: circle
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: bubble.pillWidth
-                        height: bubble.diameter
-                        // In the pill style, the rounded rectangle every selection and row in the
-                        // shell is drawn with, rather than a capsule; the bubble style stays round.
-                        radius: bubble.numberInside ? Math.min(height / 2, T.Config.cardRadius) : height / 2
+                        anchors.fill: parent
+                        // The rounded rectangle every selection and row in the shell is drawn with,
+                        // rather than a capsule.
+                        radius: Math.min(height / 2, T.Config.cardRadius)
                         antialiasing: true
-                        color: bubbleMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainerHigh) : "transparent"
+                        color: pillMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainerHigh) : "transparent"
                         border.width: 1
-                        border.color: bubble.ring
+                        border.color: pill.ring
                         opacity: workspaceWrapper.occupied || workspaceWrapper.active ? 1 : 0.6
 
                         Row {
                             anchors.centerIn: parent
-                            spacing: bubble.iconSpacing
+                            spacing: pill.iconSpacing
 
                             Text {
                                 id: number
-                                visible: bubble.numberInside
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: workspaceWrapper.wsName
                                 color: workspaceWrapper.urgent ? T.Config.red
@@ -189,50 +166,156 @@ Rectangle {
                             }
 
                             Repeater {
-                                model: bubble.shownWindows
+                                model: pill.shownWindows
                                 delegate: IconImage {
                                     required property var modelData
                                     anchors.verticalCenter: parent ? parent.verticalCenter : undefined
-                                    implicitWidth: bubble.iconSize
-                                    implicitHeight: bubble.iconSize
+                                    implicitWidth: pill.iconSize
+                                    implicitHeight: pill.iconSize
                                     source: S.CompositorService.getDesktopIcon(S.CompositorService.getDesktopEntry(String(modelData.app_id || "")))
                                     // The focused window is the one the user is looking at; the rest
                                     // of a workspace's windows are dimmed.
-                                    opacity: modelData.focused || bubble.shownWindows.length === 1 ? 1.0 : 0.45
+                                    opacity: modelData.focused || pill.shownWindows.length === 1 ? 1.0 : 0.45
                                 }
                             }
                         }
                     }
 
-                    // The number, in a small disc over the circle's edge. The current one solid in
-                    // the accent; the rest bright text on the dark of the background, unringed --
-                    // the disc only cuts the number out of the bubble's ring, since a ring round
-                    // the badge as well made two outlines per workspace. (Grey text on a grey disc,
-                    // the first version, was hard to read at this size.)
-                    Rectangle {
-                        visible: !bubble.numberInside
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        width: bubble.badge
-                        height: bubble.badge
-                        radius: width / 2
-                        antialiasing: true
-                        color: workspaceWrapper.urgent ? T.Config.red
-                            : workspaceWrapper.active ? T.Config.accent : T.Config.background
+                    MouseArea {
+                        id: pillMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: S.CompositorService.focusWorkspace(workspaceWrapper.wsId)
+                    }
+                }
+
+                // --- The ledge style --------------------------------------------------------------
+                // One row, no box: the number and the windows' icons in layout order. A number and
+                // its icons are held tight (5px, and 3px between icons) against the wider gap between
+                // workspaces, which is what makes each read as one unit without a box round it.
+                //
+                // The number is never the accent, for the reason the plain style's is not: the
+                // accent here means only "where you are", and that is said once, by the tick.
+                Item {
+                    id: ledgeItem
+                    visible: workspaceWrapper.ledged
+                    anchors.fill: parent
+
+                    // Every window, left to right as laid out (on niri `x` is the column).
+                    readonly property var ordered: workspaceWrapper.windows.slice().sort((a, b) => (Number(a.x) || 0) - (Number(b.x) || 0))
+                    readonly property int limit: Math.max(0, T.Config.workspaceIconLimit)
+                    readonly property var shown: T.Config.workspaceIcons ? ordered.slice(0, limit) : []
+                    readonly property int overflow: T.Config.workspaceIcons ? ordered.length - shown.length : 0
+                    readonly property int iconSize: T.Config.barSmallIconSize
+
+                    // Lines snapped to whole device pixels. At a fractional scale (4/3 here) a 2px
+                    // line is 2.67 pixels and lands between rows, and both its edges blur; rounded to
+                    // the screen's own pixels, the tick and the underline stay sharp.
+                    readonly property real dpr: Screen.devicePixelRatio > 0 ? Screen.devicePixelRatio : 1
+                    function px(value) {
+                        return Math.max(1, Math.round(value * dpr)) / dpr;
+                    }
+                    function snap(value) {
+                        return Math.round(value * dpr) / dpr;
+                    }
+
+                    Row {
+                        id: ledgeRow
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        // A touch above centre, to leave the tick below some air: centred, the icons
+                        // and the tick crowded each other at the bar's bottom.
+                        y: ledgeItem.snap((parent.height - height) / 2 - 2)
+                        spacing: 5
 
                         Text {
-                            anchors.centerIn: parent
+                            anchors.verticalCenter: parent.verticalCenter
                             text: workspaceWrapper.wsName
-                            color: workspaceWrapper.active || workspaceWrapper.urgent ? T.Config.background
-                                : workspaceWrapper.occupied ? T.Config.surfaceText : T.Config.inactive
-                            font.pixelSize: 14
-                            font.bold: true
+                            font.pixelSize: T.Config.barIconSize
+                            font.family: T.Config.fontFamily
+                            font.weight: workspaceWrapper.active ? Font.Bold : Font.Normal
+                            color: workspaceWrapper.urgent ? T.Config.red
+                                : workspaceWrapper.active || ledgeMouse.containsMouse ? T.Config.active : T.Config.inactive
+                        }
+
+                        Row {
+                            visible: ledgeItem.shown.length > 0
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 3
+
+                            Repeater {
+                                model: ledgeItem.shown
+
+                                delegate: Item {
+                                    id: ledgeIcon
+                                    required property var modelData
+                                    width: ledgeItem.iconSize
+                                    height: ledgeItem.iconSize
+
+                                    // Away from home: an app with a home workspace that is somewhere
+                                    // else stays in full colour, so it can be found, underlined.
+                                    readonly property string home: T.Config.workspaceHomeFor(modelData.app_id)
+                                    readonly property bool away: home.length > 0 && home !== String(modelData.workspace)
+                                    // Colour for the window you are in, or for a stray; every other
+                                    // icon -- the rest of this workspace's too -- quieted the same way,
+                                    // so "the one you are in" is the only thing that stands out.
+                                    readonly property bool inColour: away || (workspaceWrapper.active && modelData.focused === true)
+
+                                    IconImage {
+                                        anchors.fill: parent
+                                        source: S.CompositorService.getDesktopIcon(S.CompositorService.getDesktopEntry(String(ledgeIcon.modelData.app_id || "")))
+                                        // Quieted, not stripped: half the colour and a little dimmer,
+                                        // so an app is still recognisably itself. Fully grey read as
+                                        // a different style from the active workspace's icons.
+                                        opacity: ledgeIcon.inColour ? 1.0 : 0.6
+                                        layer.enabled: !ledgeIcon.inColour
+                                        layer.effect: MultiEffect {
+                                            saturation: -0.5
+                                        }
+                                    }
+
+                                    // Not the accent: the accent means "here", and this means "not
+                                    // where it lives".
+                                    Rectangle {
+                                        visible: ledgeIcon.away
+                                        x: 0
+                                        y: ledgeItem.snap(parent.height + 4)
+                                        width: parent.width
+                                        height: ledgeItem.px(2)
+                                        color: T.Config.inactive
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            visible: ledgeItem.overflow > 0
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "+" + ledgeItem.overflow
+                            color: T.Config.inactive
+                            font.pixelSize: T.Config.fontSizeSubtext
                             font.family: T.Config.fontFamily
                         }
+
+                    }
+
+                    // Where you are: a tick under the number and icons, near the bar's bottom
+                    // edge but with a band of the bar's own ground below it. Flush on the edge it
+                    // ran into whatever was behind the bar and was hard to read. The strip is the
+                    // bar's height in this style, so the bottom here is the bar's.
+                    Rectangle {
+                        readonly property real inset: ledgeItem.px(4)
+                        visible: workspaceWrapper.active
+                        x: ledgeRow.x
+                        height: ledgeItem.px(3)
+                        // Its top on a whole pixel row.
+                        y: Math.floor((parent.height - inset - height) * ledgeItem.dpr) / ledgeItem.dpr
+                        width: ledgeRow.width
+                        color: T.Config.accent
                     }
 
                     MouseArea {
-                        id: bubbleMouse
+                        id: ledgeMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor

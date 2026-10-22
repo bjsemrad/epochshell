@@ -44,8 +44,12 @@ PopupWindow {
     // Attached to the bar, growing out of it, unless T.Config.panelStyle asks for floating cards
     // -- and never when not opened from the bar, where flares drawn into thin air would look like
     // a mistake. Nor when the bar itself is mostly see-through: then there is no visible edge to
-    // grow out of, and the flares bend into nothing, so the panel floats as a card instead.
+    // grow out of, and the flares bend into nothing, so the panel floats as a card instead. Nor
+    // under the centered bar unless it is a ledge: the floating pill would have to stretch to the
+    // panel's width to carry it, the whole bar changing shape on every click, so a card below
+    // leaves it as it is. The ledge joins its panels its own way (ledgeJoin).
     readonly property bool attached: fromBar && T.Config.panelStyle !== "floating" && T.Config.barOpacity >= 0.5
+        && (!T.Config.barCentered || T.Config.barIsLedge)
 
     // A floating card from the bar hangs this far below it.
     readonly property int floatingGap: 5
@@ -59,10 +63,39 @@ PopupWindow {
         return null;
     }
 
-    // In the islands style, the body of the island the trigger is on (see Bar.qml): the panel
-    // hangs from it, kept within its ends so the flares land on it. Null under the full bar.
+    // Under the centered bar, the body of the pill the trigger is on -- an island (see Bar.qml): the
+    // panel hangs from it, kept within its ends so the flares land on it. Null under the full bar.
     property Item island: null
     readonly property bool inIsland: attached && island !== null
+
+    // --- The ledge -------------------------------------------------------------------------------
+    // Under the centered ledge (T.Config.barIsLedge) a panel joins the ledge by how its width
+    // compares with the ledge's natural width L (what the ledge holds, never widened), d = P - L:
+    //
+    //   hang   d < -4r     clearly narrower: the ledge keeps its width, and the panel hangs from its
+    //                      flat bottom edge with flares, as attached panels do under any bar --
+    //                      under the icon that opened it, kept clear of the ledge's ends. (-4r:
+    //                      the panel's flares need the ledge's rounded bottom corners clear, and any
+    //                      closer they landed on the curves.)
+    //   snap   otherwise   the ledge expands to max(L, P) and grows on down into the panel as one
+    //                      shape: straight sides from the small flares at the screen's edge to the
+    //                      rounded bottom, nothing at the join but the bar's hairline (Bar.qml). A
+    //                      T, with the panel wider than the ledge below it, read as a tab on a card.
+    //
+    // Either way the panel is the bar's colour, so the two read as one silhouette. Hanging from the
+    // ledge's centre instead, a panel could land a long way from its icon on a wide ledge.
+    readonly property bool onLedge: inIsland && T.Config.barIsLedge
+    readonly property real _ledgeNatural: island && island.naturalWidth !== undefined ? island.naturalWidth : 0
+    readonly property string ledgeJoin: {
+        if (!onLedge) return "";
+        const d = popupWidth - _ledgeNatural;
+        const r = T.Config.popupRadius;
+        return d < -4 * r ? "hang" : "snap";
+    }
+    // Snapped, the panel has no flares of its own: its sides carry on from the ledge's.
+    readonly property bool _ledgeCard: ledgeJoin === "snap"
+    // A snapped panel narrower than the ledge widens to it, so both sides run straight.
+    readonly property real _cardWidth: ledgeJoin === "snap" ? Math.max(popupWidth, _ledgeNatural) : popupWidth
 
     // Under the full bar, the bar strip (see Bar.qml), which spans the screen. Read on opening to
     // decide whether the panel snaps to the screen's right edge.
@@ -86,12 +119,12 @@ PopupWindow {
 
     // The flares reach outside the card, so an attached window is that much wider on each side --
     // or, snapped to the right edge, on the left only.
-    readonly property real flare: attached ? T.Config.popupRadius : 0
+    readonly property real flare: attached && !_ledgeCard ? T.Config.popupRadius : 0
     readonly property real _flareRight: atRightEdge && _barInset === 0 ? 0 : flare
 
     readonly property real cardHeight: contentLayout.implicitHeight + padding + bottomPadding
 
-    implicitWidth: popupWidth + flare + _flareRight + edgeInset * 2
+    implicitWidth: _cardWidth + flare + _flareRight + edgeInset * 2
     // A pixel more when attached, for the bottom outline: it is drawn centred on the edge, and
     // half of it would otherwise fall outside the window.
     implicitHeight: cardHeight + edgeInset * 2 + (attached ? 1 : 0)
@@ -189,7 +222,10 @@ PopupWindow {
         function onAnchoring() {
             if (!popup.trigger) return;
             popup._triggerTop = popup.trigger.mapToItem(null, 0, 0).y;
-            if (popup.inIsland) {
+            if (popup.ledgeJoin === "snap") {
+                // Expanded into the ledge: the same width as it, so centred on it.
+                popup._islandLeft = (popup.island.width - popup.width) / 2;
+            } else if (popup.inIsland) {
                 const margin = T.Config.popupRadius;
                 const islandWidth = popup.island.width;
                 const centre = popup.trigger.mapToItem(popup.island, popup.trigger.width / 2, 0).x;
@@ -284,13 +320,16 @@ PopupWindow {
             flare: popup.flare
             // Square at the screen's right edge, when snapped there.
             rightFlush: popup.atRightEdge && popup._barInset === 0
-            fillColor: T.Config.panelBackground
+            // On the ledge, the bar's colour: ledge and panel are one silhouette.
+            fillColor: popup.onLedge ? T.Config.barBackground : T.Config.panelBackground
             // Carries on the bar's outline round the rest of the shape, or is the only outline --
             // or, faded, an outline that only appears below the join (T.Config.panelOutline).
             outlineOpacity: ["panel", "bar", "fade"].indexOf(T.Config.panelOutline) !== -1 ? popup.reveal : 0
             // Over the flare's height: the outline traces the curve up towards the bar, fading to
             // nothing where it meets it, and is at full strength once the side runs straight.
-            outlineFade: T.Config.panelOutline === "fade" ? popup.flare : 0
+            // Snapped to the ledge there is no flare: the outline carries straight on from the
+            // ledge's own, down the sides and round the bottom.
+            outlineFade: T.Config.panelOutline === "fade" && !popup._ledgeCard ? popup.flare : 0
         }
 
         // The card's own rectangle within the shape. The content is laid out at full size from
@@ -334,6 +373,8 @@ PopupWindow {
         Item {
             id: contentHost
             parent: popup.attached ? attachedBody : contentSection
+            // Centred in a snapped card made wider than the panel to match the ledge.
+            x: popup._ledgeCard ? Math.round((parent.width - width) / 2) : 0
             width: popup.popupWidth
             height: popup.cardHeight
             opacity: popup.attached ? Math.min(1, popup.reveal * 1.5) : 1

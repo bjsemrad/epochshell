@@ -1,145 +1,103 @@
-import Quickshell
-import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Io
 import qs.commonwidgets
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
 
-// The recording drawer panel: pick what to record, or stop what is running.
-//
-// Recording gets its own panel rather than a section inside the capture one because it is the one
-// capture with a state: the panel is a list of things to start, or -- while something is running --
-// the single thing worth doing. Mixing that into the screenshot panel would leave half of it inert
-// whenever a recording was in progress.
+// Screen recording in the Readout design: the target, then record -- or, while recording, stop.
 HoverPopupWindow {
-    id: recordPopup
-    trigger: trigger
-    popupWidth: T.Config.capturePopupWidth
+    id: panel
+
+    popupWidth: 420
+
+    property string target: "region"
+
+    Component.onDestruction: S.PopupManager.unregister(panel)
+    Component.onCompleted: S.PopupManager.register(panel, "record")
 
     onVisibleChanged: {
         if (visible) {
             S.Capture.refresh();
             S.Capture.refreshRecording();
-            S.PopupManager.closeOthers(recordPopup);
+            S.PopupManager.closeOthers(panel);
         }
     }
-
-    Component.onDestruction: S.PopupManager.unregister(recordPopup)
-    Component.onCompleted: S.PopupManager.register(recordPopup, "record")
 
     Process {
         id: openFolder
     }
 
-    // Header
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: T.Config.settingsHeaderHeight
-        spacing: T.Config.layoutMarginSmall
-
-        Text {
-            text: "Record"
-            color: T.Config.surfaceText
-            font.pixelSize: T.Config.fontSizeLarge
-            font.bold: true
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-        }
-    }
-
-    Text {
-        Layout.fillWidth: true
-        visible: text.length > 0
-        text: {
-            if (S.Capture.backendError.length > 0) return S.Capture.backendError;
-            if (!S.Capture.recordAvailable) return "wf-recorder is not installed";
-            if (S.Capture.recording) return "Recording " + S.Capture.recordingMode + " · " + S.Capture.recordingElapsed;
-            return S.Capture.status;
-        }
-        color: (S.Capture.backendError.length > 0 || !S.Capture.recordAvailable) ? T.Config.red : T.Config.outline
-        font.pixelSize: T.Config.fontSizeSubtext
-        elide: Text.ElideRight
-    }
-
-    ComponentSplitter {}
-
-    // What to start. Hidden wholesale while something is running: only one recording runs at a
-    // time, so offering four more would be offering four errors.
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: 4
-        visible: !S.Capture.recording && S.Capture.recordAvailable
-
-        SystemAction {
-            icon: "󰆞"
-            description: "Region"
-            function onClick() {
-                S.Capture.startRecording("region", false);
-            }
-        }
-
-        SystemAction {
-            icon: "󰖯"
-            description: "Focused window"
-            visible: S.Capture.windowCapture
-            function onClick() {
-                S.Capture.startRecording("window", false);
-            }
-        }
-
-        SystemAction {
-            icon: "󰆟"
-            description: "Pick a window"
-            visible: S.Capture.windowCapture
-            function onClick() {
-                S.Capture.startRecording("window", true);
-            }
-        }
-
-        SystemAction {
-            icon: "󰍹"
-            description: "This monitor"
-            function onClick() {
-                S.Capture.startRecording("fullscreen", false);
-            }
-        }
-
-        SystemAction {
-            icon: "󰍺"
-            description: "All monitors"
-            function onClick() {
-                S.Capture.startRecording("all", false);
-            }
-        }
-    }
+    readonly property var modes: ({
+        "region": ["region", false],
+        "window": ["window", false],
+        "pick": ["window", true],
+        "screen": ["fullscreen", false],
+        "all": ["all", false]
+    })
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 4
-        visible: S.Capture.recording
+        spacing: 0
 
-        SystemAction {
+        Keys.onEscapePressed: panel.hidePanel()
+
+        ReadoutHeader {
+            title: "record"
+            status: S.Capture.recording ? "recording " + S.Capture.recordingElapsed : ""
+            active: S.Capture.recording
+        }
+        ReadoutText {
+            visible: text.length > 0
+            text: {
+                if (S.Capture.backendError.length > 0) return S.Capture.backendError.toLowerCase();
+                if (!S.Capture.recordAvailable) return "wf-recorder is not installed";
+                return S.Capture.recording ? "" : S.Capture.status.toLowerCase();
+            }
+        }
+
+        ReadoutKeyRow {
+            visible: !S.Capture.recording && S.Capture.recordAvailable
+            key: "target"
+            ReadoutChoice {
+                options: S.Capture.windowCapture ? ["region", "window", "pick", "screen", "all"] : ["region", "screen", "all"]
+                current: panel.target
+                onPicked: v => panel.target = v
+            }
+        }
+
+        ReadoutDivider {}
+
+        ReadoutRow {
+            visible: !S.Capture.recording && S.Capture.recordAvailable
+            icon: "󰕧"
+            value: "record"
+            status: "↵"
+            active: true
+            onClicked: {
+                const mode = panel.modes[panel.target] || panel.modes.region;
+                S.Capture.startRecording(mode[0], mode[1]);
+            }
+        }
+        ReadoutRow {
+            visible: S.Capture.recording
             icon: "󰙧"
-            description: "Stop recording · " + S.Capture.recordingElapsed
-            function onClick() {
-                S.Capture.stopRecording();
+            value: "stop"
+            detail: S.Capture.recordingMode
+            status: S.Capture.recordingElapsed
+            active: true
+            onClicked: S.Capture.stopRecording()
+        }
+        ReadoutRow {
+            visible: S.Capture.recordingDirectory.length > 0
+            icon: "󰉋"
+            value: "open folder"
+            detail: S.Capture.recordingDirectory
+            onClicked: {
+                S.PopupManager.closeAll();
+                openFolder.command = ["xdg-open", S.Capture.recordingDirectory];
+                openFolder.running = true;
             }
         }
     }
-
-    ComponentSplitter {}
-
-    SystemAction {
-        icon: "󰉋"
-        description: "Open folder"
-        function onClick() {
-            if (S.Capture.recordingDirectory.length === 0) return;
-            S.PopupManager.closeAll();
-            openFolder.command = ["xdg-open", S.Capture.recordingDirectory];
-            openFolder.running = true;
-        }
-    }
-
-    ComponentSpacer { bottomMargin: 6; Layout.preferredHeight: 1 }
 }

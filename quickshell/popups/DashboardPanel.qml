@@ -1,48 +1,26 @@
-import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Io
-import Quickshell.Widgets
 import Quickshell.Services.Pipewire
 import qs.commonwidgets
-import qs.modules
-import qs.modules.audio
-import qs.modules.battery
-import qs.modules.bluetooth
-import qs.modules.ethernet
-import qs.modules.system
-import qs.modules.wifi
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
+import qs.popups.pages
 
-// Quick settings: one panel for what used to be five -- Wi-Fi, Bluetooth, sound, battery and the
-// system menu -- opened from the bar's status cluster.
-//
-// The main page is the glanceable part: a tile per thing you switch, sound and the microphone
-// among them (each tile toggles; the ones with more behind them have a › that opens their page),
-// the look of the shell, and the power actions. What is playing is not here: the bar's media
-// indicator has the player. The Wi-Fi, Bluetooth and sound pages are
-// the panels that used to stand on their own, built from the same modules, behind a back button.
-//
-// It answers to the old panel names too (`epochctl panel toggle wifi` and so on), opening on the
-// matching page -- so keybindings made for the separate panels still land somewhere sensible.
+// Quick settings, opened from the bar's status capsule: one column of rows. Every switch is a row;
+// what needs attention is a row with the tick; the tools and the tray are a line of icons;
+// everything with more behind it opens a page in place. It answers to the names of the panels it
+// stands in for ("wifi", "audio", ...), opening on the matching page, so keybindings made for the
+// individual panels still land somewhere sensible.
 HoverPopupWindow {
     id: dash
 
-    // "main", "wifi", "ethernet", "bluetooth", "audio" or "battery".
+    // "main", "wifi", "ethernet", "bluetooth", "audio", "battery", "power", "appearance", "theme".
     property string page: "main"
 
-    // What wants attention, for the compact bar, which has no alert icons: its capsule shows a dot
-    // while this is set, and the main page lists each one (the Attention section).
-    readonly property bool needsAttention: S.NixUpdates.hasUpdates || S.SystemInfo.hasFirmwareUpdates
-        || S.StayAwake.enabled || S.LocalSend.hasIncomingFiles || S.Tailscale.hasIncomingFiles
-        || S.Notifications.unreadCount > 0
+    popupWidth: 480
 
-    popupWidth: page === "audio"
-        ? Math.max(T.Config.audioPopupWidth, outputs.implicitWidth, inputs.implicitWidth)
-        : 420
-
-    // Which page an old panel name opens on.
     readonly property var pageForName: ({
         "wifi": "wifi",
         "ethernet": "ethernet",
@@ -51,14 +29,28 @@ HoverPopupWindow {
         "battery": "battery"
     })
 
-    // Moving between pages from a click. A page can be much shorter than the one it replaces --
-    // the battery page against the main one -- and the panel shrinks out from under the pointer,
-    // which reads as the pointer leaving and would close it on the spot. So the panel holds open
-    // through the switch; it closes as usual the next time the pointer leaves it.
+    // Called by PopupManager for a named open, in place of showPanel.
+    function showPage(name) {
+        page = pageForName[name] || "main";
+        showPanel();
+    }
+
+    // What wants attention, for the capsule's dot and the rows below.
+    readonly property bool needsAttention: S.NixUpdates.hasUpdates || S.SystemInfo.hasFirmwareUpdates
+        || S.StayAwake.enabled || S.LocalSend.hasIncomingFiles || S.Tailscale.hasIncomingFiles
+        || S.Notifications.unreadCount > 0
+
+    // Moving between pages from a click. A page can be much shorter than the one it replaces, and
+    // the panel shrinks out from under the pointer, which reads as the pointer leaving and would
+    // close it on the spot; so the panel holds open through the switch.
     function goTo(name) {
         dash.stopHide = true;
         dash.page = name;
         pageSettle.restart();
+        if (name === "power") Qt.callLater(powerPage.focusFirst);
+    }
+    function back() {
+        goTo(page === "theme" ? "appearance" : "main");
     }
 
     Timer {
@@ -67,28 +59,36 @@ HoverPopupWindow {
         onTriggered: dash.stopHide = false
     }
 
-    // Called by PopupManager for a named open, in place of showPanel.
-    function showPage(name) {
-        page = pageForName[name] || "main";
-        showPanel();
+    // Opening another panel by name from a row here: this one gives way to it.
+    function openOther(name) {
+        S.PopupManager.openPanel(name);
     }
 
-    property string username
+    property string username: ""
+    property string hostname: ""
     Process {
         command: ["whoami"]
         running: true
-        stdout: SplitParser {
-            onRead: data => dash.username = data.trim()
-        }
+        stdout: SplitParser { onRead: data => dash.username = data.trim() }
+    }
+    Process {
+        command: ["hostname"]
+        running: true
+        stdout: SplitParser { onRead: data => dash.hostname = data.trim() }
+    }
+    Process {
+        id: colorPicker
+        command: ["hyprpicker", "-a"]
+    }
+
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
     }
 
     onOpenChanged: {
-        // The power profile changes constantly -- auto-cpufreq flips turbo as load moves -- so it
-        // is polled while the dashboard is up and left alone the rest of the time.
         S.PowerProfile.watching = open;
         if (open) {
-            // Asked on opening rather than left to the next poll: a battery section that fills in
-            // a few seconds later reads as broken.
             S.PowerProfile.refresh();
             S.SystemInfo.refresh();
             S.NightLight.refresh();
@@ -96,14 +96,10 @@ HoverPopupWindow {
             S.Network.refresh();
             S.PopupManager.closeOthers(dash);
         } else {
-            // Back to the main page for the next opening: a sub-page is somewhere you went, not
-            // where the dashboard lives.
             page = "main";
         }
     }
 
-    // While a network page is up, keep it fresh, as their own panels did: the Wi-Fi lists every
-    // ten seconds, a wired link -- which comes and goes with a cable -- every five.
     Timer {
         interval: dash.page === "ethernet" ? 5000 : 10000
         repeat: true
@@ -117,503 +113,10 @@ HoverPopupWindow {
             S.PopupManager.register(dash, name);
     }
 
-    // =============================================================================================
-    // Main page
-    // =============================================================================================
-
-    ColumnLayout {
-        visible: dash.page === "main"
-        Layout.fillWidth: true
-        spacing: T.Config.popupLayoutSpacing
-
-        // Who and what: the user, and the machine underneath.
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.topMargin: T.Config.layoutMarginSmall
-            spacing: T.Config.layoutMarginSmall
-
-            Text {
-                text: "󱄅"
-                color: T.Config.accent
-                font.pixelSize: T.Config.fontSizeXLarge
-                font.family: T.Config.fontFamily
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                Text {
-                    text: dash.username
-                    color: T.Config.surfaceText
-                    font.pixelSize: T.Config.fontSizeLarge
-                    font.bold: true
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    visible: text.length > 0
-                    text: [S.SystemInfo.product, S.SystemInfo.kernel].filter(s => s && s.length > 0).join(" · ")
-                    color: T.Config.inactive
-                    font.pixelSize: T.Config.fontSizeSubtext
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                }
-            }
-
-            // The compact bar shows the time but not the day; the date is here.
-            SystemClock {
-                id: dashClock
-                precision: SystemClock.Minutes
-            }
-
-            Text {
-                visible: T.Config.barCompact
-                Layout.alignment: Qt.AlignVCenter
-                text: Qt.formatDateTime(dashClock.date, "ddd, MMM d")
-                color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeNormal
-                font.family: T.Config.fontFamily
-            }
-        }
-
-        // What wants attention, one row each, for the compact bar, where these have no icons of
-        // their own. A row opens the panel the icon would have; Stay awake's turns it off.
-        ColumnLayout {
-            visible: T.Config.barCompact && dash.needsAttention
-            Layout.fillWidth: true
-            spacing: 4
-
-            AttentionRow {
-                visible: S.Notifications.unreadCount > 0
-                icon: "󰂚"
-                title: S.Notifications.unreadCount === 1 ? "1 new notification" : S.Notifications.unreadCount + " new notifications"
-                onActivated: S.PopupManager.openPanel("notifications")
-            }
-            AttentionRow {
-                visible: S.NixUpdates.hasUpdates
-                icon: S.NixUpdates.icon
-                title: S.NixUpdates.updates === 1 ? "1 flake input can be updated" : S.NixUpdates.updates + " flake inputs can be updated"
-                onActivated: S.PopupManager.openPanel("nix")
-            }
-            AttentionRow {
-                visible: S.SystemInfo.hasFirmwareUpdates
-                icon: S.SystemInfo.firmwareIcon
-                title: "Firmware update available"
-                onActivated: S.PopupManager.openPanel("firmware")
-            }
-            AttentionRow {
-                visible: S.LocalSend.hasIncomingFiles
-                icon: S.LocalSend.icon
-                title: "Incoming files over LocalSend"
-                onActivated: S.PopupManager.openPanel("localsend")
-            }
-            AttentionRow {
-                visible: S.Tailscale.hasIncomingFiles
-                icon: "󰒄"
-                title: "Incoming files over Taildrop"
-                onActivated: S.PopupManager.openPanel("tailscale")
-            }
-            AttentionRow {
-                visible: S.StayAwake.enabled
-                icon: "󰒳"
-                title: "Held awake" + (S.StayAwake.held ? " for " + S.StayAwake.held : "")
-                action: "Turn off"
-                onActivated: S.StayAwake.set(false)
-            }
-        }
-
-        // The switches, two to a row.
-        GridLayout {
-            Layout.fillWidth: true
-            columns: 2
-            rowSpacing: T.Config.cardSpacing
-            columnSpacing: T.Config.cardSpacing
-
-            QuickTile {
-                visible: S.Network.wifiDevice
-                icon: S.Network.wifiEnabled ? S.Network.currentWifiIcon : "󰤮"
-                title: "Wi-Fi"
-                subtitle: !S.Network.wifiEnabled ? "Off" : S.Network.wifiConnected ? S.Network.ssid : "Not connected"
-                active: S.Network.wifiEnabled
-                detailPage: "wifi"
-                onToggle: S.Network.disableWifi(!S.Network.wifiEnabled)
-            }
-
-            // Wired, on a machine with a wired adapter -- on a desktop, usually the only network
-            // there is. Nothing to switch, so the whole tile opens its page.
-            QuickTile {
-                visible: S.Network.ethernetDevice
-                icon: S.Network.ethernetConnected ? "󰌘" : "󰌙"
-                title: "Ethernet"
-                subtitle: !S.Network.ethernetConnected ? "Disconnected"
-                    : (S.Network.ethernetConnectedIP || S.Network.ethernetDeviceName || "Connected")
-                active: S.Network.ethernetConnected
-                toggleable: false
-                detailPage: "ethernet"
-            }
-
-            QuickTile {
-                icon: S.Bluetooth.currentBluetoothIcon
-                title: "Bluetooth"
-                subtitle: {
-                    if (!S.Bluetooth.enabled) return "Off";
-                    const connected = (S.Bluetooth.pairedDevices || []).filter(d => d.connected);
-                    if (connected.length === 0) return "On";
-                    return connected.length === 1 ? (connected[0].name || connected[0].deviceName || "Connected") : connected.length + " connected";
-                }
-                active: S.Bluetooth.enabled
-                detailPage: "bluetooth"
-                onToggle: S.Bluetooth.toggle(!S.Bluetooth.enabled)
-            }
-
-            // Sound and the microphone as switches like the rest: the tile mutes and unmutes, the
-            // › opens the sound page with the devices and the sliders. Scrolling over the sound
-            // tile turns the volume, so the level is still a gesture away without a slider here.
-            QuickTile {
-                readonly property var sink: Pipewire.defaultAudioSink
-                visible: sink !== null
-                icon: S.AudioService.currentAudioIcon
-                title: "Sound"
-                subtitle: !sink || !sink.audio ? "" : sink.audio.muted ? "Muted"
-                    : Math.round(sink.audio.volume * 100) + "%" + (sink.description ? " · " + sink.description : "")
-                active: sink !== null && sink.audio !== null && !sink.audio.muted
-                detailPage: "audio"
-                onToggle: if (sink && sink.audio) sink.audio.muted = !sink.audio.muted
-
-                WheelHandler {
-                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                    onWheel: event => {
-                        const audio = parent.sink ? parent.sink.audio : null;
-                        if (!audio) return;
-                        const step = event.angleDelta.y > 0 ? 0.05 : event.angleDelta.y < 0 ? -0.05 : 0;
-                        audio.volume = Math.max(0, Math.min(1, Math.round((audio.volume + step) * 20) / 20));
-                        if (step > 0 && audio.muted) audio.muted = false;
-                    }
-                }
-            }
-
-            QuickTile {
-                readonly property var source: Pipewire.defaultAudioSource
-                visible: source !== null
-                icon: source && source.audio && source.audio.muted ? "󰍭" : "󰍬"
-                title: "Microphone"
-                subtitle: !source || !source.audio ? "" : source.audio.muted ? "Muted"
-                    : (source.description || "On")
-                active: source !== null && source.audio !== null && !source.audio.muted
-                detailPage: "audio"
-                onToggle: if (source && source.audio) source.audio.muted = !source.audio.muted
-            }
-
-            QuickTile {
-                icon: "󰖔"
-                title: "Night mode"
-                subtitle: !S.NightLight.available ? "Unavailable" : S.NightLight.enabled ? (S.NightLight.temperature + "K") : "Off"
-                active: S.NightLight.enabled
-                enabled: S.NightLight.available
-                onToggle: S.NightLight.set(!S.NightLight.enabled)
-            }
-
-            QuickTile {
-                visible: S.StayAwake.available
-                icon: "󰅶"
-                title: "Stay awake"
-                subtitle: S.StayAwake.enabled ? ("held for " + S.StayAwake.held) : "Off"
-                active: S.StayAwake.enabled
-                onToggle: S.StayAwake.set(!S.StayAwake.enabled)
-            }
-
-            // The battery: the level and what it is doing at a glance, the details and the power
-            // profile on its page. Nothing to switch, so the whole tile opens it. Across both
-            // columns, as the odd one out after three pairs.
-            QuickTile {
-                visible: S.BatteryService.hasBattery
-                Layout.columnSpan: 2
-                icon: S.BatteryService.batteryIcon()
-                title: "Battery"
-                subtitle: {
-                    const state = S.BatteryService.stateText();
-                    return Math.round(S.BatteryService.percentage) + "%" + (state.length > 0 ? " · " + state : "");
-                }
-                toggleable: false
-                detailPage: "battery"
-            }
-        }
-
-        // The compact bar has no drawer, so its tools and services are here: one button each,
-        // opening the panel the drawer's icon would have (hanging from the bar's capsule) or doing
-        // the thing. Only what this machine has.
-        ComponentSplitter {
-            visible: T.Config.barCompact
-        }
-
-        GridLayout {
-            visible: T.Config.barCompact
-            Layout.fillWidth: true
-            columns: 4
-            rowSpacing: T.Config.cardSpacing
-            columnSpacing: T.Config.cardSpacing
-
-            ToolButton {
-                visible: S.Capture.connected
-                icon: S.Capture.icon
-                label: "Capture"
-                onActivated: S.PopupManager.openPanel("capture")
-            }
-            ToolButton {
-                visible: S.Capture.connected && S.Capture.recordAvailable && !S.Capture.recording
-                icon: "󰕧"
-                label: "Record"
-                onActivated: S.PopupManager.openPanel("record")
-            }
-            ToolButton {
-                icon: "󰨸"
-                label: "Clipboard"
-                onActivated: {
-                    const launcher = S.PopupManager.launcher;
-                    if (!launcher) return;
-                    S.PopupManager.closeAll();
-                    launcher.openProvider("clipboard");
-                }
-            }
-            ToolButton {
-                icon: "󰴱"
-                label: "Pick color"
-                onActivated: {
-                    dash.hidePanel();
-                    colorPicker.running = true;
-                }
-            }
-            ToolButton {
-                visible: S.LocalSend.connected
-                icon: S.LocalSend.icon
-                label: "LocalSend"
-                active: S.LocalSend.hasIncomingFiles
-                onActivated: S.PopupManager.openPanel("localsend")
-            }
-            ToolButton {
-                visible: S.Tailscale.available
-                icon: S.Tailscale.connected ? "󰒄" : "󰅛"
-                label: "Tailscale"
-                active: S.Tailscale.hasIncomingFiles
-                onActivated: S.PopupManager.openPanel("tailscale")
-            }
-            ToolButton {
-                visible: S.HomeAssistant.configured
-                icon: S.HomeAssistant.connected ? "󰟐" : "󰟑"
-                label: "Home"
-                onActivated: S.PopupManager.openPanel("homeassistant")
-            }
-            ToolButton {
-                visible: S.NixUpdates.connected && S.NixUpdates.available
-                icon: S.NixUpdates.icon
-                label: "Nix"
-                active: S.NixUpdates.hasUpdates
-                onActivated: S.PopupManager.openPanel("nix")
-            }
-        }
-
-        // The tray, for the same reason: apps that live there have nowhere else to be.
-        Flow {
-            visible: T.Config.barCompact && S.SystemTray.trayItems.length > 0
-            Layout.fillWidth: true
-            spacing: 4
-
-            Repeater {
-                model: S.SystemTray.trayItems
-
-                delegate: Rectangle {
-                    id: trayButton
-                    required property var modelData
-                    readonly property var trayItem: modelData
-                    width: 34
-                    height: 34
-                    radius: T.Config.cardRadius
-                    antialiasing: true
-                    color: trayMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
-
-                    IconImage {
-                        id: trayIcon
-                        anchors.centerIn: parent
-                        implicitSize: T.Config.barIconSize
-                        source: dash.trayIconSource(trayButton.trayItem)
-                        visible: status === Image.Ready
-                    }
-                    Text {
-                        visible: !trayIcon.visible
-                        anchors.centerIn: parent
-                        text: String(trayButton.trayItem?.id || "?").charAt(0).toUpperCase()
-                        color: T.Config.surfaceText
-                        font.pixelSize: T.Config.fontSizeSubtext
-                    }
-
-                    QsMenuAnchor {
-                        id: trayMenu
-                        menu: trayButton.trayItem ? trayButton.trayItem.menu : null
-                        onVisibleChanged: dash.stopHide = visible
-                        anchor {
-                            item: trayButton
-                            edges: Edges.Left | Edges.Bottom
-                            gravity: Edges.Right | Edges.Bottom
-                            adjustment: PopupAdjustment.FlipX
-                        }
-                    }
-
-                    MouseArea {
-                        id: trayMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: mouse => {
-                            const item = trayButton.trayItem;
-                            if (mouse.button === Qt.LeftButton && !item.onlyMenu) item.activate();
-                            else if (item.hasMenu) trayMenu.open();
-                        }
-                    }
-                }
-            }
-        }
-
-        // Bound, so the sound and microphone tiles can read and set their volume and mute.
-        PwObjectTracker {
-            objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource].filter(node => node !== null)
-        }
-
-        // Without a battery there is no battery page, so the power profile stays out here.
-        ComponentSplitter {
-            visible: desktopProfile.visible
-        }
-
-        PowerProfileRow {
-            id: desktopProfile
-            visible: !S.BatteryService.hasBattery && S.PowerProfile.available
-        }
-
-        ComponentSplitter {}
-
-        // How the shell looks.
-        ThemeSelector {
-            menu: dash
-        }
-
-        WallpaperRow {
-            menu: dash
-        }
-
-        AppearanceRow {
-            menu: dash
-        }
-
-        ComponentSplitter {}
-
-        SessionActions {}
+    PwObjectTracker {
+        objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource].filter(node => node !== null)
     }
 
-    // =============================================================================================
-    // Sub-pages: the panels that used to stand alone
-    // =============================================================================================
-
-    ColumnLayout {
-        visible: dash.page === "wifi"
-        Layout.fillWidth: true
-        spacing: T.Config.popupLayoutSpacing
-
-        BackHeader {}
-        WifiOnOff {}
-        ComponentSplitter {}
-        WifiConnectedNetwork {}
-        ComponentSplitter {}
-        WifiSavedNetworks {}
-        ComponentSplitter {}
-        WifiAvailableNetworks {
-            attachedPanel: dash
-        }
-        ComponentSpacer {
-            bottomMargin: 6
-        }
-    }
-
-    ColumnLayout {
-        visible: dash.page === "ethernet"
-        Layout.fillWidth: true
-        spacing: T.Config.popupLayoutSpacing
-
-        BackHeader {}
-        EthernetHeader {}
-        ComponentSplitter {}
-        EthernetConnectedNetwork {}
-        ComponentSpacer {}
-    }
-
-    ColumnLayout {
-        visible: dash.page === "bluetooth"
-        Layout.fillWidth: true
-        spacing: T.Config.popupLayoutSpacing
-
-        BackHeader {}
-        BluetoothOnOff {}
-        ComponentSplitter {}
-        BluetoothPairedDevices {}
-        ComponentSplitter {}
-        BluetoothAvailableDevices {}
-        ComponentSpacer {
-            bottomMargin: 6
-        }
-    }
-
-    // The battery's tile opens this: the level in full, and the power profile.
-    ColumnLayout {
-        visible: dash.page === "battery"
-        Layout.fillWidth: true
-        spacing: T.Config.popupLayoutSpacing
-
-        BackHeader {}
-        BatteryLevel {
-            visible: S.BatteryService.hasBattery
-        }
-        ComponentSplitter {}
-        PowerProfileRow {}
-        ComponentSpacer {}
-    }
-
-    ColumnLayout {
-        visible: dash.page === "audio"
-        Layout.fillWidth: true
-        spacing: T.Config.popupLayoutSpacing
-
-        BackHeader {}
-        AudioHeader {}
-        ComponentSplitter {}
-        AudioVolumeRow {}
-        ComponentSplitter {}
-        AvailableAudioOutputs {
-            id: outputs
-        }
-        ComponentSplitter {}
-        MicVolumeRow {}
-        ComponentSplitter {}
-        AvailableAudioInputs {
-            id: inputs
-        }
-        ComponentSpacer {}
-    }
-
-    // =============================================================================================
-    // Pieces
-    // =============================================================================================
-
-    // A switch you can see the state of at a glance: lit in the accent when on. Clicking it
-    // toggles; a tile with more behind it has a › at its right end that opens its page instead.
-    // A tile with nothing to switch (`toggleable` false) opens its page from anywhere on it.
-    Process {
-        id: colorPicker
-        command: ["hyprpicker", "-a"]
-    }
-
-    // A tray item's icon as a URL IconImage can load. The same unpicking the drawer does: an icon
-    // name with a ?path= appended is a file in that directory.
     function trayIconSource(item) {
         const icon = item && item.icon;
         if (typeof icon !== "string" && !(icon instanceof String)) return "";
@@ -628,258 +131,390 @@ HoverPopupWindow {
         return icon;
     }
 
-    // A tool or service in the compact bar's menu: an icon over a word, lit like a tile while it
-    // has something waiting.
-    component ToolButton: Rectangle {
-        id: tool
-        property string icon
-        property string label
-        property bool active: false
-        signal activated()
+    // The main page's rows as a table: every name in a column this wide, so the gauges and the
+    // details after them start at the same place.
+    TextMetrics {
+        id: longestName
+        font.family: Readout.font
+        font.pixelSize: Readout.valueSize
+        text: "notifications"
+    }
+    readonly property real valueColumn: Math.ceil(longestName.width) + 10
 
+    readonly property bool wired: S.Network.ethernetConnected || (!S.Network.wifiDevice && S.Network.ethernetDevice)
+    readonly property var sink: Pipewire.defaultAudioSink
+    readonly property var source: Pipewire.defaultAudioSource
+
+    ColumnLayout {
+        id: pages
         Layout.fillWidth: true
-        implicitHeight: 58
-        radius: T.Config.cardRadius
-        antialiasing: true
-        color: active ? T.Config.accentLightShade
-            : toolMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
-        border.width: active ? 1 : 0
-        border.color: T.Config.accent
+        spacing: 0
+
+        // Left or Escape: back a page, or close from the main one. Rows pass what they do not
+        // use up to here.
+        Keys.onEscapePressed: dash.page === "main" ? dash.hidePanel() : dash.back()
+        Keys.onLeftPressed: if (dash.page !== "main") dash.back()
+
+        // ===========================================================================================
+        // Main page
+        // ===========================================================================================
 
         ColumnLayout {
-            anchors.centerIn: parent
-            spacing: 2
+            visible: dash.page === "main"
+            Layout.fillWidth: true
+            spacing: 0
 
-            Text {
-                Layout.alignment: Qt.AlignHCenter
-                text: tool.icon
-                color: tool.active ? T.Config.accent : T.Config.surfaceText
-                font.pixelSize: T.Config.barIconSize
-                font.family: T.Config.fontFamily
-            }
-            Text {
-                Layout.alignment: Qt.AlignHCenter
-                text: tool.label
-                color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
-            }
-        }
-
-        MouseArea {
-            id: toolMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: tool.activated()
-        }
-    }
-
-    // A line in the Attention section: what it is, and a click to deal with it.
-    component AttentionRow: Rectangle {
-        id: row
-        property string icon
-        property string title
-        property string action: "Open"
-        signal activated()
-
-        Layout.fillWidth: true
-        implicitHeight: 36
-        radius: T.Config.cardRadius
-        antialiasing: true
-        color: rowMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.accentLightShade
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: T.Config.popupPadding
-            anchors.rightMargin: T.Config.popupPadding
-            spacing: T.Config.layoutMarginSmall
-
-            Text {
-                text: row.icon
-                color: T.Config.accent
-                font.pixelSize: T.Config.barIconSize
-                font.family: T.Config.fontFamily
-            }
-            Text {
+            // Who, where, when -- and the way out.
+            RowLayout {
                 Layout.fillWidth: true
-                text: row.title
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeNormal
-                elide: Text.ElideRight
-            }
-            Text {
-                text: row.action + "  ›"
-                color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
-            }
-        }
-
-        MouseArea {
-            id: rowMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: row.activated()
-        }
-    }
-
-    component QuickTile: Rectangle {
-        id: tile
-        property string icon
-        property string title
-        property string subtitle
-        property bool active: false
-        property bool toggleable: true
-        property string detailPage: ""
-        signal toggle()
-
-        Layout.fillWidth: true
-        Layout.preferredHeight: T.Config.cardHeight + 6
-        radius: T.Config.cardRadius
-        antialiasing: true
-        opacity: enabled ? 1 : 0.5
-        color: active ? T.Config.accentLightShade
-            : tileMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : T.Config.onPanel(T.Config.surfaceContainer)
-        border.width: active ? 1 : 0
-        border.color: T.Config.accent
-
-        MouseArea {
-            id: tileMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: tile.enabled
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (tile.toggleable) tile.toggle();
-                else if (tile.detailPage.length > 0) dash.goTo(tile.detailPage);
-            }
-        }
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: T.Config.popupPadding
-            anchors.rightMargin: tile.detailPage.length > 0 ? 0 : T.Config.popupPadding
-            spacing: T.Config.layoutMarginSmall
-
-            Text {
-                text: tile.icon
-                color: tile.active ? T.Config.accent : T.Config.surfaceText
-                font.pixelSize: T.Config.barIconSize
-                font.family: T.Config.fontFamily
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                spacing: 0
+                Layout.bottomMargin: 4
+                spacing: 2
 
                 Text {
-                    text: tile.title
-                    color: T.Config.surfaceText
-                    font.pixelSize: T.Config.fontSizeNormal
-                    font.bold: true
                     Layout.fillWidth: true
+                    Layout.leftMargin: 6
+                    text: [dash.username, [dash.hostname, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" "),
+                        Qt.formatDate(clock.date, "ddd d MMM").toLowerCase()].filter(x => x && x.length > 0).join(" · ")
+                    color: Readout.detail
+                    font.pixelSize: Readout.detailSize
+                    font.family: Readout.font
                     elide: Text.ElideRight
                 }
-
-                Text {
-                    text: tile.subtitle
-                    visible: text.length > 0
-                    color: T.Config.inactive
-                    font.pixelSize: T.Config.fontSizeSubtext + 2
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
+                ReadoutIcon {
+                    icon: "󰌾"
+                    name: "lock"
+                    onClicked: {
+                        S.PopupManager.closeAll();
+                        S.Lock.lock();
+                    }
+                }
+                ReadoutIcon {
+                    icon: "⏻"
+                    name: "power"
+                    onClicked: dash.goTo("power")
                 }
             }
 
-            // The way into the page, its own target so it does not toggle on the way in.
-            Rectangle {
-                visible: tile.detailPage.length > 0
-                Layout.fillHeight: true
-                Layout.preferredWidth: T.Config.barIconSize + T.Config.popupPadding * 2
-                radius: T.Config.cardRadius
-                color: detailMouse.containsMouse ? Qt.rgba(T.Config.outline.r, T.Config.outline.g, T.Config.outline.b, 0.15) : "transparent"
+            // Notifications first: the thing most often opened from here. Always a row -- "none" when
+            // there is nothing -- with the tick and the count while any are unread.
+            ReadoutRow {
+                icon: S.Notifications.doNotDisturb ? "󰂛" : S.Notifications.unreadCount > 0 ? "󰂚" : "󰂜"
+                value: "notifications"
+                valueWidth: dash.valueColumn
+                detail: S.Notifications.doNotDisturb ? "do not disturb" : ""
+                status: S.Notifications.unreadCount > 0 ? S.Notifications.unreadCount + " new"
+                    : S.Notifications.historyModel.count > 0 ? S.Notifications.historyModel.count + "" : "none"
+                active: S.Notifications.unreadCount > 0
+                hasPage: true
+                onOpened: dash.openOther("notifications")
+            }
 
-                Text {
-                    anchors.centerIn: parent
-                    text: ""
-                    color: T.Config.inactive
-                    font.pixelSize: T.Config.fontSizeNormal
-                    font.family: T.Config.fontFamily
+            // --- Connections ---
+            // A click opens the connection's page, where its header switches it on and off: these
+            // have a network to pick, so the page is what a click is usually after.
+            ReadoutRow {
+                visible: dash.wired
+                icon: S.Network.currentEthernetIcon
+                value: "ethernet"
+                valueWidth: dash.valueColumn
+                detail: S.Network.ethernetConnectedIP
+                status: S.Network.ethernetConnected ? "up" : "down"
+                active: S.Network.ethernetConnected
+                hasPage: true
+                onOpened: dash.goTo("ethernet")
+            }
+            ReadoutRow {
+                visible: !dash.wired && S.Network.wifiDevice
+                icon: S.Network.wifiEnabled ? S.Network.currentWifiIcon : "󰤮"
+                value: "wi-fi"
+                valueWidth: dash.valueColumn
+                detail: S.Network.wifiConnected ? S.Network.ssid : ""
+                active: S.Network.wifiEnabled
+                hasSwitch: true
+                onToggled: S.Network.disableWifi(!S.Network.wifiEnabled)
+                hasPage: true
+                onOpened: dash.goTo("wifi")
+            }
+            ReadoutRow {
+                icon: S.Bluetooth.currentBluetoothIcon
+                value: "bluetooth"
+                valueWidth: dash.valueColumn
+                detail: {
+                    const connected = (S.Bluetooth.pairedDevices || []).filter(d => d.connected);
+                    if (connected.length === 0) return "";
+                    return connected.length === 1 ? (connected[0].name || connected[0].deviceName || "") : connected.length + " connected";
+                }
+                active: S.Bluetooth.enabled
+                hasSwitch: true
+                onToggled: S.Bluetooth.toggle(!S.Bluetooth.enabled)
+                hasPage: true
+                onOpened: dash.goTo("bluetooth")
+            }
+            // A network, not a tool: it is a connection you are on or off (switched in its panel).
+            ReadoutRow {
+                visible: S.Tailscale.available
+                icon: S.Tailscale.currentTailscaleIcon
+                value: "tailscale"
+                valueWidth: dash.valueColumn
+                detail: S.Tailscale.connected ? S.Tailscale.connectedIP : ""
+                active: S.Tailscale.connected
+                hasSwitch: true
+                onToggled: S.Tailscale.toggle(!S.Tailscale.connected)
+                hasPage: true
+                onOpened: dash.openOther("tailscale")
+            }
+
+            // --- Sound ---
+            ReadoutRow {
+                visible: dash.sink !== null
+                readonly property bool muted: dash.sink && dash.sink.audio ? dash.sink.audio.muted : false
+                icon: S.AudioService.currentAudioIcon
+                value: "sound"
+                valueWidth: dash.valueColumn
+                detail: dash.sink ? (dash.sink.description || "") : ""
+                active: !muted
+                toggleable: true
+                hasPage: true
+                onToggled: if (dash.sink && dash.sink.audio) dash.sink.audio.muted = !dash.sink.audio.muted
+                onOpened: dash.goTo("audio")
+
+                ReadoutGauge {
+                    value: dash.sink && dash.sink.audio ? dash.sink.audio.volume : 0
+                    muted: dash.sink !== null && dash.sink.audio !== null && dash.sink.audio.muted
+                    onMoved: v => { if (dash.sink && dash.sink.audio) dash.sink.audio.volume = v; }
+                }
+            }
+            ReadoutRow {
+                visible: dash.source !== null
+                readonly property bool muted: dash.source && dash.source.audio ? dash.source.audio.muted : false
+                icon: muted ? "󰍭" : "󰍬"
+                value: "mic"
+                valueWidth: dash.valueColumn
+                detail: dash.source ? (dash.source.description || "") : ""
+                active: !muted
+                toggleable: true
+                hasPage: true
+                onToggled: if (dash.source && dash.source.audio) dash.source.audio.muted = !dash.source.audio.muted
+                onOpened: dash.goTo("audio")
+            }
+
+            // --- The machine ---
+            ReadoutRow {
+                icon: S.NightLight.icon
+                value: "night mode"
+                valueWidth: dash.valueColumn
+                detail: S.NightLight.enabled ? S.NightLight.temperature + "k" : ""
+                status: S.NightLight.available ? "" : "unavailable"
+                active: S.NightLight.enabled
+                interactive: S.NightLight.available
+                toggleable: true
+                onToggled: S.NightLight.set(!S.NightLight.enabled)
+            }
+            ReadoutRow {
+                visible: S.StayAwake.available
+                icon: S.StayAwake.icon
+                value: "stay awake"
+                valueWidth: dash.valueColumn
+                detail: S.StayAwake.enabled ? "held for " + S.StayAwake.held : ""
+                active: S.StayAwake.enabled
+                toggleable: true
+                onToggled: S.StayAwake.set(!S.StayAwake.enabled)
+            }
+            ReadoutRow {
+                visible: S.BatteryService.hasBattery || S.PowerProfile.available
+                icon: S.BatteryService.hasBattery ? S.BatteryService.batteryIcon() : "󰓅"
+                value: S.BatteryService.hasBattery ? "battery" : "power"
+                valueWidth: dash.valueColumn
+                detail: S.BatteryService.hasBattery ? S.BatteryService.stateText().toLowerCase() : ""
+                status: S.PowerProfile.available ? S.PowerProfile.profileLabel.toLowerCase() : ""
+                hasPage: true
+                onOpened: dash.goTo("battery")
+
+                ReadoutGauge {
+                    visible: S.BatteryService.hasBattery
+                    interactive: false
+                    value: S.BatteryService.percentage / 100
+                }
+            }
+
+            // --- What wants attention: only when there is something, each with the tick ---
+            ReadoutRow {
+                visible: S.NixUpdates.hasUpdates
+                icon: S.NixUpdates.icon
+                value: "nix"
+                valueWidth: dash.valueColumn
+                detail: S.NixUpdates.updates === 1 ? "1 input behind" : S.NixUpdates.updates + " inputs behind"
+                status: "update"
+                active: true
+                hasPage: true
+                onOpened: dash.openOther("nix")
+            }
+            ReadoutRow {
+                visible: S.SystemInfo.hasFirmwareUpdates
+                icon: S.SystemInfo.firmwareIcon
+                value: "firmware"
+                valueWidth: dash.valueColumn
+                detail: S.SystemInfo.firmwareUpdates.length === 1 ? "1 update" : S.SystemInfo.firmwareUpdates.length + " updates"
+                status: "update"
+                active: true
+                hasPage: true
+                onOpened: dash.openOther("firmware")
+            }
+            ReadoutRow {
+                visible: S.LocalSend.hasIncomingFiles
+                icon: S.LocalSend.icon
+                value: "localsend"
+                valueWidth: dash.valueColumn
+                detail: "incoming files"
+                status: "review"
+                active: true
+                hasPage: true
+                onOpened: dash.openOther("localsend")
+            }
+            ReadoutRow {
+                visible: S.Tailscale.hasIncomingFiles
+                icon: "󰒄"
+                value: "taildrop"
+                valueWidth: dash.valueColumn
+                detail: "incoming files"
+                status: "review"
+                active: true
+                hasPage: true
+                onOpened: dash.openOther("tailscale")
+            }
+
+            ReadoutDivider {}
+
+            // Tools on the left -- one-shot actions only -- and the tray on the right.
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 2
+
+                ReadoutIcon {
+                    visible: S.Capture.connected
+                    icon: S.Capture.icon
+                    name: "capture"
+                    onClicked: dash.openOther("capture")
+                }
+                ReadoutIcon {
+                    visible: S.Capture.connected && S.Capture.recordAvailable
+                    icon: S.Capture.recording ? "󰙧" : "󰕧"
+                    name: S.Capture.recording ? "stop recording" : "record"
+                    active: S.Capture.recording
+                    onClicked: S.Capture.recording ? S.Capture.stopRecording() : dash.openOther("record")
+                }
+                ReadoutIcon {
+                    icon: "󰨸"
+                    name: "clipboard"
+                    onClicked: {
+                        const launcher = S.PopupManager.launcher;
+                        if (!launcher) return;
+                        S.PopupManager.closeAll();
+                        launcher.openProvider("clipboard");
+                    }
+                }
+                ReadoutIcon {
+                    icon: "󰴱"
+                    name: "pick colour"
+                    onClicked: {
+                        dash.hidePanel();
+                        colorPicker.running = true;
+                    }
+                }
+                ReadoutIcon {
+                    visible: S.LocalSend.connected
+                    icon: S.LocalSend.icon
+                    name: "send with localsend"
+                    onClicked: dash.openOther("localsend")
                 }
 
-                MouseArea {
-                    id: detailMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: dash.goTo(tile.detailPage)
+                Item { Layout.fillWidth: true }
+
+                Repeater {
+                    model: S.SystemTray.trayItems
+                    delegate: ReadoutIcon {
+                        id: trayIcon
+                        required property var modelData
+                        source: dash.trayIconSource(modelData)
+                        icon: String(modelData.id || "?").charAt(0).toUpperCase()
+                        name: String(modelData.tooltipTitle || modelData.title || modelData.id || "")
+                        onClicked: if (!modelData.onlyMenu) modelData.activate()
+                        onSecondaryClicked: if (modelData.hasMenu) trayMenu.open()
+
+                        QsMenuAnchor {
+                            id: trayMenu
+                            menu: trayIcon.modelData.menu
+                            onVisibleChanged: dash.stopHide = visible
+                            anchor {
+                                item: trayIcon
+                                edges: Edges.Left | Edges.Bottom
+                                gravity: Edges.Right | Edges.Bottom
+                                adjustment: PopupAdjustment.FlipX
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    // A › on its own, for a row that is not a tile.
-    component ChevronButton: Rectangle {
-        id: chev
-        signal clicked()
-        implicitWidth: T.Config.barIconSize + T.Config.popupPadding * 2
-        implicitHeight: implicitWidth
-        radius: T.Config.cardRadius
-        color: chevMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
+            ReadoutDivider {}
 
-        Text {
-            anchors.centerIn: parent
-            text: ""
-            color: T.Config.inactive
-            font.pixelSize: T.Config.fontSizeNormal
-            font.family: T.Config.fontFamily
-        }
-
-        MouseArea {
-            id: chevMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: chev.clicked()
-        }
-    }
-
-    // The top of a sub-page: the way back, small, since the page's own header right below it
-    // already says where you are.
-    component BackHeader: Rectangle {
-        Layout.topMargin: T.Config.layoutMarginSmall
-        implicitWidth: backRow.implicitWidth + T.Config.popupPadding * 2
-        implicitHeight: backRow.implicitHeight + T.Config.popupPadding
-        radius: T.Config.cardRadius
-        color: backMouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
-
-        RowLayout {
-            id: backRow
-            anchors.centerIn: parent
-            spacing: T.Config.layoutMarginSmall
-
-            Text {
-                text: ""
-                color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
-                font.family: T.Config.fontFamily
-            }
-
-            Text {
-                text: "Quick settings"
-                color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
+            ReadoutRow {
+                icon: "󰏘"
+                value: "appearance"
+                valueWidth: dash.valueColumn
+                detail: [T.Config.themeName, S.Wallpaper.current.length > 0 ? S.Wallpaper.displayName(S.Wallpaper.current) : ""]
+                    .filter(x => x.length > 0).join(" · ")
+                hasPage: true
+                onOpened: dash.goTo("appearance")
             }
         }
 
-        MouseArea {
-            id: backMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: dash.goTo("main")
+        // ===========================================================================================
+        // Pages
+        // ===========================================================================================
+
+        WifiPage {
+            visible: dash.page === "wifi"
+            showBack: true
+            onBack: dash.back()
+        }
+        EthernetPage {
+            visible: dash.page === "ethernet"
+            showBack: true
+            onBack: dash.back()
+        }
+        BluetoothPage {
+            visible: dash.page === "bluetooth"
+            showBack: true
+            onBack: dash.back()
+        }
+        AudioPage {
+            visible: dash.page === "audio"
+            showBack: true
+            onBack: dash.back()
+        }
+        BatteryPage {
+            visible: dash.page === "battery"
+            showBack: true
+            onBack: dash.back()
+        }
+        PowerPage {
+            id: powerPage
+            visible: dash.page === "power"
+            showBack: true
+            onBack: dash.back()
+        }
+        AppearancePage {
+            visible: dash.page === "appearance"
+            showBack: true
+            panel: dash
+            onBack: dash.back()
+            onOpenTheme: dash.goTo("theme")
+        }
+        ThemePage {
+            visible: dash.page === "theme"
+            showBack: true
+            onBack: dash.back()
         }
     }
 }

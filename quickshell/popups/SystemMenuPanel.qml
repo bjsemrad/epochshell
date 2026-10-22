@@ -1,137 +1,138 @@
-import Quickshell
-import Quickshell.Wayland
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
-import Quickshell.Widgets
+import Quickshell
 import Quickshell.Io
 import qs.commonwidgets
-import qs.modules
-import qs.modules.system
-import qs.theme as T
 import qs.services as S
+import qs.theme as T
+import qs.popups.pages
 
+// The system menu in the Readout design, for the individual status icons' power icon: who and
+// where, the night and stay-awake switches, appearance, and the session. It opens with the focus
+// on its first session row, so the keyboard can take it from there.
 HoverPopupWindow {
-    id: systemMenuPopup
-    trigger: trigger
-    popupWidth: T.Config.systemPopupWidth
+    id: menu
 
-    property string username
+    // "main", "appearance", "theme".
+    property string page: "main"
 
-    Process {
-        id: whoami
-        command: ["whoami"]
-        running: true
+    popupWidth: 420
 
-        stdout: SplitParser {
-            onRead: data => username = data.trim()
-        }
-    }
-
-    Component.onDestruction: S.PopupManager.unregister(systemMenuPopup)
-    Component.onCompleted: S.PopupManager.register(systemMenuPopup, "system")
+    Component.onDestruction: S.PopupManager.unregister(menu)
+    Component.onCompleted: S.PopupManager.register(menu, "system")
 
     onVisibleChanged: {
         if (visible) {
             S.SystemInfo.refresh();
             S.NightLight.refresh();
             S.StayAwake.refresh();
-            S.PopupManager.closeOthers(systemMenuPopup);
+            S.PopupManager.closeOthers(menu);
+            Qt.callLater(power.focusFirst);
+        } else {
+            page = "main";
         }
     }
 
-    // Who and what: the user, and the machine underneath -- the dashboard's header, so the two
-    // read as the same thing.
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.topMargin: T.Config.layoutMarginSmall
-        spacing: T.Config.layoutMarginSmall
+    // Held open through a page change, as the dashboard is (its goTo explains why).
+    function goTo(name) {
+        menu.stopHide = true;
+        menu.page = name;
+        settle.restart();
+    }
+    Timer {
+        id: settle
+        interval: 400
+        onTriggered: menu.stopHide = false
+    }
 
-        Text {
-            text: "󱄅"
-            color: T.Config.accent
-            font.pixelSize: T.Config.fontSizeXLarge
-            font.family: T.Config.fontFamily
-        }
+    property string username: ""
+    property string hostname: ""
+    Process {
+        command: ["whoami"]
+        running: true
+        stdout: SplitParser { onRead: data => menu.username = data.trim() }
+    }
+    Process {
+        command: ["hostname"]
+        running: true
+        stdout: SplitParser { onRead: data => menu.hostname = data.trim() }
+    }
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+    }
+
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 0
+
+        Keys.onEscapePressed: menu.page === "main" ? menu.hidePanel() : menu.goTo(menu.page === "theme" ? "appearance" : "main")
+        Keys.onLeftPressed: if (menu.page !== "main") menu.goTo(menu.page === "theme" ? "appearance" : "main")
 
         ColumnLayout {
+            visible: menu.page === "main"
             Layout.fillWidth: true
             spacing: 0
 
             Text {
-                text: systemMenuPopup.username
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeLarge
-                font.bold: true
                 Layout.fillWidth: true
+                Layout.leftMargin: 6
+                Layout.bottomMargin: 4
+                text: [menu.username, [menu.hostname, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" "),
+                    Qt.formatDate(clock.date, "ddd d MMM").toLowerCase()].filter(x => x && x.length > 0).join(" · ")
+                color: Readout.detail
+                font.pixelSize: Readout.detailSize
+                font.family: Readout.font
                 elide: Text.ElideRight
             }
 
-            Text {
-                visible: text.length > 0
-                text: [S.SystemInfo.product, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" · ")
-                color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeSubtext
-                Layout.fillWidth: true
-                elide: Text.ElideRight
+            ReadoutRow {
+                icon: S.NightLight.icon
+                value: "night mode"
+                detail: S.NightLight.enabled ? S.NightLight.temperature + "k" : ""
+                status: S.NightLight.available ? "" : "unavailable"
+                active: S.NightLight.enabled
+                interactive: S.NightLight.available
+                toggleable: true
+                onToggled: S.NightLight.set(!S.NightLight.enabled)
             }
-        }
-    }
-
-    ComponentSplitter {}
-
-    // How the screen looks and what the session is doing, above the power actions: things you set,
-    // rather than things that end the session. Night mode and stay awake also have a toggle in the
-    // bar drawer, which is the quick way to reach them; these rows are the ones that say what the
-    // state actually is -- the temperature the screen is held at, how long the machine has been
-    // held awake, which palette is on. Every one reads its service rather than its own last click,
-    // so the views never disagree.
-    ColumnLayout {
-        Layout.fillWidth: true
-        spacing: T.Config.popupLayoutSpacing
-
-        ToggleRow {
-            label: "Night mode"
-            hint: S.NightLight.available
-                  ? (S.NightLight.enabled ? (S.NightLight.temperature + "K") : "Warm the screen")
-                  : S.NightLight.unavailableReason
-            checkedValue: S.NightLight.enabled
-            enableToggle: S.NightLight.available
-
-            function handleToggled(checked) {
-                S.NightLight.set(checked);
+            ReadoutRow {
+                visible: S.StayAwake.available
+                icon: S.StayAwake.icon
+                value: "stay awake"
+                detail: S.StayAwake.enabled ? "held for " + S.StayAwake.held : ""
+                active: S.StayAwake.enabled
+                toggleable: true
+                onToggled: S.StayAwake.set(!S.StayAwake.enabled)
             }
-        }
+            ReadoutRow {
+                icon: "󰏘"
+                value: "appearance"
+                detail: [T.Config.themeName, S.Wallpaper.current.length > 0 ? S.Wallpaper.displayName(S.Wallpaper.current) : ""]
+                    .filter(x => x.length > 0).join(" · ")
+                hasPage: true
+                onOpened: menu.goTo("appearance")
+            }
 
-        ToggleRow {
-            label: "Stay awake"
-            hint: S.StayAwake.enabled ? ("held for " + S.StayAwake.held) : "Prevent idle lock and sleep"
-            checkedValue: S.StayAwake.enabled
-            visible: S.StayAwake.available
+            ReadoutDivider {}
 
-            function handleToggled(checked) {
-                S.StayAwake.set(checked);
+            PowerPage {
+                id: power
+                showHeader: false
             }
         }
 
-        ThemeSelector {
-            menu: systemMenuPopup
+        AppearancePage {
+            visible: menu.page === "appearance"
+            showBack: true
+            panel: menu
+            onBack: menu.goTo("main")
+            onOpenTheme: menu.goTo("theme")
         }
-
-        WallpaperRow {
-            menu: systemMenuPopup
+        ThemePage {
+            visible: menu.page === "theme"
+            showBack: true
+            onBack: menu.goTo("appearance")
         }
-
-        AppearanceRow {
-            menu: systemMenuPopup
-        }
-    }
-
-    ComponentSplitter {}
-
-    SessionActions {}
-
-    ComponentSpacer {
-        bottomMargin: 6
     }
 }

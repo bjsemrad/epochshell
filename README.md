@@ -653,6 +653,23 @@ workspaceStripMaxWidthRatio = 0.45
 
 Derived bar values such as `barClockSize`, `barWeatherSize`, `barGroupIconSpacing`, `barModuleHorizontalPadding`, and `barModuleVerticalPadding` update automatically unless explicitly overridden.
 
+### Style Keys
+
+```toml
+barStyle = "full"           # "full", "floating" or "centered"
+barLedge = true             # centered only: hang from the top edge instead of floating
+statusStyle = "individual"  # "individual" icons, or "dashboard": one capsule opening quick settings
+panelStyle = "attached"     # "attached" (grown out of the bar) or "floating" cards
+panelOutline = "fade"       # "none", "panel", "fade" or "bar"
+workspaceStyle = "pill"     # "pill", "plain" or "ledge"
+workspaceIcons = true
+workspaceIconLimit = 2      # ledge only: icons per workspace before "+n"
+workspaceHomes = ""         # ledge only: "app:workspace" pairs; an app elsewhere stays in colour
+```
+
+The panels opened from the bar are the Readout design: one column of rows, sizes and colours in
+`quickshell/commonwidgets/Readout.qml`.
+
 ### Popup And Card Keys
 
 ```toml
@@ -661,68 +678,28 @@ popupRadius = 10
 popupLayoutSpacing = 8
 cardRadius = 10
 cardHeight = 50
-cardMargin = 14
 cardSpacing = 10
-selectedBorderWidth = 1
-networkPopupWidth = 400
-tailscalePopupWidth = 600
-bluetoothPopupWidth = 400
-audioPopupWidth = 550
-systemTrayPopupWidth = 300
-systemPopupWidth = 300
-batteryPopupWidth = 250
-musicPlayerWidth = 600
-controlCenterPopupWidth = 700
 ```
 
 ### Layout And Misc Keys
 
 ```toml
-widthPaddingLarge = 20
 widthPaddingSmall = 14
-heightPaddingSmall = 5
 layoutMarginSmall = 5
-layoutSpacingLarge = 20
 layoutSpacingSmall = 20
-roundRadius = 20
-cornerRadius = 18
 connectedIconSize = 40
-headerSize = 40
-panelBottomMargin = 5
-panelBottomMarginMedium = 15
-statMargin = 12
-tailscalePeersFontSize = 14
-panelAnimationsEnabled = false
 hideInactiveWorkspaces = true
 ```
 
 ### Switch Keys
+
+For the switches in the Appearance window (`epochctl settings toggle`).
 
 ```toml
 switchHeight = 42
 switchWidth = 24
 switchKnobSize = 20
 switchKnobRadius = 10
-```
-
-### System Action Keys
-
-```toml
-settingsHeaderHeight = 30
-settingsHeaderSpacing = 10
-systemActionSize = 40
-systemActionRadius = 10
-systemActionMargin = 30
-systemActionSpacing = 10
-```
-
-### Volume Slider Keys
-
-```toml
-volumeSliderSize = 40
-volumeSliderRadius = 20
-volumeSliderMargin = 30
-volumeSliderSpacing = 10
 ```
 
 ## Nix Updates

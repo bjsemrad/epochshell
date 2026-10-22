@@ -10,7 +10,9 @@ import qs.services as S
 // bar icon, obvious on a light theme and a dark smudge on a dark one.
 Rectangle {
     id: root
-    color: popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
+    // `popup` can be briefly null: while a panel is being rebuilt (the status style changed), the
+    // old one goes before the new one is built.
+    color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
     implicitWidth: inner.implicitWidth + T.Config.barModuleHorizontalPadding
@@ -37,6 +39,7 @@ Rectangle {
                 root.rightClicked();
                 return;
             }
+            if (!popup) return;
             if (popup.open) {
                 popup.hidePanel();
             } else {
@@ -45,7 +48,7 @@ Rectangle {
         }
 
         onEntered: {
-            if (root.hoverEnabled) {
+            if (root.hoverEnabled && popup) {
                 if (mouseArea.containsMouse) {
                     popup.showPanel();
                 } else {
@@ -55,7 +58,7 @@ Rectangle {
         }
 
         onExited: {
-            if (root.hoverEnabled) {
+            if (root.hoverEnabled && popup) {
                 if (!mouseArea.containsMouse) {
                     popup.hidePanel();
                 }

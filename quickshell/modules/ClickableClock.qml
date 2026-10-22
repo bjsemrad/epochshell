@@ -26,6 +26,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
+            if (!popup) return;
             if (popup.open) {
                 popup.hidePanel();
             } else {

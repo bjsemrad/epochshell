@@ -27,10 +27,11 @@ RowLayout {
     visible: panelTrigger === null
 
     // One of these panels is open, which holds the drawer open while it is.
-    readonly property bool panelOpen: (localSendPanel.open && localSendPanel.visible)
-        || (tailscaleNetworkPanel.open && tailscaleNetworkPanel.visible)
-        || (nixPanel.open && nixPanel.visible)
-        || (firmwarePanel.open && firmwarePanel.visible)
+    readonly property bool panelOpen: shown(localSendPanel) || shown(tailscaleNetworkPanel)
+        || shown(nixPanel) || shown(firmwarePanel)
+    function shown(panel) {
+        return panel !== null && panel !== undefined && panel.open && panel.visible;
+    }
 
     // Updates waiting are worth seeing with the drawer shut; a system that is up to date is only
     // worth a look when the drawer is open anyway.
@@ -94,13 +95,13 @@ RowLayout {
         }
     }
 
-    TailscaleNetworkPanel {
+    TailscalePanel {
         id: tailscaleNetworkPanel
         trigger: alerts.panelTrigger || tailNet
     }
     LocalSendPanel {
         id: localSendPanel
-        trigger: alerts.panelTrigger || localSend
+            trigger: alerts.panelTrigger || localSend
     }
     NixPanel {
         id: nixPanel
@@ -108,6 +109,6 @@ RowLayout {
     }
     FirmwarePanel {
         id: firmwarePanel
-        trigger: alerts.panelTrigger || firmwareUpdates
+            trigger: alerts.panelTrigger || firmwareUpdates
     }
 }
