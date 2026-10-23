@@ -1,37 +1,146 @@
-# Epoch Shell
+<h1 align="center">Epoch Shell</h1>
 
-Epoch Shell is a personal desktop shell built with [Quickshell](https://quickshell.org/) for a Wayland desktop. It provides the bar, popups, notifications, OSDs, launcher, and polkit prompt used by the session.
+<p align="center">
+  A quiet, keyboard-first desktop shell for <b>niri</b> and <b>Hyprland</b>, built with
+  <a href="https://quickshell.org/">Quickshell</a>.
+</p>
 
-The project is intentionally pragmatic: it keeps only the pieces used by the current configuration and favors a small, understandable QML codebase over a generalized shell framework.
+<p align="center">
+  <img src="docs/screenshots/desktop.jpg" alt="Epoch Shell: the centered bar with the dashboard open" width="100%">
+</p>
 
-## Features
+## About
 
-- Top bar with workspace indicators, launcher, media indicator, clock, network, Bluetooth, volume, Tailscale, LocalSend, battery, notifications, system tray items, and system menu.
-- LocalSend panel for discovering nearby devices and sending them a file, backed by EpochOxide.
-- Capture panel in the bar drawer for region, window, and monitor screenshots and OCR text capture,
-  with clipboard, save, and pointer switches, backed by EpochOxide.
-- Record panel beside it for starting and stopping screen recordings. Its icon stands down while a
-  recording runs, replaced by the indicator below, so only one thing on the bar is about recording
-  at a time.
-- Night mode toggle in the system menu, with a bar indicator while the screen is warmed.
-- Nix panel showing which flake inputs can be updated, with a check button, an update action, and
-  a rebuild action per host -- all of which open a terminal rather than changing anything silently.
-  Its indicator sits with the alerts, so waiting updates show with the drawer shut.
-- Recording indicator next to the drawer arrow: a pulsing dot and elapsed time while a recording
-  runs, wherever it was started from, and a click to stop it. It shares that row with the Tailscale
-  and LocalSend alerts, and several can show at once.
-- Custom launcher backed by `epochoxide` for applications, files, clipboard, windows, and calculator results.
-- Notification daemon UI with notification history and do-not-disturb support, including the
-  screenshot notifications `epochctl capture screenshot` produces, thumbnail and all.
-- Battery panel showing the CPU power profile, governor, energy preference, turbo state, which
-  daemon is managing them, battery wear and cycle count, and a stay-awake switch.
-- Keyboard backlight OSD alongside the volume, media, and screen brightness ones.
-- Sound, media, and brightness OSDs.
-- Network, Bluetooth, audio, battery, calendar, media, notification, and system popups.
-- Built-in polkit authentication agent with password and fingerprint-aware UI.
-- Seventeen named themes active (eighteen more shipped disabled), with a live picker in the system menu that previews a palette on hover, and
-  `epochctl theme set` for keybindings and scripts.
-- Optional external config override file at `~/.config/epochshell/config.toml`.
+Epoch Shell is everything around your windows: the bar, launcher, quick settings, notifications,
+OSDs, lock screen, polkit prompt, and wallpaper. It stays out of the way until you reach for it.
+
+The look is a single **readout**: monospace text, thin rules, one accent colour, rows that read
+top to bottom like an instrument panel. Every surface uses that grammar — the dashboard, the
+launcher, the settings card, the lock screen — so nothing feels bolted on. Panels grow out of the
+bar rather than floating over it, and the bar itself can sit full width, float, or hang from the top
+edge as a small centered ledge.
+
+It is three projects that work as one:
+
+| Project | Role |
+| ------- | ---- |
+| **EpochShell** (this repo) | The QML front end: everything you see. |
+| [**EpochOxide**](https://github.com/bjsemrad/epochoxide) | A Rust daemon that does the heavy lifting: launcher search, files, clipboard, wallpapers, capture, Tailscale, LocalSend, firmware and Nix updates. The shell talks to it over a Unix socket. |
+| [**epochctl**](https://github.com/bjsemrad/epochctl) | The command line: keybindings and scripts drive the shell through it (`epochctl launcher open`, `epochctl theme set`, `epochctl lock`). |
+
+The shell is opinionated and deliberately small. It keeps only what a daily desktop uses and
+prefers a codebase you can read in an afternoon over a framework with a setting for everything.
+Every size, gap, and alpha is a named token in `commonwidgets/Ui.qml`, and every colour comes from
+the theme.
+
+## A tour
+
+### The bar
+
+Five layouts, all set live from the Appearance card. From the top: **full**, **floating**,
+**floating with individual status icons**, **pill workspaces**, and the **centered ledge** used in
+these screenshots, which hangs from the top edge and widens to hold whatever opens out of it. Full
+width with individual icons is the default.
+
+<p align="center"><img src="docs/screenshots/bars.png" alt="Bar layouts" width="100%"></p>
+
+Workspaces come as a **minimap** of each workspace's columns (niri) or windows (Hyprland), as
+pills, plain numbers, or a ledge of app icons. Status is either one icon per service or a single
+capsule that opens the dashboard.
+
+### Dashboard
+
+Quick settings in one column: Wi-Fi, Bluetooth, Tailscale, sound and mic, night mode, stay awake,
+battery and power profile, capture and recording, and the appearance controls. Every row with a
+chevron opens a page in place.
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="49%">
+  <img src="docs/screenshots/wifi.png" alt="Wi-Fi page" width="49%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/sound.png" alt="Sound page" width="49%">
+  <img src="docs/screenshots/battery.png" alt="Battery page" width="49%">
+</p>
+
+### Launcher
+
+Applications, files, clipboard history, windows, a calculator, a command runner, and any custom
+menu you write: all one launcher, backed by EpochOxide's providers. On the ledge it drops out of
+the bar like the dashboard does; elsewhere it floats. A prefix jumps to a provider, and `;` lists
+them all.
+
+<p align="center">
+  <img src="docs/screenshots/launcher.png" alt="Launcher" width="49%">
+  <img src="docs/screenshots/keybinds.png" alt="Keybinds menu" width="49%">
+</p>
+
+The keybinds menu above is a custom menu: it reads the running compositor's binds, so it is always
+current.
+
+### Appearance
+
+One card for the whole look: bar layout, workspace style, panel style, opacity, blur, and gaps.
+Changes apply as you make them and persist across rebuilds, even on a read-only home-manager
+install.
+
+<p align="center"><img src="docs/screenshots/settings.png" alt="Appearance settings" width="50%"></p>
+
+### Themes and wallpapers
+
+Twenty-two themes ship enabled, with seventeen more you can switch on. Pick one from a strip along
+the bottom of the screen — moving the selection wears the theme, so you see it on the real desktop
+rather than in a thumbnail. The wallpaper strip works the same way, with a crossfade.
+
+<p align="center">
+  <img src="docs/screenshots/themes.png" alt="Theme strip" width="100%">
+  <img src="docs/screenshots/wallpapers.png" alt="Wallpaper strip" width="100%">
+</p>
+
+### And the rest
+
+<p align="center">
+  <img src="docs/screenshots/calendar.png" alt="Calendar" width="49%">
+  <img src="docs/screenshots/osd.png" alt="Volume OSD" width="49%">
+</p>
+
+- **Notifications** with history, do not disturb, and image previews.
+- **OSDs** for volume, media, brightness, and keyboard backlight. They stay quiet when the
+  dashboard already shows the change.
+- **Lock screen** over every monitor, with password and fingerprint at the same time, and a crash
+  that relocks instead of unlocking.
+- **Polkit agent** with a fingerprint-aware prompt.
+- **Idle**: lock, screen off, and suspend timers, with a lock before every sleep.
+- **Capture**: region, window, and screen shots, OCR to the clipboard, and screen recording with a
+  bar indicator.
+- **Nix panel** that shows which flake inputs can update and runs the update and rebuild in a
+  terminal.
+- **Tailscale, LocalSend, and firmware** panels that appear in the bar only when they have
+  something to say.
+
+## Install
+
+Epoch Shell is a flake with a Home Manager module, which installs the shell, EpochOxide, and
+epochctl and runs them as user services:
+
+```nix
+# flake.nix
+inputs.epochshell.url = "github:bjsemrad/EpochShell";
+
+# home.nix
+imports = [ inputs.epochshell.homeManagerModules.default ];
+programs.epochshell.enable = true;
+```
+
+Then bind the launcher and lock in your compositor, for example in niri:
+
+```kdl
+Mod+Space   { spawn "epochctl" "launcher" "open"; }
+Super+Alt+L { spawn "epochctl" "lock"; }
+```
+
+Everything else is set from the Appearance card or `epochctl`; see [Configuration](#configuration)
+for the keys you can pin in Nix.
 
 ## Layout
 
@@ -41,54 +150,42 @@ quickshell/
   Bar.qml                    # Top bar
   Polkit.qml                 # Polkit authentication prompt
   Notifications.qml          # Notification windows
-  SoundOSD.qml               # Volume OSD
-  MediaOSD.qml               # Media OSD
-  BrightnessOSD.qml          # Brightness OSD
-  commonwidgets/             # Shared UI building blocks
-  modules/                   # Bar modules and launcher
-  popups/                    # Popup panels
+  SoundOSD.qml               # Volume OSD (and the media, brightness and backlight ones beside it)
+  commonwidgets/             # Shared UI: rows, switches, sliders, and Ui.qml's design tokens
+  modules/                   # Bar modules, launcher, lock screen, settings, theme and wallpaper strips
+  popups/                    # Panels and dashboard pages
   services/                  # QML singletons and backend integrations
-  theme/Config.qml           # Defaults, theme selection, and optional TOML overrides
-  theme/themes/*.toml        # Shipped palettes: dark and its accent variants, light, and more
+  theme/Config.qml           # Defaults, theme selection, and TOML overrides
+  theme/themes/*.toml        # Shipped palettes
+docs/screenshots/            # The images in this README
 ```
 
-## Running Locally
+## Running locally
 
-Run the repo version directly during development:
-
-```bash
-quickshell -p /home/brian/projects/EpochShell/quickshell -vv
-```
-
-If the installed system service is already running, stop it first to avoid duplicate notification and polkit registration:
+Run the checkout directly. Stop the installed service first, or the two will fight over the
+notification and polkit names:
 
 ```bash
 systemctl --user stop epochshell.service
-quickshell -p /home/brian/projects/EpochShell/quickshell -vv
-```
-
-When finished:
-
-```bash
-Ctrl-C
+quickshell -p quickshell -vv --log-rules 'qt.text.font.db=false'
+# Ctrl-C when done, then
 systemctl --user start epochshell.service
-```
-
-To reduce Qt font database noise during development:
-
-```bash
-quickshell -p /home/brian/projects/EpochShell/quickshell -vv --log-rules 'qt.text.font.db=false'
 ```
 
 ## Launcher
 
 The launcher is implemented in `quickshell/modules/LauncherOverlay.qml` and uses `quickshell/services/LauncherService.qml` to query EpochOxide over `$XDG_RUNTIME_DIR/epochoxide.sock`.
 
-Open/toggle is wired through the launcher icon on the bar and the launcher IPC target:
+The launcher icon on the bar opens it on applications. From a keybinding:
 
 ```bash
-quickshell ipc call launcher toggle
+epochctl launcher open
+epochctl launcher toggle
 ```
+
+With the bar as a centered ledge the launcher drops out of the bar like the dashboard; otherwise,
+or with `launcherStyle = "floating"`, it is a card below the bar. Opening it closes any open
+panel, and opening a panel closes it.
 
 Provider prefixes come from EpochOxide itself: the launcher reads the `providers` response and
 routes on the `prefixes` each provider reports (configured under `[query_prefixes]` in the
@@ -119,7 +216,6 @@ The launcher IPC can jump straight to any provider, which is how the compositor 
 
 ```bash
 qs ipc -p ~/.config/epochshell call launcher openProvider keybinds
-qs ipc -p ~/.config/epochshell call launcher openKeybinds   # the same, kept for existing binds
 ```
 
 Bitwarden/rbw support is intentionally not included in the current config.
@@ -171,12 +267,9 @@ programs.epochshell = {
 };
 ```
 
-Launcher sizing:
-
-- Normal mode: fixed launcher panel size from the QML defaults.
-- Files mode (`/`): `60%` screen width by `60%` screen height.
-- Clipboard mode (`:`): `60%` screen width by `60%` screen height.
-- Preview pane width scales relative to the current panel width.
+Applications with `Terminal=true` in their desktop entry (yazi, btop) open in your terminal, the
+one set by EpochOxide's `terminal_cmd`, else `$TERMINAL`, else the first of ghostty, kitty,
+alacritty and foot that is installed.
 
 ## Polkit
 
@@ -229,11 +322,11 @@ the ground and the hover surface. Several needed adjusting off their canonical v
 there -- usually a comment colour too dark to serve as hint text -- and each says which in its own
 file.
 
-Switch from the **system menu**: the Theme row at the bottom of the settings group opens a picker
-beside the menu, one row per theme found on disk with a swatch strip of its actual colours.
-**Hovering a row wears the theme** -- the whole shell repaints so you can see it rather than guess
-from a name -- and only a click keeps it. Moving away puts back what you had. The row hides itself
-when there is only one theme to choose from.
+Switch from the **theme strip**: the theme row on the dashboard's Appearance page, or the
+Appearance card, opens it along the bottom of the screen, one tile per theme found on disk with a
+swatch of its actual colours. **Moving the selection wears the theme** -- the whole shell repaints
+so you see it rather than guess from a name -- Enter keeps it, and Escape puts back what you had.
+Tab switches to the wallpaper strip.
 
 The same switch from a terminal, a keybinding or a script, which keeps the choice across restarts:
 
@@ -313,14 +406,14 @@ A live `epochctl theme set` beats it; `epochctl theme reset` gives it back.
 
 ## Wallpaper
 
-A full-screen picker over whatever images are on disk. Reach it from the **Wallpaper row in the
-system menu**, with `epochctl wallpaper toggle`, or bind it:
+A strip of thumbnails along the bottom of the screen, over whatever images are on disk. Reach it
+from the **wallpaper row on the dashboard's Appearance page**, with `epochctl wallpaper toggle`, or bind it:
 
 ```lua
 hl.bind("SUPER + SHIFT + B", exec("epochctl wallpaper toggle"))
 ```
 
-Arrow keys or hjkl to browse, Enter to keep, Escape to put back what was there. **Moving the
+Arrow keys to browse, Tab to switch to themes, Enter to keep, Escape to put back what was there. **Moving the
 selection applies the wallpaper immediately** -- switching is a single call and the thing being
 chosen is the whole screen, so there is no preview smaller or more honest than the real one.
 
@@ -602,7 +695,7 @@ blur = true           # blur behind the bar and panels while they are see-throug
 Everything ships solid. For a frosted look, turn the bar and panels down together -- 80% works
 well -- so the two read as one sheet of glass, with the compositor blurring what is behind them.
 
-The **Appearance** window (system menu, or `epochctl settings toggle`) has a slider for each and a
+The **Appearance** card (the dashboard's appearance row, or `epochctl settings toggle`) has a slider for each and a
 switch for blur. Moving a slider applies it live; letting go writes it to
 `~/.local/state/epochshell/settings.toml`. That matters on a home-manager install, where
 `config.toml` cannot be written -- the settings file is writable and wins over both the theme and
@@ -641,17 +734,17 @@ fontSizeSubtext = 11
 barHeight = 40
 barIconSize = 18
 barClockSize = 11
-barWeatherSize = 14
 barModuleSpacing = 10
-barGroupIconSpacing = 20
 barIconTextSpacing = 5
 barModuleHorizontalPadding = 14
 barModuleVerticalPadding = 10
 workspaceIcons = true
 workspaceStripMaxWidthRatio = 0.45
+barFloatingGap = 4          # floating and centered: gap above the bar
+barFloatingSideGap = 10     # floating: gap at each end
 ```
 
-Derived bar values such as `barClockSize`, `barWeatherSize`, `barGroupIconSpacing`, `barModuleHorizontalPadding`, and `barModuleVerticalPadding` update automatically unless explicitly overridden.
+Derived bar values such as `barClockSize`, `barModuleHorizontalPadding`, and `barModuleVerticalPadding` update automatically unless explicitly overridden.
 
 ### Style Keys
 
@@ -665,10 +758,11 @@ workspaceStyle = "minimap"  # "minimap", "pill", "plain" or "ledge"
 workspaceIcons = true
 workspaceIconLimit = 2      # ledge only: icons per workspace before "+n"
 workspaceHomes = ""         # ledge only: "app:workspace" pairs; an app elsewhere stays in colour
+launcherStyle = "attached"  # "attached" (drops out of a centered ledge) or "floating"
 ```
 
-The panels opened from the bar are the Readout design: one column of rows, sizes and colours in
-`quickshell/commonwidgets/Readout.qml`.
+Every size, gap, alpha and duration in the shell is a named token in
+`quickshell/commonwidgets/Ui.qml`; change one there and every surface follows.
 
 ### Popup And Card Keys
 
@@ -736,7 +830,6 @@ Epoch Shell expects these tools/services to be available in the session:
 - `tesseract` for the capture panel's OCR row; the panel hides it when tesseract is missing.
 - `wf-recorder` for the record panel and its bar indicator, dimmed and disabled the same way.
 - `nix` and a terminal for the Nix panel's check, update, and rebuild actions.
-- `hyprlock` for the lock action
 - `wpctl`/PipeWire stack for audio controls
 - `networkmanager` stack for network controls
 - `bluetoothctl`/BlueZ stack for Bluetooth controls
@@ -753,7 +846,7 @@ Some modules are compositor-aware. Hyprland and Niri support are represented by 
 - The active shell root is `quickshell/shell.qml`.
 - Theme and sizing defaults live in `quickshell/theme/Config.qml`; palettes live in `quickshell/theme/themes/`.
 - QML services are registered in `quickshell/services/qmldir`.
-- The current codebase intentionally omits older grouped bar, overview, Nix update, and Bitwarden/rbw paths.
+- The codebase intentionally omits an overview and Bitwarden/rbw support.
 - Live installed config may be generated or read-only depending on the system setup; for development, run directly with `quickshell -p` from this repo.
 - `nix develop` gives you the whole stack rather than just Quickshell: EpochOxide and epochctl too,
   since the QML talks to one over a socket and is driven by the other over IPC. It also brings
