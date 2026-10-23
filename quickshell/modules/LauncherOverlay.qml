@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
+import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
@@ -17,32 +19,33 @@ PanelWindow {
     color: "transparent"
     exclusiveZone: 0
     focusable: true
-    screen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
+    readonly property string screenName: {
+        const focused = S.CompositorService.monitors.find(m => m.focused === true);
+        if (focused) return String(focused.name);
+        return Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "";
+    }
+    screen: Quickshell.screens.find(s => s.name === root.screenName) || (Quickshell.screens.length > 0 ? Quickshell.screens[0] : null)
+    WlrLayershell.namespace: "epochshell-launcher"
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: _visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    readonly property bool ledgeMode: T.Config.barIsLedge && T.Config.launcherStyle !== "floating"
 
     property int currentIndex: -1
-    // Keyboard navigation moves rows under a resting cursor, and so does every result batch that
-    // lands while the query is still being typed. Either would otherwise bounce the selection to
-    // whatever ended up beneath the pointer, so hover only takes the selection once the mouse
-    // itself has actually moved: a hover event whose window position differs from the last one.
+    // Hover only takes the selection after a real pointer move: rows appearing under a resting
+    // pointer also deliver hover events.
     property bool hoverSelects: false
     property point hoverPoint: Qt.point(-1, -1)
     property bool hoverPointKnown: false
-    // While the query is being typed the first row stays selected however the list is rebuilt
-    // underneath -- results stream in a batch per provider and are re-sorted on each one. Moving
-    // the selection by hand, with the keys or a real mouse move, releases it.
     property bool selectionAtTop: true
 
-    /// Pins the selection back to the first row and stops hover taking it until the pointer is
-    /// seen to move again. Every path that starts a new query calls this.
     function resetSelection() {
         root.hoverSelects = false;
         root.hoverPointKnown = false;
         root.selectionAtTop = true;
     }
 
-    /// Records a hover position and reports whether the pointer actually moved to reach it. Rows
-    /// appearing or shifting under a resting pointer make Qt deliver hover events that carry the
-    /// same window position as the last one; only a different position is the mouse itself.
+    // Qt re-delivers hover at the same position when rows move under a resting pointer; only a
+    // changed position is a real move.
     function hoverMoved(point) {
         const moved = root.hoverPointKnown
             && (point.x !== root.hoverPoint.x || point.y !== root.hoverPoint.y);
@@ -51,7 +54,6 @@ PanelWindow {
         return moved;
     }
 
-    /// Selects a row, and releases the pin that holds the selection at the top of the list.
     function selectRow(index) {
         root.selectionAtTop = false;
         if (root.currentIndex === index) return;
@@ -80,15 +82,10 @@ PanelWindow {
         });
     }
 
-    // Mirrors whatever EpochOxide reports: one row per live provider, labelled and prefixed the
-    // way the backend describes itself, plus the synthetic "search everything" row.
-    /// The text the provider list is being filtered by: whatever follows the ";".
     function providerFilter() {
         return root.showingProviders ? inputField.text.trim().toLowerCase() : "";
     }
 
-    /// Whether a provider matches what has been typed. Name, label and description all count, so
-    /// "cap" finds Capture and "screenshot" finds it by what it does.
     function providerMatches(filter, name, label, description, prefix) {
         if (filter.length === 0) return true;
         return [name, label, description, prefix]
@@ -107,7 +104,6 @@ PanelWindow {
         if (root.providerMatches(filter, "all", "All providers", "Search across every provider", S.LauncherService.allPrefix)) {
             root.appendProviderRow(S.LauncherService.allPrefix, S.LauncherService.allPrefix, "All providers", "Search across every provider", "");
         }
-        // Whatever was selected before is meaningless against a different list.
         root.resetSelection();
         root.currentIndex = providerModel.count > 0 ? 0 : -1;
         listView.currentIndex = root.currentIndex;
@@ -116,6 +112,7 @@ PanelWindow {
     visible: _visible
 
     function open() {
+        S.PopupManager.closeAll();
         panelAnimate = false;
         inputField.text = "";
         S.LauncherService.setScope("");
@@ -159,18 +156,8 @@ PanelWindow {
         }
     }
 
-    // The overlay is instantiated once by the shell root and published here so the per-screen bar
-    // icons and the "launcher" IPC target both drive the same window. It used to live inside
-    // ApplicationLauncher, which Bar.qml builds per screen, so a second monitor meant a second
-    // overlay competing for the same IPC target and the same Quickshell.screens[0] output.
-    Component.onDestruction: S.PopupManager.registerLauncher(null)
+    Component.onDestruction: S.PopupManager.unregisterLauncher(root)
 
-    /// Scope the launcher to the provider a list row describes.
-    ///
-    /// Always by name, never by typing the provider's prefix into the field. Opening straight into
-    /// Files should look like opening straight into Apps -- an empty box ready for a query -- and a
-    /// leading "/" the user did not type is something to delete before they can start. The header
-    /// says which provider is active; the box is for what they are looking for.
     function chooseProviderRow(row) {
         root.scopeTo(row.name);
     }
@@ -183,16 +170,8 @@ PanelWindow {
         inputField.forceActiveFocus();
     }
 
-    // Jumps straight to a provider by name, which is how a menu is opened now that each one is a
-    // provider of its own: type its prefix for it. The name is held until the backend has answered
-    // with its capabilities if the launcher is opened before that lands.
     property string pendingProvider: ""
 
-    /// Open straight into the provider list -- the view typing ";" reaches.
-    ///
-    /// The text is set to ";" rather than left empty so the state matches how the view is reached
-    /// by hand: typing after it behaves the same either way, instead of the list vanishing on the
-    /// first keystroke for one route and not the other.
     function openProviders() {
         root.open();
         root.showingProviders = true;
@@ -213,10 +192,8 @@ PanelWindow {
         root.scopeTo(name);
     }
 
-    // A row's data lives in the model; listView.itemAtIndex() only answers once a delegate for
-    // that index has been created, which it has not on the first population of a freshly shown
-    // window. Reading the view instead of the model is why the first search came up with no
-    // preview until the selection moved and forced a second look.
+    // Read the model, not listView.itemAtIndex(): delegates do not exist yet on the first
+    // population of a freshly shown window.
     function rowAt(index) {
         const model = root.showingProviders ? providerModel : S.LauncherService.results;
         if (index < 0 || index >= model.count) return null;
@@ -240,7 +217,6 @@ PanelWindow {
     }
 
     function scopedProvider() {
-        // A prefix the user just typed is a deliberate override of wherever they were pinned.
         const typed = S.LauncherService.prefixFor(inputField.text);
         if (typed.length === 0 && S.LauncherService.scope.length > 0) return S.LauncherService.scope;
         const prefix = typed;
@@ -253,7 +229,6 @@ PanelWindow {
         if (root.showingProviders) return "Choose provider";
         if (S.LauncherService.prefixFor(inputField.text) === S.LauncherService.allPrefix) return "All providers";
         const provider = root.scopedProvider();
-        // The "*" scope is every provider, not one with that name.
         if (provider === S.LauncherService.allPrefix) return "All providers";
         return provider.length > 0 ? S.LauncherService.prettyName(provider) : "All providers";
     }
@@ -287,10 +262,7 @@ PanelWindow {
     property bool panelAnimate: true
 
     readonly property int previewTextMax: 4000
-    // Formats Qt's own imageformats plugins can decode directly on this system.
     readonly property var nativeImageExtensions: ["png", "jpg", "jpeg", "gif", "bmp", "ico", "svg"]
-    // Formats with no (or unreliable) native Qt decoder here; rendered to a cached PNG via an
-    // external tool instead (see requestThumbnail). Needs poppler-utils/imagemagick on PATH.
     readonly property var convertibleImageExtensions: ["pdf", "heic", "heif", "webp", "tiff", "tif", "avif", "tga", "icns"]
     readonly property string previewCacheDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/epochshell/previews"
 
@@ -316,7 +288,6 @@ PanelWindow {
         return convertibleImageExtensions.indexOf(fileExtension(path)) !== -1;
     }
 
-    // Stable per-path cache key (FNV-1a), mirroring EpochOxide's own icon thumbnail stamping.
     function pathStamp(path) {
         let h = 0x811c9dc5;
         for (let i = 0; i < path.length; i++) {
@@ -434,591 +405,543 @@ PanelWindow {
 
     onCurrentIndexChanged: previewTimer.restart()
 
-    // Escape is handled on the search field rather than here: `Keys` is an Item attached property
-    // and a PanelWindow is not an Item, so a handler at this level never attaches at all -- it only
-    // logs "Could not attach Keys property". The field holds focus for as long as the launcher is
-    // open, which is exactly when Escape has to work.
+    // Escape is handled on the field: Keys cannot attach to a PanelWindow (it is not an Item).
+
+    readonly property string mode: root.showingProviders ? "providers" : root.activeProvider()
+    readonly property bool split: mode === "files" || mode === "clipboard"
+    readonly property int listWidth: 560
+    readonly property int keybindsWidth: Math.min(Math.round(root.width * 0.6), 760)
+    readonly property int splitWidth: Math.min(Math.round(root.width * 0.6), 1100)
+    readonly property int panelWidth: split ? splitWidth : mode === "keybinds" ? keybindsWidth : listWidth
+    readonly property int maxHeight: Math.min(Math.round(root.height * 0.6), 620)
+    readonly property int rowHeight: Ui.rowHeight
+    readonly property int promptHeight: 44
+
+    readonly property string promptGlyph: {
+        if (root.showingProviders) return ";";
+        const typed = S.LauncherService.prefixFor(inputField.text);
+        if (typed.length > 0) return typed;
+        const scoped = S.LauncherService.scope;
+        if (scoped.length > 0) {
+            const prefix = S.LauncherService.prefixForProvider(scoped);
+            if (prefix.length > 0) return prefix;
+        }
+        return "›";
+    }
+
+    function baseName(path) {
+        const p = String(path || "").replace(/\/+$/, "");
+        return p.slice(p.lastIndexOf("/") + 1) || p;
+    }
+    function homeRelativeDir(path) {
+        const p = String(path || "").replace(/\/+$/, "");
+        const dir = p.slice(0, Math.max(0, p.lastIndexOf("/")));
+        const home = Quickshell.env("HOME") || "";
+        return home.length > 0 && dir.indexOf(home) === 0 ? "~" + dir.slice(home.length) : dir;
+    }
+
+    function glyphIcon(icon) {
+        return icon.length > 0 && icon.length <= 2 && icon.charCodeAt(0) > 0x2000;
+    }
+    function enterLabel(row) {
+        if (root.showingProviders) return "↵ open";
+        const action = String(row.action || "").toLowerCase();
+        if (action.length > 0 && action.length <= 12) return "↵ " + action;
+        return row.provider === "clipboard" ? "↵ copy" : row.provider === "calc" ? "↵ copy" : row.provider === "run" ? "↵ run" : "↵ open";
+    }
+    function statusFor(row) {
+        if (root.showingProviders) {
+            if (row.name === "apps") return "default";
+            return String(row.identifier || "");
+        }
+        if (row.provider === "apps") {
+            const id = String(row.identifier || "").replace(/\.desktop$/, "");
+            const window = id.length > 0 ? S.CompositorService.findWindow(id) : null;
+            return window ? "on " + window.workspace : "";
+        }
+        if (row.provider === "windows") {
+            const window = S.CompositorService.windows.find(w => String(w.id) === String(row.identifier));
+            if (!window) return "";
+            return "ws " + window.workspace + (S.CompositorService.isNiri && !window.floating ? " · col " + (Number(window.x) || 0) : "");
+        }
+        if (root.mode !== row.provider && root.mode !== "providers") return S.LauncherService.prettyName(row.provider).toLowerCase();
+        return "";
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: root.close()
     }
 
     Rectangle {
-        id: panel
-        readonly property string modeProvider: root.activeProvider()
+        anchors.fill: parent
+        visible: !root.ledgeMode
+        color: Qt.rgba(0, 0, 0, 0.25)
+    }
 
-        width: modeProvider === "files" || modeProvider === "clipboard"
-            ? Math.round(root.width * 0.60)
-            : root.previewVisible ? 1700 : 620
-        Behavior on width { enabled: root.panelAnimate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-        height: modeProvider === "files" || modeProvider === "clipboard"
-            ? Math.round(root.height * 0.60)
-            : (root.previewProvider === "files" || root.previewProvider === "clipboard") && root.previewText.length > 0 ? 900 : 520
-        Behavior on height { enabled: root.panelAnimate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+    AttachedSurface {
+        id: ledgeShape
+        visible: root.ledgeMode
+        x: Math.round((root.width - width) / 2)
+        y: 0
+        width: panel.width
+        height: panel.height
+        flare: 0
         radius: T.Config.popupRadius
+        fillColor: T.Config.barBackground
+        outlineOpacity: 1
+    }
+
+    Rectangle {
+        id: panel
+        width: root.panelWidth
+        height: Math.min(content.implicitHeight, root.maxHeight)
+        x: Math.round((root.width - width) / 2)
+        y: root.ledgeMode ? 0 : Math.round(root.height * 0.18)
+        radius: root.ledgeMode ? 0 : T.Config.popupRadius
         antialiasing: true
-        color: T.Config.popupBackground
-        border.width: 1
+        color: root.ledgeMode ? "transparent" : T.Config.popupBackground
+        border.width: root.ledgeMode ? 0 : 1
         border.color: T.Config.outline
-        anchors.centerIn: parent
+        clip: true
 
         MouseArea {
             anchors.fill: parent
             acceptedButtons: Qt.AllButtons
         }
 
-        RowLayout {
-            anchors.fill: parent
+        ColumnLayout {
+            id: content
+            width: parent.width
             spacing: 0
 
-            Item {
+            RowLayout {
                 Layout.fillWidth: true
-                Layout.fillHeight: true
+                Layout.preferredHeight: root.promptHeight
+                Layout.leftMargin: 22
+                Layout.rightMargin: 22
+                spacing: 10
 
-                ColumnLayout {
-                    anchors {
-                        fill: parent
-                        margins: T.Config.popupPadding * 2
-                    }
-                    spacing: T.Config.popupLayoutSpacing
-
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: inputRow.implicitHeight + T.Config.barModuleVerticalPadding * 2
-                radius: T.Config.cardRadius
-                antialiasing: true
-                color: T.Config.surfaceContainer
-                border.width: 1
-                border.color: inputField.activeFocus ? T.Config.accent : T.Config.outline
-
-                RowLayout {
-                    id: inputRow
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                        leftMargin: T.Config.popupPadding
-                        rightMargin: T.Config.popupPadding
-                    }
-                    spacing: T.Config.popupLayoutSpacing
-
-                    Text {
-                        text: "󰀻"
-                        color: inputField.activeFocus ? T.Config.accent : T.Config.inactive
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.barIconSize
-                    }
-
-                    TextInput {
-                        id: inputField
-                        Layout.fillWidth: true
-                        color: T.Config.surfaceText
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeLarge
-                        clip: true
-                        selectedTextColor: T.Config.background
-                        selectionColor: T.Config.accent
-                        selectByMouse: true
-                        activeFocusOnTab: false
-
-                        // With no prefix in the box, backspace on an empty query is what
-                        // "delete the prefix to go back" used to be.
-                        Keys.onPressed: event => {
-                            if (event.key !== Qt.Key_Backspace) return;
-                            if (inputField.text.length > 0) return;
-                            // With no prefix in the box, backspace on an empty query is the way
-                            // back out of the provider list, and out of a pinned provider.
-                            if (root.showingProviders) {
-                                root.showingProviders = false;
-                                S.LauncherService.setQuery("");
-                                event.accepted = true;
-                                return;
-                            }
-                            if (S.LauncherService.scope.length === 0) return;
-                            S.LauncherService.setScope("");
-                            event.accepted = true;
-                        }
-
-                        Keys.onDownPressed: event => {
-                            root.moveSelection(1);
-                            event.accepted = true;
-                        }
-                        Keys.onUpPressed: event => {
-                            root.moveSelection(-1);
-                            event.accepted = true;
-                        }
-                        Keys.onReturnPressed: event => {
-                            root.activateCurrent();
-                            event.accepted = true;
-                        }
-                        Keys.onEscapePressed: event => {
-                            root.close();
-                            event.accepted = true;
-                        }
-
-                        onTextChanged: {
-                            root.resetSelection();
-                            // ";" as the first character opens the provider list, and is not left
-                            // sitting in the box: the list is a mode, and what is typed after it
-                            // filters that list rather than being part of a query.
-                            if (!root.showingProviders && text === ";") {
-                                // The mode goes on before the text is cleared: clearing re-enters
-                                // this handler, and it has to arrive with the mode already set.
-                                root.showingProviders = true;
-                                inputField.text = "";
-                                root.buildProviderMenu();
-                                S.LauncherService.setQuery("");
-                                return;
-                            }
-                            if (root.showingProviders) {
-                                root.buildProviderMenu();
-                                return;
-                            }
-                            S.LauncherService.setQuery(text);
-                        }
-                    }
+                Text {
+                    text: root.promptGlyph
+                    color: T.Config.accent
+                    font.pixelSize: Ui.valueSize + 2
+                    font.family: Ui.font
                 }
-            }
 
-            Rectangle {
-                Layout.fillWidth: true
-                visible: S.LauncherService.searching
-                implicitHeight: 16
-                color: "transparent"
-
-                RowLayout {
-                    anchors.fill: parent
-                    spacing: 6
-                    Layout.alignment: Qt.AlignLeft
-
-                    Item {
-                        implicitWidth: 12
-                        implicitHeight: 12
-                        RotationAnimation on rotation {
-                            running: S.LauncherService.searching
-                            from: 0
-                            to: 360
-                            duration: 800
-                            loops: Animation.Infinite
-                        }
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 10
-                            height: 10
-                            radius: 5
-                            antialiasing: true
-                            border.width: 2
-                            border.color: T.Config.accent
-                            Rectangle {
-                                width: 3
-                                height: 3
-                                radius: 1.5
-                                antialiasing: true
-                                color: T.Config.accent
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.top: parent.top
-                            }
-                        }
-                    }
-
-                    Text {
-                        text: "Searching..."
-                        color: T.Config.inactive
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeSubtext
-                    }
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 1
-                color: T.Config.surfaceVariant
-            }
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                ListView {
-                    id: listView
-                    anchors.fill: parent
+                TextInput {
+                    id: inputField
+                    Layout.fillWidth: true
+                    color: Ui.value
+                    font.pixelSize: Ui.valueSize + 2
+                    font.family: Ui.font
                     clip: true
-                    model: root.showingProviders ? providerModel : S.LauncherService.results
-                    spacing: 4
-                    focus: false
-                    boundsBehavior: Flickable.StopAtBounds
-                    keyNavigationWraps: true
-                    delegate: Rectangle {
-                        id: delegateRoot
-                        required property int index
-                        required property string provider
-                        required property string identifier
-                        required property string text
-                        required property string subtext
-                        required property string icon
-                        required property string action
-                        required property string preview
-                        required property string previewType
+                    selectedTextColor: T.Config.background
+                    selectionColor: T.Config.accent
+                    selectByMouse: true
+                    activeFocusOnTab: false
 
-                        readonly property bool isCurrent: root.currentIndex === index
-                        // An icon is either a freedesktop icon name for the image provider to
-                        // resolve, or a glyph to draw in the theme font (a Nerd Font codepoint
-                        // sits above the BMP's ASCII/symbol range, as one char or a surrogate
-                        // pair). Menus name their icon by hand, so both are worth accepting.
-                        readonly property bool iconIsGlyph: icon.length > 0 && icon.length <= 2 && icon.charCodeAt(0) > 0x2000
-                        width: listView.width - 2
-                        implicitHeight: 48
-                        radius: T.Config.cardRadius
-                        antialiasing: true
-                        color: isCurrent ? T.Config.accentLightShade : "transparent"
-                        border.width: isCurrent ? 1 : 0
-                        border.color: isCurrent ? T.Config.accent : "transparent"
-
-                        RowLayout {
-                            anchors {
-                                left: parent.left
-                                right: parent.right
-                                verticalCenter: parent.verticalCenter
-                                leftMargin: T.Config.popupPadding
-                                rightMargin: T.Config.popupPadding
-                            }
-                            spacing: T.Config.popupLayoutSpacing
-
-                            Rectangle {
-                                Layout.preferredWidth: 32
-                                Layout.preferredHeight: 32
-                                radius: T.Config.cardRadius
-                                antialiasing: true
-                                color: delegateRoot.isCurrent ? T.Config.surfaceContainerHigh : T.Config.surface
-                                clip: true
-
-                                Image {
-                                    id: iconImage
-                                    anchors.fill: parent
-                                    anchors.margins: 4
-                                    source: delegateRoot.icon.length > 0 && !delegateRoot.iconIsGlyph ? "image://icon/" + delegateRoot.icon : ""
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                    visible: delegateRoot.icon.length > 0 && !delegateRoot.iconIsGlyph && status === Image.Ready
-                                }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    visible: !iconImage.visible
-                                    text: delegateRoot.iconIsGlyph
-                                        ? delegateRoot.icon
-                                        : delegateRoot.provider === "provider"
-                                        ? (delegateRoot.identifier.length > 0 ? delegateRoot.identifier.charAt(0) : delegateRoot.text.charAt(0).toUpperCase())
-                                        : (delegateRoot.text.length > 0 ? delegateRoot.text.charAt(0).toUpperCase() : "?")
-                                    color: delegateRoot.iconIsGlyph ? T.Config.surfaceText : T.Config.inactive
-                                    font.family: T.Config.fontFamily
-                                    font.pixelSize: delegateRoot.iconIsGlyph ? T.Config.barIconSize : T.Config.fontSizeNormal
-                                }
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 2
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: delegateRoot.provider === "clipboard" ? root.truncate(delegateRoot.text.replace(/\s+/g, " "), 30) : delegateRoot.text
-                                    color: delegateRoot.isCurrent ? T.Config.accent : T.Config.surfaceText
-                                    font.family: T.Config.fontFamily
-                                    font.pixelSize: T.Config.fontSizeMedium
-                                    font.bold: delegateRoot.isCurrent
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 1
-                                }
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    visible: text.length > 0
-                                    text: delegateRoot.provider === "clipboard" ? delegateRoot.subtext.replace(/\s+/g, " ") : delegateRoot.subtext
-                                    color: T.Config.inactive
-                                    font.family: T.Config.fontFamily
-                                    font.pixelSize: T.Config.fontSizeNormal
-                                    elide: Text.ElideRight
-                                    maximumLineCount: 1
-                                }
-                            }
-
-                            Rectangle {
-                                visible: delegateRoot.provider === "provider"
-                                Layout.preferredWidth: kbdText.implicitWidth + 14
-                                Layout.preferredHeight: 18
-                                radius: 4
-                                antialiasing: true
-                                color: T.Config.surface
-                                border.width: 1
-                                border.color: T.Config.surfaceVariant
-
-                                Text {
-                                    id: kbdText
-                                    anchors.centerIn: parent
-                                    text: delegateRoot.identifier.length > 0 ? delegateRoot.identifier : "type"
-                                    color: T.Config.inactive
-                                    font.family: T.Config.fontFamily
-                                    font.pixelSize: T.Config.fontSizeSubtext
-                                }
-                            }
-
-                            Text {
-                                visible: delegateRoot.provider !== "provider"
-                                text: root.providerLabel(delegateRoot.provider, delegateRoot.identifier)
-                                color: T.Config.inactive
-                                font.family: T.Config.fontFamily
-                                font.pixelSize: T.Config.fontSizeSubtext
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            // A row drawn under a resting pointer raises `entered` exactly as one
-                            // the pointer was moved onto, so entering only takes the selection
-                            // when a real move has already armed hover.
-                            onEntered: if (root.hoverSelects) root.selectRow(delegateRoot.index)
-                            onPositionChanged: mouse => {
-                                if (!root.hoverMoved(delegateRoot.mapToItem(null, mouse.x, mouse.y))) return;
-                                root.hoverSelects = true;
-                                root.selectRow(delegateRoot.index);
-                            }
-                            onClicked: root.selectRow(delegateRoot.index)
-                            onDoubleClicked: {
-                                root.selectRow(delegateRoot.index);
-                                root.activateCurrent();
-                            }
-                        }
-                    }
-
-                    onCountChanged: {
-                        if (listView.count === 0) {
-                            root.previewVisible = false;
-                            root.currentIndex = -1;
+                    Keys.onPressed: event => {
+                        if (event.key !== Qt.Key_Backspace) return;
+                        if (inputField.text.length > 0) return;
+                        if (root.showingProviders) {
+                            root.showingProviders = false;
+                            S.LauncherService.setQuery("");
+                            event.accepted = true;
                             return;
                         }
-                        if (root.selectionAtTop || root.currentIndex < 0 || root.currentIndex >= listView.count) {
-                            root.currentIndex = 0;
-                            listView.currentIndex = 0;
-                            listView.positionViewAtBeginning();
+                        if (S.LauncherService.scope.length === 0) return;
+                        S.LauncherService.setScope("");
+                        event.accepted = true;
+                    }
+                    Keys.onDownPressed: event => {
+                        root.moveSelection(1);
+                        event.accepted = true;
+                    }
+                    Keys.onUpPressed: event => {
+                        root.moveSelection(-1);
+                        event.accepted = true;
+                    }
+                    Keys.onTabPressed: event => {
+                        root.moveSelection(1);
+                        event.accepted = true;
+                    }
+                    Keys.onReturnPressed: event => {
+                        root.activateCurrent();
+                        event.accepted = true;
+                    }
+                    Keys.onEscapePressed: event => {
+                        root.close();
+                        event.accepted = true;
+                    }
+
+                    onTextChanged: {
+                        root.resetSelection();
+                        if (!root.showingProviders && text === ";") {
+                            // Set the mode before clearing the text: clearing re-enters this
+                            // handler.
+                            root.showingProviders = true;
+                            inputField.text = "";
+                            root.buildProviderMenu();
+                            S.LauncherService.setQuery("");
+                            return;
                         }
-                        previewTimer.restart();
+                        if (root.showingProviders) {
+                            root.buildProviderMenu();
+                            return;
+                        }
+                        S.LauncherService.setQuery(text);
                     }
                 }
 
                 Text {
-                    anchors.centerIn: listView
-                    visible: listView.count === 0 && !S.LauncherService.searching && !root.backendDown
-                    text: "No results"
-                    color: T.Config.inactive
-                    font.family: T.Config.fontFamily
-                    font.pixelSize: T.Config.fontSizeNormal
+                    text: {
+                        if (S.LauncherService.searching) return "searching…";
+                        const label = root.showingProviders ? "providers" : root.scopeLabel().toLowerCase();
+                        return label + (root.mode === "apps" ? " · ; for providers" : "");
+                    }
+                    color: Ui.key
+                    font.pixelSize: Ui.detailSize
+                    font.family: Ui.font
                 }
+            }
 
-                ColumnLayout {
-                    anchors.centerIn: listView
-                    width: listView.width - T.Config.popupPadding * 2
-                    visible: root.backendDown
-                    spacing: 6
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: Ui.divider
+            }
 
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "󰅚"
-                        color: T.Config.red
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: 48
-                    }
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: S.LauncherService.backendError
-                        color: T.Config.red
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeLarge
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: S.LauncherService.socketPath
-                        color: T.Config.inactive
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeNormal
-                        elide: Text.ElideMiddle
-                    }
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "Retrying… · systemctl --user restart epochoxide"
-                        color: T.Config.inactive
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeSubtext
-                    }
+            RowLayout {
+                visible: root.mode === "calc" && listView.count > 0
+                Layout.fillWidth: true
+                Layout.leftMargin: 22
+                Layout.rightMargin: 22
+                Layout.topMargin: 8
+                Layout.bottomMargin: 8
+                spacing: 12
+                Text {
+                    Layout.fillWidth: true
+                    text: { const row = root.rowAt(0); return row ? String(row.text) : ""; }
+                    color: Ui.value
+                    font.pixelSize: Ui.valueSize + 10
+                    font.family: Ui.font
+                    elide: Text.ElideRight
+                }
+                Text {
+                    text: "↵ copy"
+                    color: Ui.detail
+                    font.pixelSize: Ui.detailSize
+                    font.family: Ui.font
                 }
             }
 
             RowLayout {
+                visible: !(root.mode === "calc")
                 Layout.fillWidth: true
-                spacing: 6
-
-                Text {
-                    text: root.backendDown ? S.LauncherService.backendError : root.scopeLabel() + " · " + listView.count + " results"
-                    color: root.backendDown ? T.Config.red
-                           : S.LauncherService.searching ? T.Config.accent : T.Config.inactive
-                    font.family: T.Config.fontFamily
-                    font.pixelSize: T.Config.fontSizeSubtext
-                }
+                Layout.preferredHeight: Math.min(Math.max(listView.contentHeight, root.rowHeight) + 18,
+                    root.maxHeight - root.promptHeight - 1)
+                spacing: 0
 
                 Item {
-                    Layout.fillWidth: true
-                }
+                    Layout.preferredWidth: root.split ? Math.round(root.panelWidth * 0.46) : root.panelWidth
+                    Layout.fillHeight: true
 
-                Repeater {
-                    model: providerModel
+                    ListView {
+                        id: listView
+                        anchors.fill: parent
+                        anchors.topMargin: 6
+                        anchors.bottomMargin: 12
+                        clip: true
+                        model: root.showingProviders ? providerModel : S.LauncherService.results
+                        spacing: 0
+                        focus: false
+                        boundsBehavior: Flickable.StopAtBounds
+                        keyNavigationWraps: true
 
-                    delegate: Text {
-                        required property string identifier
-                        required property string name
+                        section.property: root.mode === "apps" ? "provider" : ""
+                        section.delegate: Item {
+                            required property string section
+                            width: listView.width
+                            height: section === "apps" ? 0 : 28
+                            visible: section !== "apps"
+                            Text {
+                                x: 22
+                                anchors.bottom: parent.bottom
+                                anchors.bottomMargin: 4
+                                text: S.LauncherService.prettyName(section).toLowerCase()
+                                color: Ui.key
+                                font.pixelSize: Ui.detailSize
+                                font.family: Ui.font
+                            }
+                        }
 
-                        text: identifier.length > 0 ? identifier : name
-                        color: root.chipActive(name, identifier) ? T.Config.accent : T.Config.inactive
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeSubtext
-                        MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.scopeTo(name)
+                        delegate: Item {
+                            id: delegateRoot
+                            required property int index
+                            required property string provider
+                            required property string identifier
+                            required property string text
+                            required property string subtext
+                            required property string icon
+                            required property string action
+                            required property string preview
+                            required property string previewType
+                            readonly property bool isCurrent: root.currentIndex === index
+                            readonly property bool appIcon: (provider === "apps" || provider === "windows") && icon.length > 0 && !root.glyphIcon(icon)
+                            readonly property string name: root.showingProviders ? (listView.model.get(index) ? String(listView.model.get(index).name || "") : "") : ""
+                            readonly property bool keycaps: provider === "keybinds" && keysPart.length > 0
+                            readonly property string keysPart: provider === "keybinds" ? subtext.split(" · ")[0].trim() : ""
+                            readonly property string commandPart: provider === "keybinds" ? subtext.split(" · ").slice(1).join(" · ").trim() : ""
+
+                            width: listView.width
+                            height: root.rowHeight
+
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.leftMargin: 10
+                                anchors.rightMargin: 10
+                                radius: Ui.hoverRadius
+                                color: delegateRoot.isCurrent ? Ui.hover : "transparent"
+                            }
+                            Rectangle {
+                                visible: delegateRoot.isCurrent
+                                x: 10
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: Ui.tick
+                                height: parent.height - 10
+                                color: T.Config.accent
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 22
+                                anchors.rightMargin: 22
+                                spacing: 10
+
+                                Item {
+                                    Layout.preferredWidth: Ui.iconColumn
+                                    Layout.preferredHeight: Ui.iconSize
+                                    Image {
+                                        id: iconImage
+                                        anchors.centerIn: parent
+                                        width: Ui.iconSize
+                                        height: Ui.iconSize
+                                        visible: delegateRoot.icon.length > 0 && !root.glyphIcon(delegateRoot.icon) && status === Image.Ready
+                                        source: delegateRoot.icon.length > 0 && !root.glyphIcon(delegateRoot.icon) ? "image://icon/" + delegateRoot.icon : ""
+                                        sourceSize.width: 44
+                                        sourceSize.height: 44
+                                        fillMode: Image.PreserveAspectFit
+                                        smooth: true
+                                    }
+                                    Text {
+                                        anchors.centerIn: parent
+                                        visible: !iconImage.visible
+                                        text: root.glyphIcon(delegateRoot.icon) ? delegateRoot.icon
+                                            : delegateRoot.provider === "provider" ? (delegateRoot.identifier.length > 0 ? delegateRoot.identifier : "󰀻")
+                                            : delegateRoot.provider === "clipboard" ? "󰅌"
+                                            : delegateRoot.provider === "files" ? "󰈔"
+                                            : delegateRoot.provider === "run" ? "󰆍"
+                                            : delegateRoot.provider === "calc" ? "󰃬"
+                                            : (delegateRoot.text.length > 0 ? delegateRoot.text.charAt(0).toUpperCase() : "?")
+                                        color: delegateRoot.isCurrent ? T.Config.accent : Ui.detail
+                                        font.pixelSize: Ui.iconSize
+                                        font.family: Ui.font
+                                    }
+                                }
+
+                                Text {
+                                    Layout.preferredWidth: delegateRoot.keycaps ? Math.min(implicitWidth, delegateRoot.width * 0.4) : Math.min(implicitWidth, delegateRoot.width * 0.55)
+                                    Layout.minimumWidth: 0
+                                    text: delegateRoot.provider === "clipboard" ? root.truncate(delegateRoot.text.replace(/\s+/g, " "), 60)
+                                        : delegateRoot.provider === "files" ? root.baseName(delegateRoot.text)
+                                        : delegateRoot.text
+                                    color: Ui.value
+                                    font.pixelSize: Ui.valueSize
+                                    font.family: Ui.font
+                                    elide: Text.ElideRight
+                                    maximumLineCount: 1
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    Layout.minimumWidth: 0
+                                    text: delegateRoot.keycaps ? delegateRoot.commandPart
+                                        : delegateRoot.provider === "clipboard" ? delegateRoot.subtext.replace(/\s+/g, " ")
+                                        : delegateRoot.provider === "files" ? root.homeRelativeDir(delegateRoot.text)
+                                        : delegateRoot.subtext
+                                    color: Ui.detail
+                                    font.pixelSize: Ui.detailSize
+                                    font.family: Ui.font
+                                    elide: Text.ElideRight
+                                    maximumLineCount: 1
+                                }
+
+                                Item {
+                                    visible: delegateRoot.keycaps
+                                    Layout.preferredWidth: caps.implicitWidth
+                                    Layout.minimumWidth: caps.implicitWidth
+                                    Layout.preferredHeight: parent.height
+                                    Row {
+                                        id: caps
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 3
+                                        Repeater {
+                                            model: delegateRoot.keycaps ? delegateRoot.keysPart.split("+").map(k => k.trim()).filter(k => k.length > 0) : []
+                                            delegate: Rectangle {
+                                                required property string modelData
+                                                width: capText.implicitWidth + 8
+                                                height: capText.implicitHeight + 4
+                                                radius: 3
+                                                color: "transparent"
+                                                border.width: 1
+                                                border.color: Ui.alpha(T.Config.surfaceText, 0.25)
+                                                Text {
+                                                    id: capText
+                                                    anchors.centerIn: parent
+                                                    text: modelData
+                                                    color: Ui.value
+                                                    font.pixelSize: Ui.detailSize - 1
+                                                    font.family: Ui.font
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Text {
+                                    readonly property var row: ({ provider: delegateRoot.provider, identifier: delegateRoot.identifier, action: delegateRoot.action, name: delegateRoot.name })
+                                    text: delegateRoot.isCurrent ? root.enterLabel(row) : root.statusFor(row)
+                                    color: delegateRoot.isCurrent ? Ui.value : Ui.detail
+                                    font.pixelSize: Ui.detailSize
+                                    font.family: Ui.font
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onEntered: if (root.hoverSelects) root.selectRow(delegateRoot.index)
+                                onPositionChanged: mouse => {
+                                    if (!root.hoverMoved(delegateRoot.mapToItem(null, mouse.x, mouse.y))) return;
+                                    root.hoverSelects = true;
+                                    root.selectRow(delegateRoot.index);
+                                }
+                                onClicked: root.selectRow(delegateRoot.index)
+                                onDoubleClicked: {
+                                    root.selectRow(delegateRoot.index);
+                                    root.activateCurrent();
+                                }
+                            }
+                        }
+
+                        onCountChanged: {
+                            if (listView.count === 0) {
+                                root.previewVisible = false;
+                                root.currentIndex = -1;
+                                return;
+                            }
+                            if (root.selectionAtTop || root.currentIndex < 0 || root.currentIndex >= listView.count) {
+                                root.currentIndex = 0;
+                                listView.currentIndex = 0;
+                                listView.positionViewAtBeginning();
+                            }
+                            previewTimer.restart();
+                        }
+                    }
+
+                    RowLayout {
+                        visible: listView.count === 0 && !S.LauncherService.searching
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.topMargin: 4
+                        height: root.rowHeight
+                        anchors.leftMargin: 22
+                        anchors.rightMargin: 22
+                        Text {
+                            Layout.fillWidth: true
+                            text: root.backendDown ? "launcher backend not running" : "no matches"
+                            color: root.backendDown ? Ui.danger : Ui.detail
+                            font.pixelSize: Ui.valueSize
+                            font.family: Ui.font
+                            elide: Text.ElideRight
+                        }
+                        Text {
+                            visible: !root.backendDown
+                            text: "; providers"
+                            color: Ui.key
+                            font.pixelSize: Ui.detailSize
+                            font.family: Ui.font
                         }
                     }
                 }
-            }
-            }
-
-        }
-
-        Rectangle {
-            Layout.preferredWidth: root.previewVisible ? Math.round(panel.width * 0.62) : 0
-            Layout.fillHeight: true
-            visible: root.previewVisible
-            Behavior on Layout.preferredWidth { enabled: root.panelAnimate; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-            clip: true
-            color: "transparent"
 
                 Rectangle {
-                    anchors {
-                        top: parent.top
-                        bottom: parent.bottom
-                        left: parent.left
-                    }
-                    width: 1
-                    color: T.Config.surfaceVariant
+                    visible: root.split
+                    Layout.preferredWidth: 1
+                    Layout.fillHeight: true
+                    color: Ui.divider
                 }
 
                 ColumnLayout {
-                    anchors {
-                        fill: parent
-                        margins: T.Config.popupPadding * 2
-                    }
-                    spacing: T.Config.popupLayoutSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 6
-
-                        Text {
-                            text: root.previewTitle
-                            color: T.Config.accent
-                            font.family: T.Config.fontFamily
-                            font.pixelSize: T.Config.fontSizeXLarge
-                            font.bold: true
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                        }
-
-                        Text {
-                            text: root.providerLabel(root.previewProvider)
-                            color: T.Config.inactive
-                            font.family: T.Config.fontFamily
-                            font.pixelSize: T.Config.fontSizeMedium
-                        }
-                    }
+                    visible: root.split
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.margins: 14
+                    spacing: 8
 
                     Text {
                         Layout.fillWidth: true
-                        visible: root.previewSubtext.length > 0
-                        text: root.previewSubtext
-                        color: T.Config.inactive
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeMedium
-                        elide: Text.ElideMiddle
+                        text: {
+                            const row = root.rowAt(root.currentIndex);
+                            if (!row) return "";
+                            const parts = [];
+                            if (root.previewImage.toString().length > 0) parts.push(root.mode === "files" ? root.fileExtension(String(row.preview || "")) || "image" : "image");
+                            else if (root.previewText.length > 0) parts.push(root.mode === "files" ? (root.fileExtension(String(row.preview || "")) || "text") : "text", root.previewText.length + " chars");
+                            parts.push(root.enterLabel(row));
+                            return parts.join(" · ");
+                        }
+                        color: Ui.key
+                        font.pixelSize: Ui.detailSize
+                        font.family: Ui.font
+                        elide: Text.ElideRight
                     }
 
-                    Rectangle {
+                    Flickable {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        color: T.Config.surfaceVariant
+                        Layout.fillHeight: true
+                        visible: root.previewText.length > 0 && root.previewImage.toString().length === 0
+                        clip: true
+                        contentWidth: width
+                        contentHeight: previewBody.implicitHeight
+                        boundsBehavior: Flickable.StopAtBounds
+                        Text {
+                            id: previewBody
+                            width: parent.width
+                            text: root.previewText
+                            color: Ui.value
+                            font.pixelSize: Ui.detailSize + 1
+                            font.family: Ui.font
+                            wrapMode: Text.WrapAnywhere
+                            textFormat: Text.PlainText
+                        }
+                    }
+
+                    Image {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        visible: root.previewImage.toString().length > 0
+                        source: root.previewImage
+                        fillMode: Image.PreserveAspectFit
+                        asynchronous: true
+                        sourceSize.width: 1024
                     }
 
                     Item {
-                        Layout.fillWidth: true
                         Layout.fillHeight: true
-                        clip: true
-
-                        Image {
-                            anchors.fill: parent
-                            anchors.margins: 4
-                            visible: root.previewImage.toString() !== ""
-                            source: root.previewImage
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            sourceSize.width: 1024
-                            sourceSize.height: 820
-                        }
-
-                        Flickable {
-                            anchors.fill: parent
-                            visible: root.previewImage.toString() === "" && root.previewText.length > 0
-                            contentWidth: width
-                            contentHeight: previewBody.implicitHeight
-
-                            Text {
-                                id: previewBody
-                                width: parent.width
-                                text: root.previewText
-                                color: T.Config.surfaceText
-                                font.family: T.Config.fontFamily
-                                font.pixelSize: T.Config.fontSizeLarge
-                                wrapMode: Text.WrapAnywhere
-                                textFormat: Text.PlainText
-                            }
-                        }
-
-                        ColumnLayout {
-                            anchors.centerIn: parent
-                            visible: root.previewImage.toString() === "" && root.previewText.length === 0
-                            spacing: 6
-
-                            Text {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: "󰈔"
-                                color: T.Config.inactive
-                                font.family: T.Config.fontFamily
-                                font.pixelSize: 48
-                            }
-
-                            Text {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: "No preview"
-                                color: T.Config.inactive
-                                font.family: T.Config.fontFamily
-                                font.pixelSize: T.Config.fontSizeLarge
-                            }
-                        }
+                        visible: root.previewText.length === 0 && root.previewImage.toString().length === 0
                     }
                 }
             }

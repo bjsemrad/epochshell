@@ -6,13 +6,10 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// Tailscale in the Readout design: on or off in the header, this machine, Taildrop both ways, and
-// the peers. A peer's row copies its name (its address on a right click); with a file chosen it
-// sends the file there instead.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 460
+    popupWidth: 500
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "tailscale")
@@ -41,7 +38,7 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: panel.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: "tailscale"
             active: S.Tailscale.connected
             hasSwitch: true
@@ -49,10 +46,9 @@ HoverPopupWindow {
             onToggled: S.Tailscale.toggle(!S.Tailscale.connected)
         }
 
-        ReadoutRow {
+        ListRow {
             visible: S.Tailscale.connected
             icon: "󰒄"
-            // This machine, by its name.
             value: panel.hostname
             detail: S.Tailscale.magicDNSSuffix
             status: S.Tailscale.connectedIP
@@ -61,14 +57,13 @@ HoverPopupWindow {
             onClicked: S.Tailscale.trayscale()
         }
 
-        ReadoutText {
+        Note {
             visible: S.Tailscale.backendError.length > 0
             text: S.Tailscale.backendError.toLowerCase()
         }
 
-        // --- Taildrop ---
-        ReadoutSection { text: "taildrop" }
-        ReadoutRow {
+        SectionHeader { text: "taildrop" }
+        ListRow {
             icon: S.Tailscale.selectedFile.length > 0 ? "󰈔" : "󰈙"
             value: S.Tailscale.selectedFile.length > 0 ? S.Tailscale.fileName(S.Tailscale.selectedFile) : "choose a file to send"
             detail: S.Tailscale.sendStatus.toLowerCase()
@@ -78,7 +73,7 @@ HoverPopupWindow {
         }
         Repeater {
             model: S.Tailscale.incomingFiles
-            delegate: ReadoutRow {
+            delegate: ListRow {
                 required property var modelData
                 icon: "󰈔"
                 value: modelData.name || "unnamed file"
@@ -87,7 +82,7 @@ HoverPopupWindow {
                 interactive: false
             }
         }
-        ReadoutRow {
+        ListRow {
             visible: S.Tailscale.hasIncomingFiles
             icon: "󰉋"
             value: S.Tailscale.receivingFiles ? "receiving…" : "save incoming files"
@@ -97,23 +92,22 @@ HoverPopupWindow {
             onClicked: folderDialog.open()
         }
 
-        // --- Peers ---
-        ReadoutSection {
+        SectionHeader {
             visible: S.Tailscale.peers.length > 0
             text: "peers"
         }
         Repeater {
             model: S.Tailscale.peers
-            delegate: ReadoutRow {
+            delegate: ListRow {
                 required property var modelData
                 readonly property bool sendable: S.Tailscale.selectedFile.length > 0 && !S.Tailscale.sendingFile && String(modelData.taildropTarget || "").length > 0
                 readonly property bool sending: S.Tailscale.sendingFile && S.Tailscale.sendTarget === modelData.taildropTarget
                 icon: modelData.connected ? "󰱓" : "󰅛"
-                iconColor: modelData.connected ? Readout.value : Readout.detail
+                iconColor: modelData.connected ? Ui.value : Ui.detail
                 value: modelData.hostName || ""
                 detail: modelData.ip || ""
                 status: sending ? "sending…" : sendable ? "send" : modelData.connected ? "online" : "idle"
-                statusColor: sendable || sending ? Readout.accent : Readout.detail
+                statusColor: sendable || sending ? Ui.accent : Ui.detail
                 hoverStatus: sendable ? "send here" : "copy name · right-click ip"
                 onClicked: {
                     if (sendable) {

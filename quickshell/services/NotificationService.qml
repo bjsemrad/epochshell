@@ -12,9 +12,6 @@ Singleton {
     property bool doNotDisturb: false
     property int unreadCount: 0
     readonly property int historyLimit: 30
-    // How long a notification stays in the centre before it clears itself. An hour is long enough
-    // to come back from a meeting and see what was missed, and short enough that the list is not a
-    // week of noise. Zero keeps everything until it is dismissed or pushed out by historyLimit.
     readonly property int historyLifetimeMinutes: 60
     readonly property int normalTimeout: 3500
     readonly property int lowTimeout: 2000
@@ -95,8 +92,6 @@ Singleton {
         const prefix = browserPrefix.toLowerCase();
         const toplevels = [];
 
-        // One loop over normalized windows: the compositor-specific branches this used to have
-        // are gone now that CompositorService reports the same shape for every backend.
         const windows = CompositorService.windows;
         for (let i = 0; i < windows.length; i++) {
             const cls = normalizeClass(windows[i].app_id || "");
@@ -188,14 +183,7 @@ Singleton {
         return path.startsWith("/") ? path : "";
     }
 
-    // Whether an image source stops working once the notification behind it is gone.
-    //
-    // A pixmap sent with the notification lives in a provider tied to that notification, so
-    // history has to drop it -- there is nothing left to draw once it closes. A theme icon is not
-    // like that: `image://icon/camera-photo` is a name the icon theme resolves whenever it is
-    // drawn, so keeping it is what puts an icon on a history card at all. Clearing both is why a
-    // notification sent with `notify-send --icon=camera-photo` had an icon in the toast and a
-    // blank space in the notification centre.
+    // A pixmap sent with a notification dies with it, so history cannot keep drawing it.
     function staleAfterTheNotification(source) {
         const value = String(source || "");
         return value.startsWith("image://") && !value.startsWith("image://icon/");
@@ -290,8 +278,72 @@ Singleton {
                 .replace(/^\s*(?:https?:\/\/|www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:\/\S*)?\s+/i, "") : body,
             image: displayImage,
             urgency: notification.urgency,
-            timestamp: timestamp
+            timestamp: timestamp,
+            actions: JSON.stringify(actionsOf(notification)),
+            groupKey: windowClass.length > 0 ? "class:" + windowClass : "app:" + appName.toLowerCase(),
+            groupCount: 1,
+            groupIds: JSON.stringify([notificationId]),
+            serial: 0
         };
+    }
+
+    function actionsOf(notification) {
+        const out = [];
+        try {
+            for (const action of notification.actions || []) {
+                if (!action || action.identifier === "default") continue;
+                out.push({ id: String(action.identifier), label: String(action.text || action.identifier) });
+            }
+        } catch (e) {
+        }
+        return out;
+    }
+
+    function invokeAction(notificationId, actionId) {
+        const notification = liveNotifications[notificationId];
+        if (!notification) return false;
+        try {
+            for (const action of notification.actions || []) {
+                if (action && String(action.identifier) === String(actionId)) {
+                    action.invoke();
+                    closeNotificationEverywhere(notificationId);
+                    return true;
+                }
+            }
+        } catch (e) {
+        }
+        return false;
+    }
+
+    readonly property int toastLimit: 4
+
+    function insertToast(item) {
+        if (item.urgency !== NotificationUrgency.Critical) {
+            for (let i = 0; i < toastModel.count; i++) {
+                const existing = toastModel.get(i);
+                if (existing.groupKey !== item.groupKey || existing.urgency === NotificationUrgency.Critical) continue;
+                const ids = JSON.parse(existing.groupIds || "[]");
+                ids.push(item.notificationId);
+                const merged = Object.assign({}, item, {
+                    groupCount: existing.groupCount + 1,
+                    groupIds: JSON.stringify(ids),
+                    serial: existing.serial + 1
+                });
+                toastModel.set(i, merged);
+                if (i > 0) toastModel.move(i, 0, 1);
+                return;
+            }
+        }
+        toastModel.insert(0, item);
+        while (toastModel.count > toastLimit) toastModel.remove(toastModel.count - 1);
+    }
+
+    function idsOf(item) {
+        try {
+            return JSON.parse(item.groupIds || "[]");
+        } catch (e) {
+            return [item.notificationId];
+        }
     }
 
     function handleNotification(notification) {
@@ -312,15 +364,13 @@ Singleton {
         addHistory(historyItem);
         unreadCount += 1;
 
-        if (!doNotDisturb) {
-            toastModel.insert(0, toastItem);
+        if (!doNotDisturb || toastItem.urgency === NotificationUrgency.Critical) {
+            insertToast(toastItem);
         }
     }
 
     function addHistory(item) {
         historyModel.insert(0, item);
-        // Rows pushed off the end are gone as surely as dismissed ones, and their thumbnails have
-        // nothing left pointing at them.
         const stems = [];
         while (historyModel.count > historyLimit) {
             stems.push(stemFor(historyModel.get(historyModel.count - 1)));
@@ -333,7 +383,7 @@ Singleton {
         if (index < 0 || index >= toastModel.count) return;
 
         const item = toastModel.get(index);
-        closeLiveNotification(item.notificationId);
+        for (const id of idsOf(item)) closeLiveNotification(id);
         toastModel.remove(index);
     }
 
@@ -363,17 +413,12 @@ Singleton {
         forgetImages(stems);
     }
 
-    /// Drop history entries older than historyLifetimeMinutes.
-    ///
-    /// Critical notifications are left alone: something that asked not to time out as a toast has
-    /// not become less important an hour later, and quietly discarding it is how a failed backup
-    /// goes unnoticed.
+    // Critical notifications are kept regardless of age.
     function expireHistory() {
         if (historyLifetimeMinutes <= 0) return;
         const cutoff = Date.now() - historyLifetimeMinutes * 60000;
         let removed = 0;
         const stems = [];
-        // Backwards, because removing shifts everything after it -- and the oldest are at the end.
         for (let i = historyModel.count - 1; i >= 0; i--) {
             const item = historyModel.get(i);
             if (item.urgency === NotificationUrgency.Critical) continue;
@@ -383,16 +428,10 @@ Singleton {
             historyModel.remove(i);
             removed += 1;
         }
-        // Anything expired was never read, so the badge should not keep counting it.
         if (removed > 0) unreadCount = Math.max(0, unreadCount - removed);
         if (stems.length > 0) forgetImages(stems);
     }
 
-    /// Delete the thumbnails a set of history entries had persisted.
-    ///
-    /// Nothing else does this: dismissing an entry, clearing the list, and being pushed out by
-    /// historyLimit all drop the row and leave its files behind, which is why the state directory
-    /// grows without bound. Expiring on a timer would have made that worse rather than starting it.
     function stemFor(item) {
         return String(item.timestamp) + "-" + String(item.notificationId);
     }
@@ -474,10 +513,8 @@ Singleton {
         closeNotificationEverywhere(id);
     }
 
-    // Clicking a notification just raises the app's window. The app's default action is only a
-    // fallback when no window matches (e.g. the app is closed): it opens things we don't want
-    // (a message view in a mail client), and niri ignores the app's own activation request anyway
-    // since this server never issues an xdg-activation token.
+    // A click raises the app's window; the default action is only a fallback (it often opens
+    // something unwanted, and niri ignores its activation).
     function activateNotification(id, appName, windowClass) {
         const match = (windowClass && windowClass.length > 0) ? windowClass : appName;
         const window = CompositorService.findWindow(match);
@@ -491,6 +528,14 @@ Singleton {
     function focusAndDismiss(id, appName, windowClass) {
         activateNotification(id, appName, windowClass);
         closeNotificationEverywhere(id);
+    }
+
+    function focusAndDismissToast(index) {
+        if (index < 0 || index >= toastModel.count) return;
+        const item = toastModel.get(index);
+        const ids = idsOf(item);
+        activateNotification(item.notificationId, item.appName, item.windowClass);
+        for (const id of ids) closeNotificationEverywhere(id);
     }
 
     function focusFromHistory(id, appName, index, windowClass) {
@@ -527,9 +572,6 @@ Singleton {
         id: historyModel
     }
 
-    // Thumbnails outlive their history entries in one case this cannot see: a shell restart drops
-    // the whole list, and the files it had written stay. One sweep at startup collects those --
-    // anything older than the lifetime cannot belong to a row that still exists.
     Component.onCompleted: {
         if (root.historyLifetimeMinutes > 0) {
             Quickshell.execDetached(["find", root.imageStateDir, "-maxdepth", "1", "-type", "f",
@@ -537,8 +579,6 @@ Singleton {
         }
     }
 
-    // A minute is finer than anyone reads the list, and the sweep is a walk over at most
-    // historyLimit rows.
     Timer {
         interval: 60000
         repeat: true

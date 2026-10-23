@@ -7,16 +7,12 @@ import qs.services as S
 import qs.theme as T
 import qs.popups.pages
 
-// The system menu in the Readout design, for the individual status icons' power icon: who and
-// where, the night and stay-awake switches, appearance, and the session. It opens with the focus
-// on its first session row, so the keyboard can take it from there.
 HoverPopupWindow {
     id: menu
 
-    // "main", "appearance", "theme".
     property string page: "main"
 
-    popupWidth: 420
+    popupWidth: 480
 
     Component.onDestruction: S.PopupManager.unregister(menu)
     Component.onCompleted: S.PopupManager.register(menu, "system")
@@ -33,7 +29,6 @@ HoverPopupWindow {
         }
     }
 
-    // Held open through a page change, as the dashboard is (its goTo explains why).
     function goTo(name) {
         menu.stopHide = true;
         menu.page = name;
@@ -80,13 +75,13 @@ HoverPopupWindow {
                 Layout.bottomMargin: 4
                 text: [menu.username, [menu.hostname, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" "),
                     Qt.formatDate(clock.date, "ddd d MMM").toLowerCase()].filter(x => x && x.length > 0).join(" · ")
-                color: Readout.detail
-                font.pixelSize: Readout.detailSize
-                font.family: Readout.font
+                color: Ui.detail
+                font.pixelSize: Ui.detailSize
+                font.family: Ui.font
                 elide: Text.ElideRight
             }
 
-            ReadoutRow {
+            ListRow {
                 icon: S.NightLight.icon
                 value: "night mode"
                 detail: S.NightLight.enabled ? S.NightLight.temperature + "k" : ""
@@ -96,7 +91,7 @@ HoverPopupWindow {
                 toggleable: true
                 onToggled: S.NightLight.set(!S.NightLight.enabled)
             }
-            ReadoutRow {
+            ListRow {
                 visible: S.StayAwake.available
                 icon: S.StayAwake.icon
                 value: "stay awake"
@@ -105,7 +100,7 @@ HoverPopupWindow {
                 toggleable: true
                 onToggled: S.StayAwake.set(!S.StayAwake.enabled)
             }
-            ReadoutRow {
+            ListRow {
                 icon: "󰏘"
                 value: "appearance"
                 detail: [T.Config.themeName, S.Wallpaper.current.length > 0 ? S.Wallpaper.displayName(S.Wallpaper.current) : ""]
@@ -114,7 +109,7 @@ HoverPopupWindow {
                 onOpened: menu.goTo("appearance")
             }
 
-            ReadoutDivider {}
+            Divider {}
 
             PowerPage {
                 id: power

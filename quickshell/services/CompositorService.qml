@@ -4,21 +4,11 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Normalized compositor state, streamed from EpochOxide.
-//
-// Nothing here knows what compositor is running. EpochOxide watches Hyprland's event socket,
-// niri's event stream or mango's IPC socket, maps what it finds onto one shape, and pushes a
-// whole snapshot whenever it changes; this service holds the subscription and republishes it to
-// the bar. Raw compositor payloads and dispatch strings deliberately do not appear in QML.
-//
-// While EpochOxide is unreachable the state stays empty rather than falling back to a
-// compositor-specific path, and the subscription reconnects on its own once it is back.
 Singleton {
     id: root
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
-    // Which backend answered, e.g. "hypr", "niri" or "mango". Empty until the first snapshot lands.
     property string backend: ""
     property var windows: []
     property var workspaces: []
@@ -53,8 +43,6 @@ Singleton {
         root.stateUpdated();
     }
 
-    // --- Queries -----------------------------------------------------------------
-
     function windowsForWorkspace(name) {
         return root.windows.filter(window => String(window.workspace) === String(name));
     }
@@ -63,8 +51,41 @@ Singleton {
         return root.workspaces.find(workspace => String(workspace.name) === String(name)) || null;
     }
 
-    // Chromium web apps report classes like "brave-gmail.com__-Default"; a prefix match is what
-    // the icon lookup already relies on, so window matching uses the same rule.
+    function columnsForWorkspace(name) {
+        const windows = root.windowsForWorkspace(name);
+        const byX = {};
+        const columns = [];
+        for (const window of windows) {
+            if (window.floating === true) continue;
+            const x = Number(window.x) || 0;
+            if (!byX[x]) {
+                byX[x] = { x: x, windows: [], focused: false, floating: false, width: 0 };
+                columns.push(byX[x]);
+            }
+            byX[x].windows.push(window);
+        }
+        columns.sort((a, b) => a.x - b.x);
+        for (const column of columns) {
+            column.windows.sort((a, b) => (Number(a.y) || 0) - (Number(b.y) || 0));
+            column.focused = column.windows.some(window => window.focused === true);
+            column.width = Math.max(0, ...column.windows.map(window => Number(window.width) || 0));
+        }
+        for (const window of windows) {
+            if (window.floating !== true) continue;
+            columns.push({ x: -1, windows: [window], focused: window.focused === true, floating: true, width: Number(window.width) || 0 });
+        }
+        return columns;
+    }
+
+    function monitorWidthForWorkspace(name) {
+        const workspace = root.workspaceByName(name);
+        const monitorName = workspace ? String(workspace.monitor || "") : "";
+        const monitor = root.monitors.find(m => String(m.name) === monitorName)
+            || root.monitors.find(m => m.focused === true) || root.monitors[0];
+        return monitor ? Number(monitor.width) || 0 : 0;
+    }
+
+    // Chromium web apps report classes like "brave-gmail.com__-Default", so matching is by prefix.
     function findWindow(match) {
         const needle = String(match || "").toLowerCase();
         if (needle.length === 0) return null;
@@ -74,8 +95,6 @@ Singleton {
         }) || null;
     }
 
-    // --- Actions -----------------------------------------------------------------
-
     function focusWorkspace(id) {
         root.call("compositor.focusWorkspace", { id: String(id) });
     }
@@ -83,27 +102,6 @@ Singleton {
     function focusWindow(id) {
         root.call("compositor.focusWindow", { id: String(id) });
     }
-
-    function closeWindow(id) {
-        root.call("compositor.closeWindow", { id: String(id) });
-    }
-
-    function focusWindowByClass(windowClass) {
-        const window = root.findWindow(windowClass);
-        if (window) root.focusWindow(window.id);
-    }
-
-    // Kept as a distinct name because callers pass an application name rather than a window class;
-    // the normalized app_id makes both the same lookup now.
-    function focusWindowByAppName(appName) {
-        root.focusWindowByClass(appName);
-    }
-
-    function logout() {
-        //TODO
-    }
-
-    // --- EpochOxide plumbing -----------------------------------------------------
 
     property var _pending: []
 
@@ -122,8 +120,7 @@ Singleton {
         root._pending = [];
     }
 
-    // A Socket that failed to connect stays dead, so recovering from a stopped backend means
-    // building a new one. Same approach as LauncherService.
+    // A Socket that failed to connect stays dead; recovering means building a new one.
     function rebuild() {
         subscription.active = false;
         subscription.active = true;
@@ -181,7 +178,6 @@ Singleton {
         }
     }
 
-    // Actions need their own connection: the subscription's is held open by the stream.
     Loader {
         id: actions
         active: true

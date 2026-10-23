@@ -7,10 +7,6 @@ Singleton {
 
     property var openPopups: []
 
-    // Named registry backing the "panel" IPC target. Bar.qml builds its panels under
-    // Variants { model: Quickshell.screens }, so one name maps to one popup per screen; entries
-    // is a flat [{ name, popup }] list rather than a name->popup map so the duplicates survive
-    // registration and a screen going away can drop just its own entry.
     property var entries: []
 
     readonly property var panelNames: {
@@ -21,13 +17,8 @@ Singleton {
         return seen.sort();
     }
 
-    // The launcher is a single full-screen overlay owned by the shell root rather than one per
-    // bar, so it is held on its own instead of in the per-screen entries list.
     property var launcher: null
-    // The wallpaper switcher, held here for the same reason the launcher is: one per session,
-    // owned by the shell root, reached from a bar module and from IPC.
     property var wallpaperOverlay: null
-    // The theme switcher, for the same reason again.
     property var themeOverlay: null
     property var settingsOverlay: null
 
@@ -36,8 +27,6 @@ Singleton {
             openPopups.push(popup);
         }
         if (!name || name.length === 0) return;
-        // One panel may answer to several names (the dashboard stands in for the panels it
-        // replaced), so only the same panel under the same name is a duplicate.
         for (const entry of root.entries) {
             if (entry.popup === popup && entry.name === String(name)) return;
         }
@@ -51,6 +40,10 @@ Singleton {
         }
         root.openPopups = kept;
         root.entries = root.entries.filter(entry => entry.popup !== popup);
+    }
+
+    function unregisterLauncher(overlay) {
+        if (root.launcher === overlay) root.launcher = null;
     }
 
     function registerLauncher(overlay) {
@@ -73,8 +66,6 @@ Singleton {
         return root.entries.filter(entry => entry.name === name).map(entry => entry.popup);
     }
 
-    // Every screen registers under the same name; the first one registered is the primary bar's,
-    // which is where a panel opened from a keybinding should show up.
     function panelFor(name) {
         const list = root.popupsFor(name);
         return list.length > 0 ? list[0] : null;
@@ -89,8 +80,6 @@ Singleton {
         return popup !== null && popup.open;
     }
 
-    // A panel that answers to several names can be told which one it was opened as -- the
-    // dashboard opens on its Wi-Fi page for "wifi" -- through an optional showPage(name).
     function show(popup, name) {
         if (typeof popup.showPage === "function")
             popup.showPage(name);
@@ -125,7 +114,9 @@ Singleton {
         return true;
     }
 
+    // A panel opening closes the launcher: it holds the keyboard, and the panel would get no keys.
     function closeOthers(except) {
+        if (root.launcher && root.launcher._visible && root.launcher !== except) root.launcher.close();
         for (let p of openPopups) {
             if (p !== except && p.open) {
                 p.hidePanel();

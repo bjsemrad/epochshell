@@ -3,15 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// CPU power state, over EpochOxide's API.
-//
-// Read-only: nothing here changes a governor. Whatever daemon is managing the CPU -- auto-cpufreq
-// here -- would put its own decision back seconds later unless asked through its own override, so
-// switching is a separate problem from showing.
-//
-// Polling is driven by whoever is looking. The state changes constantly (auto-cpufreq flips turbo
-// on and off as load moves), so it is worth re-reading while a panel is open and not worth a
-// single request while nobody is.
 Singleton {
     id: root
 
@@ -19,7 +10,6 @@ Singleton {
 
     property bool available: false
     property string reason: ""
-    // "performance", "balanced", "power-saver", or empty when the knobs describe none of them.
     property string profile: ""
     property string governor: ""
     property string energyPreference: ""
@@ -28,7 +18,6 @@ Singleton {
     property string manager: ""
     property string platformProfile: ""
 
-    // Set by a panel while it is on screen. Nothing polls otherwise.
     property bool watching: false
 
     readonly property bool connected: socketLoader.item !== null && socketLoader.item.connected
@@ -50,7 +39,6 @@ Singleton {
         }
     }
 
-    // The raw knobs, for the line under the profile name. "Balanced" on its own explains nothing.
     readonly property string detail: {
         const parts = [];
         if (root.governor.length > 0) parts.push(root.governor);
@@ -118,8 +106,6 @@ Singleton {
             connected: true
 
             onConnectionStateChanged: {
-                // One read on connect, so a panel opening for the first time has something to show
-                // before its first poll comes round.
                 if (epochoxideSocket.connected) root.refresh();
             }
 

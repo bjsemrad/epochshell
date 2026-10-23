@@ -5,15 +5,11 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// Notifications in the Readout design: one row each -- the app's icon, the summary, how long ago
-// -- with the body under only the newest (or any you click open). A click on the summary goes to
-// the app; the status clears one on hover. Do-not-disturb is the header's switch.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 460
+    popupWidth: 500
 
-    // Which notifications have their body shown, by id, beyond the newest.
     property var expanded: ({})
 
     Component.onDestruction: S.PopupManager.unregister(panel)
@@ -56,7 +52,7 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: panel.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: "notifications"
             status: "do not disturb"
             active: S.Notifications.doNotDisturb
@@ -65,7 +61,7 @@ HoverPopupWindow {
             onToggled: S.Notifications.toggleDoNotDisturb()
         }
 
-        ReadoutText {
+        Note {
             visible: S.Notifications.historyModel.count === 0
             text: S.Notifications.doNotDisturb ? "do not disturb is on" : "nothing new"
         }
@@ -103,13 +99,13 @@ HoverPopupWindow {
                         Layout.fillWidth: true
                         spacing: 0
 
-                        ReadoutRow {
+                        ListRow {
                             iconSource: panel.iconSourceOf(item.image.length > 0 ? item.image : item.appIcon)
                             icon: "󰂚"
                             value: item.summary.length > 0 ? item.summary : item.appName
                             detail: item.summary.length > 0 ? item.appName : ""
                             status: panel.ago(item.timestamp)
-                            statusColor: item.urgency === 2 ? Readout.danger : Readout.detail
+                            statusColor: item.urgency === 2 ? Ui.danger : Ui.detail
                             hoverStatus: "dismiss · right-click"
                             active: item.urgency === 2
                             onClicked: {
@@ -123,9 +119,9 @@ HoverPopupWindow {
                             }
                             onSecondaryClicked: S.Notifications.dismissHistory(item.index)
                         }
-                        ReadoutText {
+                        Note {
                             visible: item.open && item.bodyText.length > 0
-                            Layout.leftMargin: Readout.iconColumn + 12
+                            Layout.leftMargin: Ui.iconColumn + 12
                             Layout.bottomMargin: 6
                             text: item.bodyText
                             maximumLineCount: 4
@@ -136,8 +132,8 @@ HoverPopupWindow {
             }
         }
 
-        ReadoutDivider { visible: S.Notifications.historyModel.count > 0 }
-        ReadoutRow {
+        Divider { visible: S.Notifications.historyModel.count > 0 }
+        ListRow {
             visible: S.Notifications.historyModel.count > 0
             icon: "󰎟"
             value: "clear all"

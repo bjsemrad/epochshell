@@ -1,41 +1,56 @@
 import QtQuick
+import QtQuick.Controls
+import Quickshell.Widgets
 import qs.theme as T
 
-// A small round icon button for a panel's header or a row's right end -- settings, refresh,
-// remove. Quiet until the pointer is on it.
-Rectangle {
+Item {
     id: button
 
     property string icon: ""
-    property color iconColor: T.Config.surfaceText
-    // For the accent filled variant, used for the main action of a row (play, send).
-    property bool accent: false
-    property int size: T.Config.barIconSize + T.Config.popupPadding * 1.4
-
+    property string source: ""
+    property string name: ""
+    property bool active: false
     signal clicked()
+    signal secondaryClicked()
 
-    implicitWidth: size
-    implicitHeight: size
-    radius: size / 2
-    antialiasing: true
-    opacity: enabled ? 1 : 0.4
-    color: button.accent ? T.Config.accent
-        : mouse.containsMouse ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent"
+    width: Ui.rowHeight + 4
+    height: Ui.rowHeight + 4
+
+    Rectangle {
+        anchors.fill: parent
+        radius: Ui.hoverRadius
+        color: mouse.containsMouse ? Ui.hover : "transparent"
+    }
 
     Text {
+        visible: button.source.length === 0
         anchors.centerIn: parent
         text: button.icon
-        color: button.accent ? T.Config.background : button.iconColor
-        font.pixelSize: T.Config.fontSizeLarge
-        font.family: T.Config.fontFamily
+        color: button.active ? Ui.accent : Ui.value
+        font.pixelSize: Ui.iconSize
+        font.family: Ui.font
     }
+
+    IconImage {
+        visible: button.source.length > 0
+        anchors.centerIn: parent
+        implicitSize: Ui.iconSize
+        source: button.source
+    }
+
+    ToolTip.visible: mouse.containsMouse && button.name.length > 0
+    ToolTip.delay: 500
+    ToolTip.text: button.name
 
     MouseArea {
         id: mouse
         anchors.fill: parent
-        enabled: button.enabled
         hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: button.clicked()
+        onClicked: event => {
+            if (event.button === Qt.RightButton) button.secondaryClicked();
+            else button.clicked();
+        }
     }
 }

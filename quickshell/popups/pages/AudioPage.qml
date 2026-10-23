@@ -4,7 +4,6 @@ import Quickshell.Services.Pipewire
 import qs.commonwidgets
 import qs.services as S
 
-// Sound, Readout style: the master level, the outputs, the microphone's level and the inputs.
 ColumnLayout {
     id: page
 
@@ -25,7 +24,7 @@ ColumnLayout {
         return String(node.name || "").indexOf("bluez") !== -1;
     }
 
-    ReadoutHeader {
+    PageHeader {
         showBack: page.showBack
         title: "sound"
         status: page.sink && page.sink.audio && page.sink.audio.muted ? "muted" : ""
@@ -36,62 +35,64 @@ ColumnLayout {
         onBack: page.back()
     }
 
-    ReadoutKeyRow {
+    KeyRow {
         key: "volume"
-        ReadoutGauge {
-            segments: 20
+        LevelSlider {
+            trackWidth: 200
             value: page.sink && page.sink.audio ? page.sink.audio.volume : 0
             muted: page.sink !== null && page.sink.audio !== null && page.sink.audio.muted
             onMoved: v => { if (page.sink && page.sink.audio) page.sink.audio.volume = v; }
         }
     }
 
-    ReadoutSection { text: "output" }
+    SectionHeader { text: "output" }
     Repeater {
         model: Pipewire.nodes.values.filter(node => node.isSink && node.audio && node.description && !node.isStream)
-        delegate: ReadoutRow {
+        delegate: ListRow {
             required property var modelData
-            readonly property bool current: page.sink !== null && modelData.id === page.sink.id
+            readonly property bool inUse: page.sink !== null && modelData.id === page.sink.id
             icon: page.isBluetooth(modelData) ? "󰂰" : "󰓃"
-            iconColor: current ? Readout.accent : Readout.detail
+            iconColor: inUse ? Ui.accent : Ui.detail
             value: modelData.description
-            status: current ? "active" : page.isBluetooth(modelData) ? "bt" : ""
-            active: current
-            hoverStatus: current ? "" : "use"
+            status: inUse ? "active" : page.isBluetooth(modelData) ? "bt" : ""
+            active: inUse
+            current: inUse
+            hoverStatus: inUse ? "" : "use"
             onClicked: S.AudioService.setDefault(modelData.id)
         }
     }
 
-    ReadoutKeyRow {
+    KeyRow {
         Layout.topMargin: 8
         key: "mic"
-        ReadoutGauge {
-            segments: 20
+        LevelSlider {
+            trackWidth: 200
             value: page.source && page.source.audio ? page.source.audio.volume : 0
             muted: page.source !== null && page.source.audio !== null && page.source.audio.muted
             onMoved: v => { if (page.source && page.source.audio) page.source.audio.volume = v; }
         }
     }
 
-    ReadoutSection { text: "input" }
+    SectionHeader { text: "input" }
     Repeater {
         model: Pipewire.nodes.values.filter(node => !node.isSink && node.audio && node.description && !node.isStream)
-        delegate: ReadoutRow {
+        delegate: ListRow {
             required property var modelData
-            readonly property bool current: page.source !== null && modelData.id === page.source.id
+            readonly property bool inUse: page.source !== null && modelData.id === page.source.id
             icon: "󰍬"
-            iconColor: current ? Readout.accent : Readout.detail
+            iconColor: inUse ? Ui.accent : Ui.detail
             value: modelData.description
-            status: current ? "active" : ""
-            active: current
-            hoverStatus: current ? "" : "use"
+            status: inUse ? "active" : ""
+            active: inUse
+            current: inUse
+            hoverStatus: inUse ? "" : "use"
             onClicked: S.AudioService.setDefault(modelData.id)
         }
     }
 
-    ReadoutDivider {}
+    Divider {}
 
-    ReadoutRow {
+    ListRow {
         icon: "󰒓"
         value: "sound settings"
         onClicked: S.AudioService.openSettings()

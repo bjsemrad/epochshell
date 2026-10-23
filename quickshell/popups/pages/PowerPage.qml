@@ -4,9 +4,6 @@ import Quickshell.Io
 import qs.commonwidgets
 import qs.services as S
 
-// The session: lock, sleep, restart, shut down, log out. Keyboard first -- `focusFirst()` when it
-// opens puts the focus on lock -- and the three that end the session ask once, inline: the row
-// says "enter to confirm" in red, and a second Enter or click goes ahead.
 ColumnLayout {
     id: page
 
@@ -18,7 +15,6 @@ ColumnLayout {
     spacing: 0
 
     property string username: ""
-    // The action waiting for its second press, or "".
     property string armed: ""
 
     function focusFirst() {
@@ -48,14 +44,14 @@ ColumnLayout {
         }
     }
 
-    ReadoutHeader {
+    PageHeader {
         visible: page.showHeader
         showBack: page.showBack
         title: "power"
         onBack: page.back()
     }
 
-    ReadoutRow {
+    ListRow {
         id: lockRow
         icon: "󰌾"
         value: "lock"
@@ -64,30 +60,30 @@ ColumnLayout {
             S.Lock.lock();
         }
     }
-    ReadoutRow {
+    ListRow {
         icon: "󰤄"
         value: "sleep"
         onClicked: sleepProcess.running = true
     }
-    ReadoutRow {
+    ListRow {
         icon: "󰜉"
         value: "restart"
         status: page.armed === "restart" ? "enter to confirm" : ""
-        statusColor: Readout.danger
+        statusColor: Ui.danger
         onClicked: page.confirm("restart", rebootProcess)
     }
-    ReadoutRow {
+    ListRow {
         icon: "⏻"
         value: "shut down"
         status: page.armed === "poweroff" ? "enter to confirm" : ""
-        statusColor: Readout.danger
+        statusColor: Ui.danger
         onClicked: page.confirm("poweroff", poweroffProcess)
     }
-    ReadoutRow {
+    ListRow {
         icon: "󰗽"
         value: "log out"
         status: page.armed === "logout" ? "enter to confirm" : ""
-        statusColor: Readout.danger
+        statusColor: Ui.danger
         onClicked: page.confirm("logout", logoutProcess)
     }
 }

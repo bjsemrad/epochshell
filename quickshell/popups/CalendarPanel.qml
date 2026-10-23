@@ -4,8 +4,6 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// The month in the Readout design: a mono grid, today marked by the accent tick under its number,
-// the days of the months either side dimmed. The header's status goes back to today.
 HoverPopupWindow {
     id: popup
 
@@ -49,14 +47,13 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: popup.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: Qt.formatDate(popup.today, "dddd d MMMM").toLowerCase()
             status: popup.viewYear === popup.today.getFullYear() && popup.viewMonth === popup.today.getMonth() ? "" : "today"
             switchable: true
             onStatusClicked: popup.goToToday()
         }
 
-        // ‹ month ›
         RowLayout {
             Layout.fillWidth: true
             Layout.topMargin: 4
@@ -66,11 +63,11 @@ HoverPopupWindow {
             component Arrow: Text {
                 id: arrow
                 property int by: 1
-                Layout.preferredWidth: Readout.iconColumn
+                Layout.preferredWidth: Ui.iconColumn
                 horizontalAlignment: Text.AlignHCenter
-                color: arrowMouse.containsMouse ? Readout.value : Readout.detail
-                font.pixelSize: Readout.chevronSize
-                font.family: Readout.font
+                color: arrowMouse.containsMouse ? Ui.value : Ui.detail
+                font.pixelSize: Ui.chevronSize
+                font.family: Ui.font
                 MouseArea {
                     id: arrowMouse
                     anchors.fill: parent
@@ -86,9 +83,9 @@ HoverPopupWindow {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 text: Qt.formatDate(new Date(popup.viewYear, popup.viewMonth, 1), "MMMM yyyy").toLowerCase()
-                color: Readout.value
-                font.pixelSize: Readout.valueSize
-                font.family: Readout.font
+                color: Ui.value
+                font.pixelSize: Ui.valueSize
+                font.family: Ui.font
             }
             Arrow { text: "›"; by: 1 }
         }
@@ -107,9 +104,9 @@ HoverPopupWindow {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     text: modelData
-                    color: Readout.key
-                    font.pixelSize: Readout.detailSize
-                    font.family: Readout.font
+                    color: Ui.key
+                    font.pixelSize: Ui.detailSize
+                    font.family: Ui.font
                 }
             }
 
@@ -121,15 +118,15 @@ HoverPopupWindow {
                     readonly property bool inMonth: day.getMonth() === popup.viewMonth
                     readonly property bool isToday: popup.sameDay(day, popup.today)
                     Layout.fillWidth: true
-                    implicitHeight: Readout.rowHeight
+                    implicitHeight: Ui.rowHeight
 
                     Text {
                         id: number
                         anchors.centerIn: parent
                         text: parent.day.getDate()
-                        color: parent.isToday ? Readout.value : parent.inMonth ? Readout.value : Readout.segmentOff
-                        font.pixelSize: Readout.valueSize
-                        font.family: Readout.font
+                        color: parent.isToday ? Ui.value : parent.inMonth ? Ui.value : Ui.segmentOff
+                        font.pixelSize: Ui.valueSize
+                        font.family: Ui.font
                         font.bold: parent.isToday
                     }
                     Rectangle {
@@ -137,8 +134,8 @@ HoverPopupWindow {
                         anchors.top: number.bottom
                         anchors.horizontalCenter: number.horizontalCenter
                         width: number.width + 4
-                        height: Readout.tick
-                        color: Readout.accent
+                        height: Ui.tick
+                        color: Ui.accent
                     }
                 }
             }

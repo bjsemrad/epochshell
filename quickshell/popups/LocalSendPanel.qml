@@ -5,12 +5,10 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// LocalSend in the Readout design: whether this machine is receiving, what is coming in (accept or
-// decline, inline), a file to send and the devices to send it to.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 460
+    popupWidth: 500
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "localsend")
@@ -38,24 +36,22 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: panel.hidePanel()
 
-        // Receiving is reported, not switched, here: the service has no call to turn it on or off.
-        ReadoutHeader {
+        PageHeader {
             title: "localsend"
             status: S.LocalSend.receivingAvailable ? "receiving" : "not receiving"
             active: S.LocalSend.receivingAvailable
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.LocalSend.receivingAvailable && S.LocalSend.downloadDir.length > 0
             key: "saves to"
             text: S.LocalSend.downloadDir
         }
-        ReadoutText {
+        Note {
             visible: text.length > 0
             text: (S.LocalSend.backendError || S.LocalSend.receiveStatus || "").toLowerCase()
         }
 
-        // --- Incoming ---
-        ReadoutSection {
+        SectionHeader {
             visible: S.LocalSend.hasIncomingFiles
             text: "incoming"
         }
@@ -69,7 +65,7 @@ HoverPopupWindow {
                 Layout.fillWidth: true
                 spacing: 0
 
-                ReadoutRow {
+                ListRow {
                     icon: S.LocalSend.icon
                     value: String(transfer.modelData.device || "unknown device")
                     detail: transfer.files.length + (transfer.files.length === 1 ? " file" : " files")
@@ -82,12 +78,12 @@ HoverPopupWindow {
                             model: [{ label: "accept", accept: true }, { label: "decline", accept: false }]
                             delegate: Text {
                                 required property var modelData
-                                height: Readout.rowHeight
+                                height: Ui.rowHeight
                                 verticalAlignment: Text.AlignVCenter
                                 text: modelData.label
-                                color: decisionMouse.containsMouse ? Readout.value : modelData.accept ? Readout.accent : Readout.detail
-                                font.pixelSize: Readout.detailSize
-                                font.family: Readout.font
+                                color: decisionMouse.containsMouse ? Ui.value : modelData.accept ? Ui.accent : Ui.detail
+                                font.pixelSize: Ui.detailSize
+                                font.family: Ui.font
                                 MouseArea {
                                     id: decisionMouse
                                     anchors.fill: parent
@@ -101,10 +97,10 @@ HoverPopupWindow {
                 }
                 Repeater {
                     model: transfer.files
-                    delegate: ReadoutRow {
+                    delegate: ListRow {
                         required property var modelData
                         icon: "󰈔"
-                        iconColor: Readout.detail
+                        iconColor: Ui.detail
                         value: modelData.name || "unnamed file"
                         detail: S.LocalSend.formatBytes(modelData.size || 0)
                         interactive: false
@@ -113,14 +109,13 @@ HoverPopupWindow {
             }
         }
 
-        // --- Send ---
-        ReadoutSection {
+        SectionHeader {
             text: "send"
             trailing: S.LocalSend.scanning ? "scanning…" : "refresh"
             trailingClickable: !S.LocalSend.scanning
             onTrailingClicked: S.LocalSend.refresh()
         }
-        ReadoutRow {
+        ListRow {
             icon: S.LocalSend.selectedFile.length > 0 ? "󰈔" : "󰈙"
             value: S.LocalSend.selectedFile.length > 0 ? S.LocalSend.fileName(S.LocalSend.selectedFile) : "choose a file to send"
             detail: S.LocalSend.sendStatus.toLowerCase()
@@ -129,7 +124,7 @@ HoverPopupWindow {
         }
         Repeater {
             model: S.LocalSend.devices
-            delegate: ReadoutRow {
+            delegate: ListRow {
                 required property var modelData
                 readonly property bool sending: S.LocalSend.sendingFile && S.LocalSend.sendTarget === String(modelData.alias)
                 readonly property bool sendable: S.LocalSend.selectedFile.length > 0 && !S.LocalSend.sendingFile
@@ -137,12 +132,12 @@ HoverPopupWindow {
                 value: String(modelData.alias || "")
                 detail: [String(modelData.device_model || ""), String(modelData.ip || "")].filter(x => x.length > 0).join(" · ")
                 status: sending ? "sending…" : sendable ? "send ›" : ""
-                statusColor: Readout.accent
+                statusColor: Ui.accent
                 interactive: sendable
                 onClicked: S.LocalSend.sendFile(modelData)
             }
         }
-        ReadoutText {
+        Note {
             visible: !S.LocalSend.hasDevices && !S.LocalSend.scanning
             text: "no devices -- open localsend on another device on this network, then refresh"
         }

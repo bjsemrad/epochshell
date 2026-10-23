@@ -4,12 +4,10 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// Flake updates in the Readout design: where things stand, each input that can move, and the
-// actions -- check, update, rebuild a host -- which open a terminal as they always have.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 460
+    popupWidth: 500
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "nix")
@@ -36,38 +34,38 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: panel.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: "nix"
             status: S.NixUpdates.checking ? "checking…" : S.NixUpdates.hasUpdates ? "update" : S.NixUpdates.checkedAt > 0 ? "current" : ""
             active: S.NixUpdates.hasUpdates
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.NixUpdates.configured
             key: "flake"
             text: S.NixUpdates.flake
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.NixUpdates.checkedAt > 0
             key: "checked"
             text: S.NixUpdates.ago(S.NixUpdates.checkedAt) + " ago"
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.NixUpdates.lockedAt > 0
             key: "locked"
             text: S.NixUpdates.ago(S.NixUpdates.lockedAt) + " ago"
         }
-        ReadoutText {
+        Note {
             visible: text.length > 0
             text: (panel.problem || S.NixUpdates.status).toLowerCase()
         }
 
-        ReadoutSection {
+        SectionHeader {
             visible: S.NixUpdates.movable.length > 0
             text: "inputs"
         }
         Repeater {
             model: S.NixUpdates.movable
-            delegate: ReadoutRow {
+            delegate: ListRow {
                 required property var modelData
                 icon: "󰏗"
                 value: String(modelData.name || "")
@@ -78,15 +76,15 @@ HoverPopupWindow {
             }
         }
 
-        ReadoutDivider {}
+        Divider {}
 
-        ReadoutRow {
+        ListRow {
             icon: "󰑐"
             value: S.NixUpdates.checking ? "checking…" : "check"
             interactive: !S.NixUpdates.checking
             onClicked: S.NixUpdates.check()
         }
-        ReadoutRow {
+        ListRow {
             visible: S.NixUpdates.updateCommand.length > 0
             icon: "󰚰"
             value: "update"
@@ -98,7 +96,7 @@ HoverPopupWindow {
         }
         Repeater {
             model: panel.rebuildable
-            delegate: ReadoutRow {
+            delegate: ListRow {
                 required property var modelData
                 icon: "󰒋"
                 value: "rebuild " + String(modelData.name || "")

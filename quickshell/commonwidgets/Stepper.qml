@@ -1,7 +1,6 @@
 import QtQuick
 import qs.theme as T
 
-// − n + for small integers.
 Row {
     id: stepper
 
@@ -16,11 +15,11 @@ Row {
         id: step
         property int by: 1
         readonly property bool possible: by < 0 ? stepper.value > stepper.from : stepper.value < stepper.to
-        height: Readout.rowHeight
+        height: Ui.rowHeight
         verticalAlignment: Text.AlignVCenter
-        color: !possible ? Readout.segmentOff : stepMouse.containsMouse ? Readout.value : T.Config.inactive
-        font.pixelSize: Readout.valueSize
-        font.family: Readout.font
+        color: !possible ? Ui.segmentOff : stepMouse.containsMouse ? Ui.value : T.Config.inactive
+        font.pixelSize: Ui.valueSize
+        font.family: Ui.font
         MouseArea {
             id: stepMouse
             anchors.fill: parent
@@ -34,12 +33,12 @@ Row {
 
     Step { text: "−"; by: -1 }
     Text {
-        height: Readout.rowHeight
+        height: Ui.rowHeight
         verticalAlignment: Text.AlignVCenter
         text: stepper.value
-        color: Readout.value
-        font.pixelSize: Readout.valueSize
-        font.family: Readout.font
+        color: Ui.value
+        font.pixelSize: Ui.valueSize
+        font.family: Ui.font
     }
     Step { text: "+"; by: 1 }
 }

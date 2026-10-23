@@ -5,12 +5,10 @@ import qs.services as S
 import qs.theme as T
 import qs.popups.pages
 
-// The battery in the Readout design, for the individual status icons (BatteryPage). Polls the
-// power profile while it is up.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 420
+    popupWidth: 480
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "battery")

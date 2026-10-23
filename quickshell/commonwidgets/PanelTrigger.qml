@@ -5,7 +5,6 @@ import Quickshell.Io
 import qs.theme as T
 import qs.services as S
 
-// No border, for the reason given in BarIconPopup.qml: an uncoloured 1px border draws black.
 Rectangle {
     id: root
     color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
@@ -53,12 +52,6 @@ Rectangle {
         }
     }
 
-    // A fixed icon-sized box, the same one BarIcon and BarIconPopup use, rather than whatever the
-    // glyph happens to measure. Sizing this from the text made this module -- the only one that
-    // did -- taller and wider than every other icon on the bar: a text item's implicit height is
-    // a whole line box, ascent and descent included, which for an 18px glyph is nearer 25px, and
-    // its width is the glyph's own advance. The power symbol also comes from a fallback face
-    // rather than the Nerd Font the rest use, so its metrics were not even consistently wrong.
     Rectangle {
         id: inner
         implicitWidth: T.Config.barIconSize

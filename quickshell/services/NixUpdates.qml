@@ -3,15 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Flake update awareness, over EpochOxide's API.
-//
-// Structured like LocalSend.qml and Capture.qml: one socket, a small request queue, normalized
-// state. Nothing here runs nix. The daemon owns the checking -- it has the timer and the cache --
-// and this only asks what the last check found, which is a memory read on the other side and so
-// cheap enough to poll.
-//
-// Checking is never automatic from here. `check()` exists for the panel's button; the schedule
-// lives in the backend so it keeps running whether or not the panel has ever been opened.
 Singleton {
     id: root
 
@@ -25,7 +16,6 @@ Singleton {
     property int checkedAt: 0
     property int lockedAt: 0
     property int updates: 0
-    // Only the inputs that can move; the rest are noise on a panel.
     property var movable: []
     property var hosts: []
     property string updateCommand: ""
@@ -40,7 +30,6 @@ Singleton {
     readonly property bool hasUpdates: updates > 0
     readonly property string icon: "󱄅"
 
-    // "3 hours", for a line that already says what it is measuring.
     function ago(timestamp) {
         if (!timestamp) return "never";
         const seconds = Math.max(0, Math.floor(Date.now() / 1000) - timestamp);
@@ -59,7 +48,6 @@ Singleton {
         apiRequest("nix.status", {}, { kind: "status" });
     }
 
-    // Resolves every input over the network, so the panel says so while it runs.
     function check() {
         if (checking) return;
         checking = true;
@@ -126,7 +114,6 @@ Singleton {
         const request = _requestQueue[0];
         socket.write(JSON.stringify({ type: "api", method: request.method, params: request.params, version: 1 }) + "\n");
         socket.flush();
-        // A check talks to every input's host; a status read answers from memory.
         requestTimeout.interval = request.meta.kind === "check" ? 300000 : 8000;
         requestTimeout.restart();
     }
@@ -162,8 +149,6 @@ Singleton {
         onTriggered: root.rebuildSocket()
     }
 
-    // The backend checks on its own schedule; this only picks up what it found. A minute is often
-    // enough to notice a check that finished, and costs nothing on the daemon side.
     Timer {
         id: poll
         interval: 60000
@@ -211,8 +196,6 @@ Singleton {
                     const ok = response.ok !== false;
                     const data = response.data || {};
                     const error = response.error || data.message || "";
-                    // "unavailable" means no flake is configured, which is a setting rather than a
-                    // broken backend; the panel says so itself.
                     if (ok) root.backendError = "";
                     else if (data.code !== "unavailable") root.backendError = error;
                     if (request.meta.kind === "status") {

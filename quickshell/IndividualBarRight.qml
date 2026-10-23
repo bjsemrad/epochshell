@@ -38,21 +38,8 @@ RowLayout {
         }
 
         readonly property int drawerSpacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
-        // Compact (T.Config.barCompact), no drawer at all: the alerts are a dot on the capsule and
-        // a list in its menu instead (compactStatus), and the tools and tray are left out.
         readonly property bool compact: T.Config.barCompact
         readonly property bool wantsExpanded: !compact && (hovered || menuOpen || servicePopupOpen)
-        // The drawer's width is measured from what is actually in it rather than counted.
-        //
-        // Counting items and multiplying by an icon width only holds while every item is an icon:
-        // the recording indicator carries a clock beside its dot, and a tray that gains an item
-        // has to be counted somewhere else again. Measuring means any number of alerts -- a
-        // recording, a Taildrop and a LocalSend transfer at once -- simply sit next to each other,
-        // and the drawer is as wide as they need.
-        //
-        // Alerts are always on show, so their width belongs to the collapsed drawer. That width is
-        // animated because the set changes on expand -- Tailscale and LocalSend show themselves
-        // when the drawer opens even with nothing waiting -- and a jump there reads as a glitch.
         property int alertExtent: alertItems.item && alertItems.item.implicitWidth > 0 ? alertItems.item.implicitWidth + drawerSpacing : 0
         readonly property int toolsExtent: drawerItems.implicitWidth > 0 ? drawerItems.implicitWidth + drawerSpacing : 0
         property real revealProgress: expanded ? 1 : 0
@@ -273,25 +260,10 @@ RowLayout {
         }
     }
 
-    // While recording, the way to stop it, just left of the status icons and outside the drawer:
-    // it should be one click away, not behind a hover that slides the drawer open under the pointer.
     RecordingIndicator {
         Layout.alignment: Qt.AlignVCenter
     }
 
-    // Connection, sound, battery and the session, in one of two styles (T.Config.statusStyle):
-    //
-    //   dashboard   the status capsule (compactStatus, below) -- network, battery, the time and
-    //               an attention dot -- opening DashboardPanel, which holds everything else on
-    //               pages of its own; the drawer, alert icons, bell and clock go (T.Config.barCompact)
-    //   individual  an icon each, each opening its own panel, and a power icon for the system menu
-    //
-    // Only the chosen one exists. Both answer to the same panel names ("wifi", "audio", "system",
-    // ...), so a keybinding opens whichever is in use -- and two at once would leave PopupManager
-    // with two panels under one name.
-    // A Loader keeps the size of the last thing it held after it is switched off, so the style
-    // switched away from would go on taking its old width as a gap. Hidden while off, the row
-    // leaves it out; while on, it is sized by what it holds.
     Loader {
         Layout.alignment: Qt.AlignVCenter
         active: !T.Config.barCompact
@@ -301,9 +273,6 @@ RowLayout {
         sourceComponent: individualStatus
     }
 
-    // The compact bar's (T.Config.barCompact) whole right end: the network and battery at a glance,
-    // the time, and a dot on its corner when something wants attention. One click opens quick
-    // settings, which holds everything else -- the alerts, the tools and the tray included.
     Loader {
         id: compactLoader
         Layout.alignment: Qt.AlignVCenter
@@ -325,9 +294,6 @@ RowLayout {
             implicitHeight: T.Config.barIconSize + T.Config.barModuleVerticalPadding
             radius: T.Config.popupRadius
             antialiasing: true
-            // On the ledge, no pill: a filled chip on a shape that otherwise has none reads as a
-            // stray button. Hover brightens its text instead, as the workspace numbers do, and the
-            // panel itself says it is open.
             readonly property bool chipless: T.Config.barIsLedge
             readonly property bool lit: chipless && capsuleMouse.containsMouse
             color: !chipless && ((capsule.dashboard && capsule.dashboard.open) || capsuleMouse.containsMouse) ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
@@ -342,8 +308,6 @@ RowLayout {
                 anchors.centerIn: parent
                 spacing: T.Config.barIconTextSpacing + 2
 
-                // The status glyphs say this is the system menu and not only a clock -- and are
-                // worth a glance on their own. Dimmed a little, so the time leads.
                 Text {
                     text: S.Network.currentNetworkIcon
                     visible: text.length > 0
@@ -362,7 +326,6 @@ RowLayout {
                 }
 
                 Text {
-                    // Unpadded, as the full bar's clock and the lock screen have it.
                     text: Qt.formatDateTime(capsuleClock.date, "h:mm AP")
                     color: capsule.lit ? T.Config.active : T.Config.surfaceText
                     font.pixelSize: T.Config.barClockSize
@@ -371,11 +334,16 @@ RowLayout {
                     Layout.alignment: Qt.AlignVCenter
                 }
 
+                Text {
+                    visible: S.Notifications.doNotDisturb && S.Notifications.unreadCount > 0
+                    Layout.alignment: Qt.AlignVCenter
+                    text: "· " + S.Notifications.unreadCount
+                    color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.62)
+                    font.pixelSize: T.Config.fontSizeSubtext
+                    font.family: T.Config.fontFamily
+                }
             }
 
-            // Something wants attention: updates, the machine held awake, files coming in, unread
-            // notifications. A badge on the capsule's corner, as on an app icon; which, and the way
-            // to each, are in the menu.
             Rectangle {
                 visible: capsule.dashboard !== null && capsule.dashboard.needsAttention
                 anchors.right: parent.right
@@ -407,14 +375,12 @@ RowLayout {
                 }
             }
 
-            // Quick settings.
             readonly property var dashboard: dashboardPanel
             DashboardPanel {
                 id: dashboardPanel
                 trigger: capsule
             }
 
-            // The alerts' panels, opened from the menu's list, hanging from the capsule.
             BarAlerts {
                 withNotifications: true
                 panelTrigger: capsule
@@ -490,19 +456,16 @@ RowLayout {
 
     CapturePanel {
         id: capturePanel
-        // Compact, opened from quick settings and hanging from the capsule.
         trigger: compactLoader.item || capture
     }
 
     RecordPanel {
         id: recordPanel
-        // Compact, opened from quick settings and hanging from the capsule.
         trigger: compactLoader.item || recordTool
     }
 
     HomeAssistantPanel {
         id: homeAssistantPanel
-        // Compact, opened from quick settings and hanging from the capsule.
         trigger: compactLoader.item || hass
     }
 }

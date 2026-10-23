@@ -3,12 +3,6 @@ import QtQuick.Layouts
 import qs.services as S
 import qs.theme as T
 
-// Bar entry shown only while something is recording.
-//
-// It sits just left of the status icons, outside the drawer, so it is always in reach: a recording
-// nobody can see is a recording that runs until the disk fills. The dot pulses and the elapsed time
-// counts up; under the pointer they become a stop square and "Stop", so what a click will do is
-// said before it is done -- stopping is the one thing anyone wants from this widget.
 Rectangle {
     id: root
     visible: S.Capture.recording
@@ -55,8 +49,6 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        // The pulse stops under the pointer; the stop square shows at full strength, not wherever
-        // the pulse happened to be.
         onEntered: dot.opacity = 1
         onClicked: S.Capture.stopRecording()
     }

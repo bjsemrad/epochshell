@@ -10,112 +10,66 @@ Singleton {
     readonly property string configDir: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/epochshell"
     readonly property string configPath: configDir + "/config.toml"
 
-    // Themes are named files of the same key/value lines config.toml uses, looked up in two
-    // places: the user's own, then the ones shipped with the shell, so a user theme shadows a
-    // shipped one of the same name.
-    //
-    // They are NOT kept beside config.toml, and neither is the selection below. The flake installs
-    // the whole shell tree at `~/.config/epochshell`, so on a home-manager machine that directory
-    // is a read-only symlink into the nix store -- nothing can be written there, and nothing the
-    // user writes can survive a rebuild. Themes the user writes go under XDG data, and the
-    // selection under XDG state, both of which are theirs.
     readonly property string dataDir: (Quickshell.env("XDG_DATA_HOME") || (Quickshell.env("HOME") + "/.local/share")) + "/epochshell"
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/epochshell"
     readonly property string userThemeDir: dataDir + "/themes"
     readonly property string bundledThemeDir: Quickshell.shellRoot + "/theme/themes"
     readonly property string selectionPath: stateDir + "/theme"
 
-    // Settings changed from inside the shell. config.toml is the declarative answer and is often
-    // not writable -- on a home-manager install it is generated from programs.epochshell.settings
-    // into a read-only directory -- so anything the user adjusts through a control lands here
-    // instead, and wins over both the theme and config.toml because it is the most explicit thing
-    // anyone has said.
     readonly property string settingsPath: stateDir + "/settings.toml"
-    // What to wear when nobody has said otherwise. Not the same thing as the built-in palette in
-    // resetDefaults(), which is `dark` and stays that way: that one is the parachute for a shell
-    // that can find no theme file at all, and the two differ only in the ground.
     readonly property string defaultThemeName: "matte-black"
 
-    // The theme in force, and whether its file was actually found: `themeLoaded` false with a
-    // non-empty name means the shell is wearing the built-in defaults under a name that promised
-    // something else.
     property string themeName: defaultThemeName
     readonly property string themePath: themeName === "" ? "" : (themeFromUserDir ? userThemeDir : bundledThemeDir) + "/" + themeName + ".toml"
     property bool themeLoaded: false
     readonly property var availableThemes: themeScan.names
 
-    // Which theme to wear is asked in two places, because the two are different questions. The
-    // state file is what was last picked, at runtime, by a person; config.toml's `theme` key is
-    // what to start from when nobody has picked anything -- the declarative answer, for a Nix
-    // machine where config.toml is generated rather than edited. A live pick wins over it.
     property string selectedThemeName: ""
     property string configThemeName: defaultThemeName
 
-    // The switch in flight, and what to go back to if its file turns out not to exist.
-    // `committedThemeName` is the last name whose file actually loaded -- what is really on screen.
     property string pendingSelection: ""
     property string previousSelection: ""
     property string committedThemeName: ""
 
-    // A theme being tried on. It paints the whole shell like a real switch, and that is the point
-    // -- the only honest preview of a palette is the palette -- but it is never written down, so
-    // moving the mouse away or closing the panel puts back whatever was actually chosen.
     property string previewThemeName: ""
 
-    // A theme may name another to build on with `extends`, which is how a family of one palette in
-    // several accents stays one palette: the variants carry the line that differs and nothing else,
-    // so a colour fixed in the parent is fixed in all of them.
-    //
-    // Exactly one level deep. A parent's own `extends` is ignored, which costs nothing real -- a
-    // chain is not a thing anyone has wanted yet -- and means there is no cycle to detect.
     property string parentThemeName: ""
     readonly property string parentThemePath: parentThemeName === "" ? "" : (parentFromUserDir ? userThemeDir : bundledThemeDir) + "/" + parentThemeName + ".toml"
     property bool parentFromUserDir: true
     onParentThemeNameChanged: parentFromUserDir = true
 
-    // The texts the palette is built from, kept separate so each can change on its own: editing
-    // a theme file must not need config.toml re-read, or the other way round.
     property string configText: ""
     property string themeText: ""
     property string parentThemeText: ""
     property string settingsText: ""
 
-    // The user theme dir is tried first and the bundled one second, by flipping this on a failed
-    // load rather than by asking whether either file exists -- FileView answers that question by
-    // loading or not.
+    // FileView answers whether a file exists only by loading it, so the bundled dir is tried after
+    // a failed load.
     property bool themeFromUserDir: true
     onThemeNameChanged: themeFromUserDir = true
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
-    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur", "barLedge"]
+    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur", "barLedge", "workspaceShowTitle"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
-    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle", "workspaceHomes"]
-    // `theme` is read out of config.toml but is not a style property: it decides which file the
-    // style properties come from, so it is handled before the rest rather than assigned like one.
+    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle", "workspaceHomes", "workspaceIconColor", "polkitPhrase", "launcherStyle"]
     readonly property string themeKey: "theme"
-    // Handled the same way and for the same reason: it decides where values come from rather than
-    // being one of them.
     readonly property string extendsKey: "extends"
-    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "barFloatingSideGap", "workspaceIconLimit", "widthPaddingSmall", "layoutMarginSmall", "layoutSpacingSmall", "connectedIconSize", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "cardSpacing", "barHeight", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius"]
+    readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "barFloatingSideGap", "workspaceIconLimit", "workspaceMinimapMaxWidth", "polkitMaxAttempts", "widthPaddingSmall", "layoutMarginSmall", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "barHeight", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius"]
 
     property color accent: blue
     property color accentLightShade: Qt.rgba(Qt.color(accent).r, Qt.color(accent).g, Qt.color(accent).b, 0.10)
     property color inactive: Qt.rgba(Qt.color(surfaceText).r, Qt.color(surfaceText).g, Qt.color(surfaceText).b, 0.75)
     property color active: surfaceText
-    property color activeSelection: surfaceContainerHigh //Qt.rgba(Qt.color(surfaceContainerHigh).r, Qt.color(surfaceContainerHigh).g, Qt.color(surfaceContainerHigh).b, 0.25)
+    property color activeSelection: surfaceContainerHigh
 
     property color background: "#0e1013"
     property color surface: "#1f2329"
     property color surfaceVariant: "#323641"
     property color surfaceContainer: "#1f2329"
-    property color surfaceContainerHigh: "#282c34" //"#272a2f"
+    property color surfaceContainerHigh: "#282c34"
     property color surfaceContainerHighest: "#30363f"
     property color surfaceText: "#a0a8b7"
     property color outline: "#8c9199"
 
-    // ───────────────────────────────────────────────
-    //  ACCENT COLORS
-    // ───────────────────────────────────────────────
-    //
     property color purple: "#bf68d9"
     property color green: "#8ebd6b"
     property color orange: "#cc9057"
@@ -129,69 +83,29 @@ Singleton {
     /* Misc */
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
 
-    // "full": one strip across the top of the screen. "floating": the same strip, held off the
-    // screen's top and sides with its corners rounded. "centered": one floating
-    // bar in the middle of the screen, as wide as what it holds, with a play/pause button for
-    // media. Anything else, and the default, is "full".
-    //
-    // Defaults to $EPOCHSHELL_BAR_STYLE when set, so a style can be tried for one run without
-    // touching a config file: `EPOCHSHELL_BAR_STYLE=centered qs -p .../shell.qml`. A `barStyle` in
-    // config.toml or settings.toml still wins.
     readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "full"
     property string barStyle: defaultBarStyle
 
-    // The floating bar's distance from the screen's top, and from its sides. The side gap is best
-    // matched to the compositor's outer gap between windows and the screen's edge (niri's `gaps`),
-    // so the bar's ends line up with the windows below it.
     property int barFloatingGap: 4
     property int barFloatingSideGap: 10
-    // Where any bar's bottom edge falls -- which is what panels and toasts below the bar are
-    // placed from.
     readonly property bool barCentered: barStyle === "centered"
-    // Centered only. true: the bar hangs from the screen's top edge as a ledge -- no gap above it,
-    // its top corners flaring into the edge, its bottom corners rounded -- instead of floating.
     property bool barLedge: true
     readonly property bool barIsLedge: barCentered && barLedge
-    // The right end as one capsule -- the network and battery glyphs, the time, and a dot when
-    // something wants attention -- opening quick settings, which holds the rest: the alerts, the
-    // tools, the tray. No drawer, no alert icons, no bell, no separate clock. The dashboard status
-    // style, on any bar.
     readonly property bool barCompact: settledStatusStyle === "dashboard"
     readonly property bool barFloating: barStyle === "floating" || barCentered
-    // A ledge hangs from the edge itself, so there is nothing above it.
     readonly property int barTopGap: barFloating && !barIsLedge ? barFloatingGap : 0
     readonly property int barSideGap: barFloating ? barFloatingSideGap : 0
     readonly property int barBottom: barTopGap + barHeight
 
-    // An outline while a panel is open. "none": no outline. "panel": round the panel only.
-    // "fade": round the panel only, fading in down its sides from nothing at the bar, so the
-    // join stays seamless and only the edges that get lost against what is behind are drawn.
-    // "bar": round the bar and the panel together, as one shape -- along the bar's bottom edge
-    // under the full bar, round the pill the panel hangs from under the centered one. Anything
-    // else reads as "none". "fade" by default.
     property string panelOutline: "fade"
 
-    // How the bar's panels are drawn. "attached": growing out of the bar in its colour, its edge
-    // flaring into theirs. "floating": a bordered card a few pixels below the bar, rounded all
-    // round. Anything else reads as "attached". panelOutline and edge-snapping are for attached
-    // panels only; a floating card has its own border. With barOpacity under 0.5 panels float
-    // whatever this says: an attached panel needs a visible bar to grow out of. Under the centered
-    // bar they always float, so the bar never stretches to carry one.
     property string panelStyle: "attached"
 
-    // The right end of the bar. "individual": an icon each for Wi-Fi, Bluetooth, sound, battery
-    // and power, each with its own panel, like every other icon on the bar (Tailscale, capture,
-    // ...). "dashboard": one capsule -- network, battery, the time, a dot for anything wanting
-    // attention -- opening quick settings (DashboardPanel), which takes in the drawer's tools, the
-    // tray and the alerts too (barCompact). Anything else reads as "individual".
     property string statusStyle: "individual"
 
-    // The status style as the bar reads it, which decides which status items and panels exist at
-    // all: settled a turn of the event loop after it changes. rebuild() puts every setting back to
-    // its default and then re-applies the files, so for an instant this reads "individual" -- and
-    // the bar, reading it directly, tore down the capsule and the open dashboard in that instant
-    // and built new, closed ones: previewing a theme from the dashboard's theme page closed the
-    // dashboard under the pointer. A change that is undone in the same turn is never seen here.
+    // rebuild() resets every setting to its default before re-applying the files; read directly,
+    // the bar tore down the capsule and an open dashboard in that instant. So the bar reads this,
+    // settled a turn later.
     property string settledStatusStyle: statusStyle
     onStatusStyleChanged: structureSettle.restart()
     Timer {
@@ -200,28 +114,27 @@ Singleton {
         onTriggered: root.settledStatusStyle = root.statusStyle
     }
 
-    // The workspace strip. "pill": each workspace a ringed pill holding its number and its windows'
-    // icons, the current one ringed in the accent. "plain": the number, with the windows' icons
-    // beside it. "ledge": no boxes at all -- the number in mono and a few quiet icons, grey and dim on the
-    // workspaces you are not on, in colour on the one you are, which is marked by an accent tick on
-    // the bar's bottom edge (made for the centered ledge, though it works on any bar). Anything
-    // else reads as "pill".
-    property string workspaceStyle: "pill"
+    property string workspaceStyle: "minimap"
 
-    // The ledge workspace style. How many window icons a workspace shows before the rest collapse
-    // into a "+n". The active workspace obeys it too.
     property int workspaceIconLimit: 2
 
-    // Where each app normally lives, as `app:workspace` pairs separated by commas, e.g.
-    // "brave-browser:1, discord:2, thunderbird:3". An app on any other workspace is "away from
-    // home" and its icon stays in full colour so it can be found. app is matched the way
-    // CompositorService.findWindow matches: exact or contained in the window's app_id,
-    // case-insensitive.
+    property bool workspaceShowTitle: false
+
+    property string workspaceIconColor: "color"
+    readonly property bool workspaceIconsMono: workspaceIconColor === "mono"
+
+    property int polkitMaxAttempts: 3
+
+    // A phrase only the real polkit dialog shows, so a fake prompt cannot reproduce it. Never
+    // logged.
+    property string polkitPhrase: ""
+
+    property string launcherStyle: "attached"
+
+    property int workspaceMinimapMaxWidth: 160
+
     property string workspaceHomes: ""
-    // The size of the small glyphs and app icons that sit beside text on the bar -- the ledge
-    // workspaces' icons, the status capsule's network and battery -- so they read as one family.
     readonly property int barSmallIconSize: Math.max(10, barIconSize - 2)
-    // Parsed once here rather than per icon: [{ app, workspace }], app lowercased.
     readonly property var workspaceHomeList: {
         const homes = [];
         for (const pair of workspaceHomes.split(",")) {
@@ -233,7 +146,6 @@ Singleton {
         }
         return homes;
     }
-    // The workspace an app_id calls home, or "" when it has none.
     function workspaceHomeFor(appId) {
         const id = String(appId || "").toLowerCase();
         if (id.length === 0) return "";
@@ -251,8 +163,6 @@ Singleton {
     property int popupLayoutSpacing: 8
 
     property int barIconSize: 18
-    // In pixels, like the icons and the workspace numbers beside them, and the same size by
-    // default: as small as subtext the time read as a footnote to the bar.
     property int barClockSize: barIconSize
     property int barModuleSpacing: 10
     property int barIconTextSpacing: 5
@@ -262,9 +172,6 @@ Singleton {
     property int widthPaddingSmall: 14
 
     property int layoutMarginSmall: 5
-    property int layoutSpacingSmall: 20
-
-    property int connectedIconSize: 40
 
     property int fontSizeNormal: 14
     property int fontSizeMedium: 16
@@ -275,7 +182,6 @@ Singleton {
 
     property int cardRadius: 10
     property int cardHeight: 50
-    property int cardSpacing: 10
 
     property int barHeight: 40
 
@@ -287,52 +193,19 @@ Singleton {
     property bool hideInactiveWorkspaces: true
     property bool workspaceIcons: true
 
-    // Blur what shows through the bar and its panels, where the compositor offers it
-    // (ext-background-effect: niri does). Only while they are see-through -- a solid surface has
-    // nothing behind it to blur -- so with every opacity at 100% it does nothing at all.
     property bool blur: true
     readonly property bool barBlur: blur && barOpacity < 0.99
     readonly property bool panelBlur: blur && panelOpacity < 0.99
     property real workspaceStripMaxWidthRatio: 0.45
 
-    // How much of the wallpaper shows through the bar and the panels, 0 transparent to 1 solid.
-    //
-    // This is what stops the bar reading as a stripe laid over the desktop: a fully opaque bar is
-    // its own flat colour, and against a wallpaper of a slightly different darkness the join shows
-    // as a seam. Letting a little of the picture through means the bar takes on whatever is behind
-    // it and the join disappears -- on a dark wallpaper it is nearly invisible, on a bright one it
-    // still reads as a bar because the theme's ground is doing most of the work.
-    //
-    // Solid by default. Translucency is a taste, not an improvement -- the shell should look the
-    // way it always has until someone asks otherwise -- so these ship at 1 and the sliders in the
-    // Themes panel are how you ask.
-    //
-    // Those sliders write to the settings file rather than config.toml, which is read-only on a
-    // home-manager install.
-    //
-    // Three grounds: the bar; the panels that grow out of it (HoverPopupWindow, attached); and
-    // everything that floats free -- OSDs, notifications, the launcher. Panels are their own so
-    // the bar can stay solid while they let a little through, or the reverse.
-    //
-    // Solid by default. Turned down, the bar and its panels are best kept at the same value -- they
-    // read as one sheet of glass -- with blur behind them (`blur`).
     property real barOpacity: 1.0
     property real panelOpacity: 1.0
     property real popupOpacity: 1.0
 
-    // The ground with its opacity applied, which is what actually gets painted. Bindings rather
-    // than values written by updateDerived(): they depend on `background`, which a theme may set,
-    // and on the opacity, which config.toml may set, so they have to follow both.
     readonly property color barBackground: Qt.rgba(background.r, background.g, background.b, barOpacity)
     readonly property color panelBackground: Qt.rgba(background.r, background.g, background.b, panelOpacity)
     readonly property color popupBackground: Qt.rgba(background.r, background.g, background.b, popupOpacity)
 
-    // A fill drawn on something see-through -- an icon's hover on the bar, a tile in a panel. While
-    // the surface is solid it is the colour as given. While it is see-through it is instead a wash
-    // of the text colour, strong enough that over the surface's own ground it comes out as that
-    // same colour: a solid fill on a frosted surface reads as a sticker stuck on top, where a wash
-    // lets the frost carry on through it -- and still shows at any opacity, where a fill faded with
-    // its surface disappears.
     function tint(c) {
         const w = surfaceText;
         const b = background;
@@ -342,19 +215,14 @@ Singleton {
         return Qt.rgba(w.r, w.g, w.b, strength * c.a);
     }
 
-    // On the bar: an icon's hover or open pill.
     function onBar(c) {
         return barOpacity >= 0.99 ? c : tint(c);
     }
 
-    // In a panel: a tile, a row's hover, a disc.
     function onPanel(c) {
         return panelOpacity >= 0.99 ? c : tint(c);
     }
 
-    // config.toml says which theme to use and overrides anything it wants on top of it. Both
-    // files are watched, and either changing rebuilds the palette from both -- editing a theme
-    // must not need config.toml re-read, or the other way round.
     FileView {
         path: root.configPath
         watchChanges: true
@@ -374,15 +242,10 @@ Singleton {
             root.themeLoaded = true;
             root.committedThemeName = root.themeName;
             root.themeText = text();
-            // A changed parent re-points the parent FileView, which rebuilds again on load. When
-            // there is no parent the text is cleared here, so dropping an `extends` line takes
-            // effect without a reload.
             const parent = root.readExtends(root.themeText);
             if (parent === "")
                 root.parentThemeText = "";
             root.parentThemeName = parent;
-            // A pick is only kept once its file has actually loaded, so a name that turns out not
-            // to exist never makes it into the state file to greet the next session.
             if (root.pendingSelection !== "" && root.pendingSelection === root.themeName) {
                 root.pendingSelection = "";
                 selectionWriter.setText(root.themeName + "\n");
@@ -391,31 +254,20 @@ Singleton {
         }
 
         onLoadFailed: {
-            // The user's theme dir is only where we look first; falling through to the shipped
-            // copy is the ordinary case and says nothing.
-            //
-            // The reload is not redundant: re-pointing `path` after a load has already failed does
-            // not start another one on its own, so without this the fallback sets the right path
-            // and then sits there never reading it. callLater, because the path binding has not
-            // settled on the new directory yet at the moment this runs.
+            // The reload is needed: re-pointing `path` after a failed load does not start another
+            // one.
             if (root.themeFromUserDir) {
                 root.themeFromUserDir = false;
                 Qt.callLater(themeFile.reload);
                 return;
             }
 
-            // A preview of something that is not there: drop it and stay on what was chosen. This
-            // is checked before the pending-selection case because a preview never has one.
             if (root.previewThemeName !== "") {
                 console.warn("EpochShell theme not found:", root.themeName, "-- ending preview");
                 root.endPreview();
                 return;
             }
 
-            // A switch to a theme that is not there. The list this was checked against is a
-            // snapshot and can be out of date -- a file deleted since, a name typed at a shell
-            // that had not looked lately -- so the answer is to stay on the theme that does
-            // exist rather than strip the shell back to its defaults over a typo.
             if (root.pendingSelection !== "" && root.committedThemeName !== "") {
                 console.warn("EpochShell theme not found:", root.themeName, "-- staying on", root.committedThemeName);
                 root.pendingSelection = "";
@@ -424,7 +276,6 @@ Singleton {
                 return;
             }
 
-            // Nothing to fall back to: this is the theme asked for at startup, and it is missing.
             root.themeLoaded = false;
             root.themeText = "";
             if (root.themeName !== "") {
@@ -436,7 +287,6 @@ Singleton {
         onFileChanged: reload()
     }
 
-    // The theme named by `extends`, looked up in the same two places and in the same order.
     FileView {
         id: parentFile
         path: root.parentThemePath
@@ -454,8 +304,6 @@ Singleton {
                 Qt.callLater(parentFile.reload);
                 return;
             }
-            // A theme extending something that is not there still applies its own values -- it is
-            // just missing whatever it expected to inherit, which is worth saying out loud.
             root.parentThemeText = "";
             if (root.parentThemeName !== "") {
                 console.warn("EpochShell theme", root.themeName, "extends unknown theme:", root.parentThemeName);
@@ -466,15 +314,6 @@ Singleton {
         onFileChanged: reload()
     }
 
-    // Every theme on disk, and enough of each one's palette to draw it without wearing it.
-    //
-    // One pass that cats the files rather than a find for names and then a read per theme: a
-    // picker wants to show colours, and colours only come from opening the file. The user's
-    // directory is listed first and a name already seen is ignored, which is what makes a user
-    // theme shadow a shipped one.
-    //
-    // Refreshed whenever the palette is rebuilt, the cheapest moment that reliably follows anyone
-    // editing any of this.
     Process {
         id: themeScan
         property var names: []
@@ -487,10 +326,6 @@ Singleton {
         }
     }
 
-    // The colours a picker draws on a theme's own ground to show what it is like. Not the surface
-    // ramp: three greys a few percent apart are three identical dark squares at swatch size, which
-    // is all the surfaces of a dark theme are. Text, accent and two named colours actually differ
-    // between themes, and drawn on the theme's `background` they carry the ground as well.
     readonly property var swatchKeys: ["surfaceText", "accent", "green", "red"]
 
     function applyThemeScan(raw) {
@@ -505,7 +340,6 @@ Singleton {
 
             if (rawLine.startsWith("@@theme ")) {
                 const name = rawLine.slice(8).trim();
-                // Already seen means the user's copy of this name won; the shipped one is shadowed.
                 current = (name === "" || palettes[name] !== undefined) ? "" : name;
                 if (current !== "") {
                     names.push(current);
@@ -534,9 +368,8 @@ Singleton {
             palettes[current][key] = String(root.parseTomlValue(line.slice(eq + 1)));
         }
 
-        // A variant's file holds only what differs, so its swatch has to be drawn from the parent
-        // it inherits the rest of. Done after the loop because a parent may be read after its
-        // child -- the directory is walked alphabetically, not in dependency order.
+        // After the loop: the directory is walked alphabetically, so a parent may be read after its
+        // child.
         for (const name in parents) {
             const parent = palettes[parents[name]];
             if (!parent || parents[name] === name)
@@ -554,8 +387,6 @@ Singleton {
         themeScan.palettes = palettes;
     }
 
-    // One colour out of a theme's palette without applying it, falling back to what the shell is
-    // wearing: a theme that sets only some keys inherits the rest, and the swatch should say so.
     function themeColor(name, key) {
         const palette = themeScan.palettes[name];
         const value = palette && palette[key];
@@ -624,9 +455,15 @@ Singleton {
         panelOutline = "fade";
         panelStyle = "attached";
         statusStyle = "individual";
-        workspaceStyle = "pill";
+        workspaceStyle = "minimap";
         barLedge = true;
         workspaceIconLimit = 2;
+        workspaceShowTitle = false;
+        workspaceIconColor = "color";
+        workspaceMinimapMaxWidth = 160;
+        polkitMaxAttempts = 3;
+        polkitPhrase = "";
+        launcherStyle = "attached";
         workspaceHomes = "";
         popupPadding = 10;
         popupRadius = 10;
@@ -634,8 +471,6 @@ Singleton {
         barIconSize = 18;
         widthPaddingSmall = 14;
         layoutMarginSmall = 5;
-        layoutSpacingSmall = 20;
-        connectedIconSize = 40;
         fontSizeNormal = 14;
         fontSizeMedium = 16;
         fontSizeLarge = 18;
@@ -643,7 +478,6 @@ Singleton {
         fontSizeSubtext = 11;
         cardRadius = 10;
         cardHeight = 50;
-        cardSpacing = 10;
         barHeight = 40;
         barFloatingGap = 4;
         barFloatingSideGap = 10;
@@ -702,13 +536,11 @@ Singleton {
             }
             overridden[key] = true;
         } catch (e) {
-            console.warn("Invalid EpochShell config value for", key + ":", value, e);
+            // The polkit phrase is never logged, even when it fails to parse.
+            console.warn("Invalid EpochShell config value for", key + ":", key === "polkitPhrase" ? "(hidden)" : value, e);
         }
     }
 
-    // One pass over one file. `overridden` is carried across both files so a key the theme set and
-    // the user then set again still counts as overridden once, and the derived colours know to
-    // leave it alone.
     function applyText(raw, overridden) {
         const lines = String(raw || "").split("\n");
 
@@ -722,7 +554,6 @@ Singleton {
                 continue;
 
             const key = line.slice(0, eq).trim();
-            // Already acted on: these chose the files this loop is reading.
             if (key === root.themeKey || key === root.extendsKey)
                 continue;
 
@@ -731,8 +562,6 @@ Singleton {
         }
     }
 
-    // Which theme config.toml asks for, read on its own and before anything is applied: it decides
-    // where the rest of the values come from, so it cannot be one of them.
     function readThemeName(raw) {
         const lines = String(raw || "").split("\n");
 
@@ -749,7 +578,6 @@ Singleton {
         return root.defaultThemeName;
     }
 
-    // Which theme this one builds on, read before any value is applied.
     function readExtends(raw) {
         const lines = String(raw || "").split("\n");
 
@@ -775,8 +603,6 @@ Singleton {
         root.rebuild();
     }
 
-    // A preview beats a live pick beats the configured default. Changing the answer re-points the
-    // theme FileView, which rebuilds again once it has loaded.
     function resolveTheme() {
         root.themeName = root.previewThemeName !== "" ? root.previewThemeName : root.selectedThemeName !== "" ? root.selectedThemeName : root.configThemeName;
     }
@@ -798,8 +624,8 @@ Singleton {
         return true;
     }
 
-    // Defaults, then the theme, then the user. Rebuilt from scratch every time rather than patched,
-    // so removing a line from either file puts back what it was covering up.
+    // Rebuilt from scratch every time, so removing a line from either file restores what it
+    // covered.
     function rebuild() {
         themeScan.running = true;
         root.resetDefaults();
@@ -811,25 +637,14 @@ Singleton {
         root.updateDerived(overridden);
     }
 
-    // Pick a theme and keep it. The palette changes as soon as the name does; writing the state
-    // file is what makes the pick outlast the session, and is also how another shell instance
-    // hears about it, since they all watch the same file.
-    //
-    // An unknown name is refused rather than applied: applying it would drop the shell to the
-    // built-in defaults, which looks like a theme that exists and is simply ugly.
     function selectTheme(name) {
         const wanted = String(name || "").trim();
         if (wanted === "")
             return false;
-        // Checked against the snapshot so a mistyped name is refused while the caller is still
-        // listening, rather than a moment later in the shell's log. The load itself is the real
-        // check, and puts the old theme back if this one was wrong.
         if (root.availableThemes.length > 0 && root.availableThemes.indexOf(wanted) === -1)
             return false;
 
-        // Its file is already loaded -- it is what is on screen, either because it was previewed
-        // or because it was already chosen. There is no load to wait for, so commit now: waiting
-        // for an onLoaded that will never fire again would leave the pick unwritten.
+        // Already loaded (previewed or current): onLoaded will not fire again, so commit now.
         if (wanted === root.committedThemeName) {
             root.previewThemeName = "";
             root.pendingSelection = "";
@@ -848,7 +663,6 @@ Singleton {
         return true;
     }
 
-    // Back to whatever config.toml says, by forgetting the pick rather than by picking again.
     function clearThemeSelection() {
         root.previousSelection = root.selectedThemeName;
         root.pendingSelection = "";
@@ -858,9 +672,6 @@ Singleton {
         return true;
     }
 
-    // Change one setting and keep it. The whole file is rewritten from a map rather than patched
-    // line by line: it is the shell's own file, nobody hand-edits it, and rewriting means a key
-    // set twice cannot end up in it twice.
     function setSetting(key, value) {
         const name = String(key || "").trim();
         if (name === "")
@@ -885,7 +696,6 @@ Singleton {
         return true;
     }
 
-    // Settings, watched the same way the pick is, so a change made in one instance reaches the rest.
     FileView {
         path: root.settingsPath
         watchChanges: true
@@ -894,7 +704,6 @@ Singleton {
             root.settingsText = text();
             root.rebuild();
         }
-        // No settings file is the ordinary state of a fresh install.
         onLoadFailed: {
             root.settingsText = "";
             root.rebuild();
@@ -909,7 +718,6 @@ Singleton {
         atomicWrites: true
     }
 
-    // The pick, watched so a change made by another instance -- or by hand -- arrives here too.
     FileView {
         id: selectionFile
         path: root.selectionPath
@@ -921,7 +729,6 @@ Singleton {
             root.resolveTheme();
         }
 
-        // No pick yet is the ordinary state of a fresh install, not an error.
         onLoadFailed: {
             root.selectedThemeName = "";
             root.resolveTheme();
@@ -930,9 +737,8 @@ Singleton {
         onFileChanged: reload()
     }
 
-    // Writing through the watched view would have it fight its own change notification, so the
-    // write goes through a second view of the same file that does not watch it. The directory has
-    // to exist before anything can be written into it, which nothing else here guarantees.
+    // Written through a second, unwatched view: writing through the watched one fights its own
+    // change notification.
     Process {
         id: stateDirMaker
         command: ["mkdir", "-p", root.stateDir]

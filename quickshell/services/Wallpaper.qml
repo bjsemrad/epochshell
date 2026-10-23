@@ -3,16 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// The wallpaper, over EpochOxide's API.
-//
-// The state lives in the backend, which is what lets `epochctl wallpaper next` work with the shell
-// closed and lets the choice be put back at session start, before anything has drawn. Shaped like
-// NightLight.qml and StayAwake.qml, because it is the same kind of thing: one piece of system state
-// the daemon owns and this asks about.
-//
-// Unlike those, it is also streamed. When `backend` is "shell" this shell is what draws the
-// wallpaper (Background.qml), so a switch made from anywhere -- `epochctl wallpaper next` from a
-// keybinding, say -- has to reach the screen at once rather than at the next poll.
 Singleton {
     id: root
 
@@ -22,15 +12,11 @@ Singleton {
     property string current: ""
     property var directories: []
     property string fitMode: "cover"
-    // "shell" when this shell draws the wallpaper, "hyprpaper" when that does, empty when neither
-    // can. Background.qml draws only on "shell", so it never sits under a running hyprpaper.
     property string backend: ""
     property bool available: false
     property string unavailableReason: ""
 
     readonly property bool connected: socketLoader.item !== null && socketLoader.item.connected
-    // Whether the daemon is streaming changes. An EpochOxide older than this shell has no
-    // wallpaper.subscribe, and then the poll below is all there is.
     property bool streaming: false
 
     function refresh() {
@@ -44,7 +30,6 @@ Singleton {
         return true;
     }
 
-    // Signed, so one call covers both directions.
     function step(by) {
         send("wallpaper.next", { step: by || 1 });
     }
@@ -63,9 +48,6 @@ Singleton {
     }
 
     function apply(ok, data, error) {
-        // A refusal is worth keeping the text of. The most likely one by far is a daemon older than
-        // this shell, which answers `no API group "wallpaper"` -- and a caller that only learns
-        // "unavailable" cannot tell that apart from "no images on disk".
         if (!ok) {
             available = false;
             backend = "";
@@ -73,8 +55,7 @@ Singleton {
             unavailableReason = String(error || "EpochOxide cannot answer about wallpapers");
             return;
         }
-        // Only when it changed: the picker's grid is built from this list, and handing it an equal
-        // but new array every heartbeat would rebuild the grid under a user browsing it.
+        // Only when changed: an equal but new array would rebuild the picker's grid under the user.
         const found = data.wallpapers || [];
         if (JSON.stringify(found) !== JSON.stringify(wallpapers)) wallpapers = found;
         current = String(data.current || "");
@@ -95,9 +76,6 @@ Singleton {
         subscriptionLoader.active = true;
     }
 
-    // Images are added and removed by hand, so something has to look again now and then. The
-    // stream does that itself (it re-sends on a two-minute heartbeat), so this only runs without
-    // one. Slow, because this is a directory listing rather than anything that changes on its own.
     Timer {
         interval: 120000
         repeat: true
@@ -113,8 +91,6 @@ Singleton {
         onTriggered: root.rebuildSocket()
     }
 
-    // The stream ends when the daemon restarts. Retrying is slow enough that a daemon which simply
-    // does not have the method costs one refused request every ten seconds, nothing more.
     Timer {
         interval: 10000
         repeat: true
@@ -122,8 +98,7 @@ Singleton {
         onTriggered: root.rebuildSubscription()
     }
 
-    // Its own connection: a stream holds the socket for as long as it runs, so set and next could
-    // not share it.
+    // Its own connection: a stream holds the socket.
     Loader {
         id: subscriptionLoader
         active: true
@@ -151,8 +126,6 @@ Singleton {
                         console.log("wallpaper subscription parse error:", e, line);
                         return;
                     }
-                    // A refusal here is an older daemon, not a broken wallpaper: leave the state
-                    // to the request socket and fall back to polling.
                     if (response.ok === false) {
                         root.streaming = false;
                         return;
@@ -180,9 +153,6 @@ Singleton {
             onConnectionStateChanged: {
                 if (!epochoxideSocket.connected) return;
                 root.refresh();
-                // The daemon is back, so the stream can be too -- now, rather than on the retry
-                // timer's next tick, which left a switch made just after a daemon restart
-                // invisible for up to fifteen seconds.
                 if (!root.streaming) root.rebuildSubscription();
             }
 

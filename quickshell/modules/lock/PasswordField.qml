@@ -2,22 +2,17 @@ import QtQuick
 import qs.theme as T
 import qs.services as S
 
-// The password pill. The text is kept in LockService rather than here, so a dot typed on one
-// screen shows on all of them; the TextInput only collects keys.
 Item {
     id: root
 
     implicitWidth: 320
-    implicitHeight: 52
+    implicitHeight: 46
 
-    // Inferred from what is typed. Qt does not report the Caps Lock state itself, but a letter that
-    // comes out capitalised without Shift (or lower case with it) says the same thing.
+    // Qt does not report Caps Lock; inferred from a letter's case against Shift.
     property bool capsLock: false
 
     readonly property bool failed: S.Lock.messageIsError && !S.Lock.checking
 
-    // Shake on every failure. Bound to the counter rather than the message, so two wrong passwords
-    // in a row shake twice.
     Connections {
         target: S.Lock
         function onFailuresChanged() {
@@ -35,21 +30,8 @@ Item {
         id: pill
         width: parent.width
         height: parent.height
-        radius: height / 2
-        color: Qt.rgba(0, 0, 0, 0.35)
-        border.width: 2
-        border.color: {
-            if (root.failed) return T.Config.red;
-            if (S.Lock.checking) return T.Config.orange;
-            if (input.activeFocus) return T.Config.accent;
-            return Qt.rgba(1, 1, 1, 0.2);
-        }
-
-        Behavior on border.color {
-            ColorAnimation {
-                duration: 150
-            }
-        }
+        radius: 2
+        color: Qt.rgba(0, 0, 0, 0.55)
 
         SequentialAnimation {
             id: shake
@@ -61,52 +43,61 @@ Item {
             NumberAnimation { target: pill; property: "x"; to: 0; duration: 40; easing.type: Easing.OutQuad }
         }
 
-        Text {
-            anchors.centerIn: parent
-            visible: S.Lock.buffer.length === 0 && !S.Lock.checking
-            text: S.Lock.fingerprintActive ? "Password or fingerprint" : "Password"
-            color: Qt.rgba(1, 1, 1, 0.4)
-            font.family: T.Config.fontFamily
-            font.pixelSize: T.Config.fontSizeMedium
+        Rectangle {
+            width: 3
+            height: parent.height
+            color: root.failed ? T.Config.red : T.Config.accent
         }
 
-        // The dots. Capped, so a very long password does not run out of the pill; past the cap
-        // the count stops being exact, which it never needed to be.
+        Text {
+            id: promptGlyph
+            x: 12
+            anchors.verticalCenter: parent.verticalCenter
+            text: "›"
+            color: root.failed ? T.Config.red : T.Config.accent
+            font.family: T.Config.fontFamily
+            font.pixelSize: T.Config.fontSizeNormal + 6
+        }
+
+        Text {
+            x: promptGlyph.x + promptGlyph.width + 10
+            anchors.verticalCenter: parent.verticalCenter
+            visible: S.Lock.buffer.length === 0 && !S.Lock.checking
+            text: S.Lock.fingerprintActive ? "password or touch the reader" : "password"
+            color: Qt.rgba(1, 1, 1, 0.55)
+            font.family: T.Config.fontFamily
+            font.pixelSize: T.Config.fontSizeNormal
+        }
+
         Row {
-            anchors.centerIn: parent
-            spacing: 8
+            x: promptGlyph.x + promptGlyph.width + 10
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 6
+            visible: !S.Lock.checking
             Repeater {
                 model: Math.min(S.Lock.buffer.length, 20)
                 delegate: Rectangle {
-                    width: 10
-                    height: 10
-                    radius: 5
+                    width: 7
+                    height: 7
+                    radius: 2
                     color: "white"
-                    scale: 0
-                    Component.onCompleted: scale = 1
-                    Behavior on scale {
-                        NumberAnimation {
-                            duration: 90
-                            easing.type: Easing.OutBack
-                        }
-                    }
                 }
             }
         }
 
-        // Spinner dots while PAM thinks, so a slow check does not look like a frozen screen.
         Row {
-            anchors.centerIn: parent
-            spacing: 8
+            x: promptGlyph.x + promptGlyph.width + 10
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 6
             visible: S.Lock.checking
             Repeater {
                 model: 3
                 delegate: Rectangle {
                     required property int index
-                    width: 8
-                    height: 8
-                    radius: 4
-                    color: T.Config.orange
+                    width: 7
+                    height: 7
+                    radius: 2
+                    color: "white"
                     SequentialAnimation on opacity {
                         running: S.Lock.checking
                         loops: Animation.Infinite
@@ -121,18 +112,20 @@ Item {
 
         Text {
             anchors.right: parent.right
-            anchors.rightMargin: 18
+            anchors.rightMargin: 14
             anchors.verticalCenter: parent.verticalCenter
             visible: S.Lock.fingerprintActive
             text: "󰈷"
-            color: Qt.rgba(1, 1, 1, 0.55)
+            color: Qt.rgba(1, 1, 1, 0.6)
             font.family: T.Config.fontFamily
-            font.pixelSize: T.Config.fontSizeXLarge
+            font.pixelSize: T.Config.fontSizeLarge
         }
     }
 
-    // Invisible: it only gathers keys. Password echo mode anyway, so nothing that inspects the
-    // item -- an accessibility tree, say -- can read the text back.
+    readonly property real textIndent: promptGlyph.x + promptGlyph.width + 10
+
+    // Invisible; Password echo so nothing inspecting the item (an accessibility tree) can read it
+    // back.
     TextInput {
         id: input
         anchors.fill: parent
@@ -147,7 +140,6 @@ Item {
 
         onTextChanged: {
             if (S.Lock.buffer !== input.text) S.Lock.buffer = input.text;
-            // A new keystroke after a failure is a new attempt; let the error go.
             if (input.text.length > 0 && S.Lock.messageIsError) S.Lock.message = "";
         }
 

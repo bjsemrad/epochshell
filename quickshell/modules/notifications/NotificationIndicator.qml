@@ -10,6 +10,8 @@ BarIconPopup {
     hoverEnabled: false
     iconText: S.Notifications.doNotDisturb ? "󰂛" : S.Notifications.unreadCount > 0 ? "󰂚" : "󰂜"
 
+    badgeText: S.Notifications.doNotDisturb && S.Notifications.unreadCount > 0 ? String(S.Notifications.unreadCount) : ""
+
     onVisibleChanged: if (!root.visible && root.popup && root.popup.open) root.popup.hidePanel()
     onRightClicked: S.Notifications.toggleDoNotDisturb()
 }

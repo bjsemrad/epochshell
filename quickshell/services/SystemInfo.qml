@@ -3,22 +3,11 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// What machine this is, how its battery has worn, and what firmware is waiting.
-//
-// One service for `system.hardware` and `system.firmware` because they answer the same kind of
-// question -- facts about the machine rather than what it is doing right now -- and change on the
-// order of months and days. PowerProfile is the other half of `system.*`, and stays about what the
-// CPU is doing this second.
-//
-// Nothing here flashes firmware. `updateFirmware` opens `fwupdmgr update` in a terminal, which is
-// where a password prompt, a list of what is about to be written, and a request to reboot all
-// belong.
 Singleton {
     id: root
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
-    // Machine
     property string vendor: ""
     property string product: ""
     property string family: ""
@@ -26,12 +15,10 @@ Singleton {
     property string kernel: ""
     property bool framework: false
 
-    // Battery wear
     property int batteryHealth: 0
     property int batteryCycles: 0
     property string batteryModel: ""
 
-    // Firmware
     property bool firmwareAvailable: false
     property var firmwareUpdates: []
 
@@ -39,7 +26,6 @@ Singleton {
     readonly property bool hasFirmwareUpdates: firmwareUpdates.length > 0
     readonly property string firmwareIcon: "󰍛"
 
-    // "Framework Laptop (12th Gen Intel Core)", or as much of it as DMI gave.
     readonly property string machine: {
         const parts = [];
         if (root.vendor.length > 0) parts.push(root.vendor);
@@ -68,8 +54,6 @@ Singleton {
 
     function apply(ok, data) {
         if (!ok) return;
-        // The three answers are told apart by what they carry rather than by a request queue: none
-        // of them is ambiguous, and a queue would only add a way for them to get out of step.
         if (data.vendor !== undefined) {
             vendor = String(data.vendor || "");
             product = String(data.product || "");
@@ -94,8 +78,6 @@ Singleton {
         socketLoader.active = true;
     }
 
-    // The backend caches firmware for ten minutes and hardware costs a few file reads, so asking
-    // every five minutes keeps the indicator honest without doing any real work.
     Timer {
         interval: 300000
         repeat: true

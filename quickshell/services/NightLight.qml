@@ -3,11 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Night mode, over EpochOxide's API.
-//
-// The state lives in the backend, which holds the tool that holds the screen -- so this survives a
-// shell reload, and `epochctl toggle night-light` works with the shell closed. Shaped like
-// StayAwake.qml, because it is the same kind of thing: one held process, one bit of state.
 Singleton {
     id: root
 
@@ -27,8 +22,6 @@ Singleton {
         send("system.nightLight", {});
     }
 
-    // Omitting `enabled` asks the backend to flip whatever it is now, so two callers cannot
-    // disagree about what "toggle" meant.
     function toggle() {
         send("system.setNightLight", {});
     }
@@ -66,8 +59,6 @@ Singleton {
         socketLoader.active = true;
     }
 
-    // Nothing changes this but the user, so the poll only exists to notice a change made from a
-    // keybinding or another shell.
     Timer {
         interval: 30000
         repeat: true

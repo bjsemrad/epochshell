@@ -3,16 +3,8 @@ import Quickshell.Io
 import qs.services as S
 import qs.theme as T
 
-// Every IPC target the shell exposes, gathered in one place at the shell root.
-//
-// Two rules hold for everything here:
-//
-//   1. Handlers live at the root, never inside Bar.qml's Variants { model: Quickshell.screens }.
-//      A handler declared under Variants is instantiated once per screen and the copies fight
-//      over the same target name.
-//   2. Every function answers with a JSON object. `qs ipc call` exits 0 even when it printed
-//      "Target not found.", so a caller cannot key success off the exit status -- the payload is
-//      the contract, and epochctl parses it.
+// IPC handlers must live at the shell root: one declared under Bar.qml's per-screen Variants
+// registers once per screen.
 Scope {
     id: root
 
@@ -112,7 +104,6 @@ Scope {
             return root.ok({ open: false });
         }
 
-        // The provider list, which is otherwise only reachable by typing ";" into the launcher.
         function providers(): string {
             const overlay = root.launcherOverlay();
             if (!overlay) return root.fail("launcher overlay is not loaded");
@@ -128,8 +119,6 @@ Scope {
         }
     }
 
-    // Normalized compositor state and actions, so a keybinding can drive the compositor through
-    // the same path the bar does rather than shelling out to hyprctl or niri msg.
     IpcHandler {
         target: "compositor"
 
@@ -157,9 +146,6 @@ Scope {
         }
     }
 
-    // The palette. A theme is a file, and which one is worn is a line in another file, so this is
-    // only the door: a keybinding, a launcher entry and a script all come through it and all end
-    // up writing the same state the shell is already watching.
     IpcHandler {
         target: "theme"
 
@@ -167,8 +153,6 @@ Scope {
             return root.ok({ themes: T.Config.availableThemes, current: T.Config.themeName });
         }
 
-        // `loaded` false is the interesting case: the named theme's file was not found in either
-        // directory, so what is on screen is the built-in defaults.
         function get(): string {
             return root.ok({
                 theme: T.Config.themeName,
@@ -187,13 +171,11 @@ Scope {
             return root.ok({ theme: T.Config.themeName });
         }
 
-        // Forget the pick and go back to whatever config.toml asks for.
         function reset(): string {
             T.Config.clearThemeSelection();
             return root.ok({ theme: T.Config.themeName });
         }
 
-        // The switcher, for a keybinding, as the wallpaper's has.
         function toggle(): string {
             const overlay = S.PopupManager.themeOverlay;
             if (!overlay) return root.fail("theme overlay is not loaded");
@@ -216,7 +198,6 @@ Scope {
         }
     }
 
-    // The appearance settings window.
     IpcHandler {
         target: "settings"
 
@@ -242,8 +223,6 @@ Scope {
         }
     }
 
-    // The wallpaper switcher. `next`/`previous` exist so a keybinding can cycle without opening
-    // anything, which is the way most people actually change wallpaper.
     IpcHandler {
         target: "wallpaper"
 
@@ -281,8 +260,6 @@ Scope {
             return root.ok({ wallpaper: S.Wallpaper.current });
         }
 
-        // Kept so the overlay's own keybinding surface is complete, but epochctl talks to
-        // EpochOxide directly for these: stepping should work with the shell closed.
         function next(): string {
             S.Wallpaper.step(1);
             return root.ok({ stepped: 1 });
@@ -322,8 +299,8 @@ Scope {
             });
         }
 
-        // Soft by default: a hard reload tears the whole QML engine down and rebuilds it, which
-        // drops the notification daemon and polkit agent registrations with it.
+        // Soft by default: a hard reload drops the notification daemon and polkit agent
+        // registrations.
         function reload(): string {
             Quickshell.reload(false);
             return root.ok({ reloaded: true, hard: false });
@@ -335,9 +312,7 @@ Scope {
         }
     }
 
-    // Locking only. There is deliberately no unlock here: the compositor's promise is that a
-    // locker that dies leaves the session locked, and an unlock over IPC would hand that to
-    // anything able to run `qs ipc`. Unlocking takes a password or a fingerprint, nothing else.
+    // Deliberately no unlock: anything able to run `qs ipc` could end the lock.
     IpcHandler {
         target: "lock"
 
@@ -346,8 +321,6 @@ Scope {
             return root.ok({ locked: S.Lock.locked, secure: S.Lock.secure });
         }
 
-        // `secure` is the compositor confirming every output is covered. epochctl waits for it, so
-        // a `lock` run just before suspend does not return while the desktop is still showing.
         function status(): string {
             return root.ok({ locked: S.Lock.locked, secure: S.Lock.secure });
         }

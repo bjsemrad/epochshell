@@ -11,8 +11,6 @@ Rectangle {
     readonly property var player: S.AudioService.player
     readonly property bool active: S.AudioService.hasMedia
     readonly property bool hovered: mouseArea.containsMouse
-    // The centered bar's form: the play/pause button alone, no title. What is playing is shown by
-    // hovering, which opens the player panel.
     readonly property bool buttonOnly: T.Config.barCentered
 
     visible: active
@@ -50,14 +48,12 @@ Rectangle {
         }
     }
 
-    // A moment's rest on the button before the panel comes, so crossing the bar does not open it.
     Timer {
         id: hoverOpen
         interval: 250
         onTriggered: if (root.hovered && root.popup && !root.popup.open) root.popup.showPanel()
     }
 
-    // The button: the action it takes, as a media key would show it.
     Text {
         visible: root.buttonOnly
         anchors.centerIn: parent
@@ -145,6 +141,5 @@ Rectangle {
                 }
             }
         }
-
     }
 }

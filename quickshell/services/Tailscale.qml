@@ -25,7 +25,6 @@ Singleton {
     property var _requestQueue: []
     property bool _requestInFlight: false
 
-    // each row: { hostName, dnsName, connected, ip }
     property var peers: []
 
     readonly property string currentTailscaleIcon: connected ? "󰒄" : "󰅛"
@@ -128,10 +127,7 @@ Singleton {
 
     function apiRequest(method, params, meta) {
         if (method === "tailscale.status" || method === "tailscale.machines" || method === "tailscale.pendingFiles") {
-        // Never drop the request that has already gone out: its response is still coming, and
-        // the reader identifies a response by this queue's first entry. Removing an in-flight
-        // request here makes every later response line up against the wrong one, so a status
-        // reply gets applied as something else and `connected` is never set.
+        // Never drop the in-flight request: responses are matched to this queue's first entry.
             const inFlight = _requestInFlight && _requestQueue.length > 0 ? [_requestQueue[0]] : [];
             const queued = _requestQueue.slice(inFlight.length).filter(request => request.method !== method);
             _requestQueue = inFlight.concat(queued);
@@ -201,7 +197,6 @@ Singleton {
             });
         }
         tail.peers = arr;
-
     }
 
     function formatBytes(size) {

@@ -661,7 +661,7 @@ barLedge = true             # centered only: hang from the top edge instead of f
 statusStyle = "individual"  # "individual" icons, or "dashboard": one capsule opening quick settings
 panelStyle = "attached"     # "attached" (grown out of the bar) or "floating" cards
 panelOutline = "fade"       # "none", "panel", "fade" or "bar"
-workspaceStyle = "pill"     # "pill", "plain" or "ledge"
+workspaceStyle = "minimap"  # "minimap", "pill", "plain" or "ledge"
 workspaceIcons = true
 workspaceIconLimit = 2      # ledge only: icons per workspace before "+n"
 workspaceHomes = ""         # ledge only: "app:workspace" pairs; an app elsewhere stays in colour
@@ -678,7 +678,6 @@ popupRadius = 10
 popupLayoutSpacing = 8
 cardRadius = 10
 cardHeight = 50
-cardSpacing = 10
 ```
 
 ### Layout And Misc Keys
@@ -686,8 +685,6 @@ cardSpacing = 10
 ```toml
 widthPaddingSmall = 14
 layoutMarginSmall = 5
-layoutSpacingSmall = 20
-connectedIconSize = 40
 hideInactiveWorkspaces = true
 ```
 

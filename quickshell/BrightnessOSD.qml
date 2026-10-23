@@ -3,14 +3,13 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Io
-import qs.theme as T
+import qs.services as S
 
 Scope {
     id: root
 
-    property real brightness: 0.0      // 0‒1 normalized
+    property real brightness: 0.0
     property bool initialized: false
-    property bool shouldShowOsd: false
 
     property bool hasBacklight: false
 
@@ -67,71 +66,11 @@ Scope {
     }
 
     function triggerOSD() {
-        root.shouldShowOsd = true;
-        hideTimer.restart();
-    }
-
-    Timer {
-        id: hideTimer
-        interval: 1000
-        onTriggered: root.shouldShowOsd = false
-    }
-
-    LazyLoader {
-        active: root.shouldShowOsd
-
-        PanelWindow {
-            anchors.top: true
-            margins.top: 50
-            exclusiveZone: 0
-
-            implicitWidth: 400
-            implicitHeight: 50
-            color: "transparent"
-            mask: Region {}
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 20
-                antialiasing: true
-                color: T.Config.popupBackground
-
-                RowLayout {
-                    anchors {
-                        fill: parent
-                        leftMargin: 10
-                        rightMargin: 15
-                    }
-
-                    Text {
-                        text: ""
-                        font.pixelSize: 30
-                        Layout.alignment: Qt.AlignVCenter
-                        color: T.Config.surfaceText
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: 10
-                        radius: 20
-                        antialiasing: true
-                        color: T.Config.surfaceVariant
-
-                        Rectangle {
-                            anchors {
-                                left: parent.left
-                                top: parent.top
-                                bottom: parent.bottom
-                            }
-
-                            implicitWidth: parent.width * root.brightness
-                            radius: parent.radius
-                            antialiasing: true
-                            color: T.Config.surfaceText
-                        }
-                    }
-                }
-            }
-        }
+        S.OsdService.show({
+            kind: "brightness",
+            icon: "󰃠",
+            value: root.brightness,
+            label: Math.round(root.brightness * 100) + "%"
+        });
     }
 }

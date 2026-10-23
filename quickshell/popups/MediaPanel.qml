@@ -6,14 +6,10 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// The player in the Readout design: the track as the header, the artist and album under it, which
-// player when there are several, a position gauge to seek with, and the transport as a line of
-// icons. Opened by hovering the bar's media indicator, so it waits a
-// moment before closing, for the pointer to cross from the indicator to it.
 HoverPopupWindow {
     id: popup
 
-    popupWidth: 420
+    popupWidth: 480
     readonly property var player: S.AudioService.player
 
     function _updateHover() {
@@ -33,7 +29,6 @@ HoverPopupWindow {
     Component.onDestruction: S.PopupManager.unregister(popup)
     Component.onCompleted: S.PopupManager.register(popup, "media")
 
-    // MPRIS only says where a track is when asked, so it is asked once a second while playing.
     Timer {
         interval: 1000
         repeat: true
@@ -56,36 +51,36 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: popup.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: popup.player ? (popup.player.trackTitle || "nothing playing") : "nothing playing"
             status: popup.player ? String(popup.player.identity || "").toLowerCase() : ""
             active: popup.player !== null && popup.player.isPlaying
         }
-        ReadoutText {
+        Note {
             visible: text.length > 0
             text: popup.player ? [popup.player.trackArtist, popup.player.trackAlbum].filter(x => x && x.length > 0).join(" · ") : ""
             maximumLineCount: 1
             elide: Text.ElideRight
         }
 
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.AudioService.sourcePlayers.length > 1
             key: "player"
-            ReadoutChoice {
+            Choice {
                 options: S.AudioService.sourcePlayers.map(p => ({ value: S.AudioService.playerKey(p), label: String(p.identity || p.desktopEntry || "player").toLowerCase() }))
                 current: popup.player ? S.AudioService.playerKey(popup.player) : ""
                 onPicked: v => S.AudioService.selectPlayer(v)
             }
         }
 
-        ReadoutKeyRow {
+        KeyRow {
             id: seek
             readonly property real length: popup.player ? popup.player.length : 0
             readonly property real position: popup.player ? Math.min(popup.player.position, length) : 0
             visible: popup.player !== null && popup.player.lengthSupported && length > 0
             key: popup.formatTime(seek.position)
-            ReadoutGauge {
-                segments: 20
+            LevelSlider {
+                trackWidth: 200
                 interactive: popup.player !== null && popup.player.canSeek && popup.player.positionSupported
                 value: seek.length > 0 ? seek.position / seek.length : 0
                 label: popup.formatTime(seek.length)
@@ -93,7 +88,7 @@ HoverPopupWindow {
             }
         }
 
-        ReadoutDivider { visible: popup.player !== null }
+        Divider { visible: popup.player !== null }
 
         RowLayout {
             visible: popup.player !== null
@@ -102,32 +97,32 @@ HoverPopupWindow {
             readonly property int loop: popup.player ? popup.player.loopState : MprisLoopState.None
 
             Item { Layout.fillWidth: true }
-            ReadoutIcon {
+            IconButton {
                 visible: popup.player !== null && popup.player.shuffleSupported
                 icon: popup.player && popup.player.shuffle ? "󰒝" : "󰒞"
                 name: "shuffle"
                 active: popup.player !== null && popup.player.shuffle
                 onClicked: popup.player.shuffle = !popup.player.shuffle
             }
-            ReadoutIcon {
+            IconButton {
                 icon: "󰒮"
                 name: "previous"
                 opacity: popup.player && popup.player.canGoPrevious ? 1 : 0.35
                 onClicked: S.AudioService.runAction("previous", true, S.AudioService.playerKey(popup.player))
             }
-            ReadoutIcon {
+            IconButton {
                 icon: popup.player && popup.player.isPlaying ? "󰏤" : "󰐊"
                 name: popup.player && popup.player.isPlaying ? "pause" : "play"
                 active: popup.player !== null && popup.player.isPlaying
                 onClicked: S.AudioService.runAction("playPause", true, S.AudioService.playerKey(popup.player))
             }
-            ReadoutIcon {
+            IconButton {
                 icon: "󰒭"
                 name: "next"
                 opacity: popup.player && popup.player.canGoNext ? 1 : 0.35
                 onClicked: S.AudioService.runAction("next", true, S.AudioService.playerKey(popup.player))
             }
-            ReadoutIcon {
+            IconButton {
                 visible: popup.player !== null && popup.player.loopSupported
                 icon: parent.loop === MprisLoopState.Track ? "󰑘" : parent.loop === MprisLoopState.Playlist ? "󰑖" : "󰑗"
                 name: "loop"

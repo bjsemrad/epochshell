@@ -12,8 +12,6 @@ Singleton {
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
     readonly property string allPrefix: "*"
     property bool searching: false
-    // Everything below is filled in from EpochOxide's `providers` response; nothing about the
-    // provider set or its query prefixes is known ahead of time.
     property var providerCapabilities: []
     property var availableProviders: []
     property var providersByPrefix: ({})
@@ -21,8 +19,6 @@ Singleton {
     readonly property bool backendConnected: socketLoader.item !== null && socketLoader.item.connected
     property string backendError: ""
     property bool _providersLoaded: false
-    // Whether the backend has answered with its provider list yet. Callers that need to know
-    // whether a provider has a prefix have to wait for this, or they will decide it has none.
     readonly property bool providersLoaded: _providersLoaded
 
     readonly property int defaultAppsTTL: 600000
@@ -41,11 +37,6 @@ Singleton {
         id: resultModel
     }
 
-    // A provider the launcher is pinned to, regardless of what the query text says.
-    //
-    // Routing is otherwise entirely by prefix, which leaves a provider with no prefix -- a custom
-    // menu, say -- unreachable: there is nothing to type that scopes to it. Pinning is how the
-    // provider list and `epochctl launcher provider <name>` reach one.
     property string scope: ""
 
     function setQuery(text) {
@@ -65,10 +56,8 @@ Singleton {
     }
 
     function providerAvailable(provider) {
-        // Optimistic until the first Providers round-trip lands: on a fresh launcher open the
-        // prefix routing below (e.g. "/" -> files) would otherwise always lose the race against
-        // that async response and silently fall back to searching apps with a leading "/"/"@"/etc.
-        // still in the query text.
+        // Optimistic until the providers response lands, or prefix routing loses the race and falls
+        // back to apps.
         if (!root._providersLoaded) return true;
         const base = String(provider).split(":")[0];
         return availableProviders.indexOf(base) !== -1;
@@ -83,8 +72,7 @@ Singleton {
         return prefix === root.allPrefix ? root.enabledProviders(root.defaultProviders) : "";
     }
 
-    // Longest match wins, mirroring EpochOxide's own prefix routing (prefixes are arbitrary
-    // strings in its config, not necessarily single characters).
+    // Longest prefix wins; prefixes are arbitrary strings in EpochOxide's config.
     function prefixFor(text) {
         const s = String(text);
         let best = "";
@@ -140,7 +128,6 @@ Singleton {
         root._providersLoaded = true;
     }
 
-    // QLocalSocket::LocalSocketError values; anything else falls through to the generic text.
     function socketErrorText(error) {
         switch (error) {
         case 0: return "EpochOxide refused the connection";
@@ -152,8 +139,7 @@ Singleton {
         }
     }
 
-    // A Socket that failed to connect stays dead: reassigning `connected`/`path` on it is a no-op,
-    // so recovering from a stopped backend means building a new one.
+    // A Socket that failed to connect stays dead; recovering means building a new one.
     function rebuildSocket() {
         socketLoader.active = false;
         socketLoader.active = true;
@@ -180,8 +166,6 @@ Singleton {
         sendNextRequest();
     }
 
-    // Multi-provider queries stream back one batch per provider as each finishes, instead of
-    // waiting for the slowest provider (e.g. a large file index) before showing anything.
     function startQuery(providers, q) {
         const limit = q === "" ? 30 : 10;
         const silent = root._silentRefresh;
@@ -212,9 +196,6 @@ Singleton {
     function runQuery() {
         debounceTimer.stop();
         const raw = query;
-        // Anything starting with ";" is the provider list, which the overlay draws from its own
-        // model -- including ";cap", which filters it. Running a search for that text would put
-        // app results underneath a list that is not showing them.
         if (raw.startsWith(";")) {
             resultModel.clear();
             root.resultsUpdated();
@@ -224,14 +205,10 @@ Singleton {
         let providers;
         let q;
         const prefixedProvider = root.providerForPrefix(prefix);
-        // A typed prefix wins over a pinned provider: it is how someone moves from one provider to
-        // another without going back out first, and it is unambiguous about what they meant.
         if (prefixedProvider.length > 0) {
             providers = prefixedProvider;
             q = raw.slice(prefix.length);
         } else if (root.scope.length > 0) {
-            // Pinned: the text is all query, with no prefix to strip. The "*" scope is the same
-            // sentinel the prefix routing uses, and means every provider rather than one named "*".
             providers = root.scope === root.allPrefix
                 ? root.enabledProviders(root.defaultProviders)
                 : root.scope;
@@ -259,11 +236,6 @@ Singleton {
     }
 
     function refreshProviders() {
-        // While the backend is down requests sit in the queue instead of being written, so don't
-        // stack up a providers refresh per reconnect attempt. The queued one still has to be
-        // flushed: the first refresh is requested on component completion, before the socket has
-        // connected, so returning here without a send left the provider list empty until some
-        // other request (the first query the user typed) happened to drain the queue.
         if (_requestQueue.some(request => request.kind === "providers")) {
             sendNextRequest();
             return;
@@ -287,7 +259,6 @@ Singleton {
         };
     }
 
-    // A single-provider query comes back as a plain item array rather than per-provider batches.
     function applyQueryResult(data, meta) {
         root.searching = false;
         const items = [];
@@ -312,8 +283,6 @@ Singleton {
         return merged.slice(0, limit);
     }
 
-    // Each provider's items already arrive weighted/sorted/truncated per-provider from the
-    // server; merge-and-truncate again here to apply the overall result limit across providers.
     function mergeQueryBatch(provider, rawItems, meta) {
         try {
             const batches = root._streamBatches;
@@ -352,8 +321,6 @@ Singleton {
         onTriggered: root.runQuery()
     }
 
-    // Generous enough for a provider that has to go and generate its results (a menu whose entries
-    // come from a script), while still catching a backend that has gone quiet.
     Timer {
         id: requestTimeout
         interval: 3000
@@ -364,15 +331,11 @@ Singleton {
             root._streamBatches = {};
             root.searching = false;
             console.log("launcher epochoxide timeout:", root.socketPath);
-            // Only a live connection can be "not responding"; otherwise keep the socket's own
-            // error, which says something more useful (not running, refused, no permission).
             if (root.backendConnected) root.backendError = "EpochOxide is not responding";
             root.rebuildSocket();
         }
     }
 
-    // The backend is a user service that can be stopped, crash, or come up after the shell;
-    // keep rebuilding the socket so the launcher recovers on its own once it is back.
     Timer {
         id: retryTimer
         interval: 2000

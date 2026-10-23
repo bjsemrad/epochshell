@@ -7,13 +7,6 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import qs.theme as T
 
-// A panel opened from the bar.
-//
-// Two looks. By default the panel is *attached*: it hangs flush from the bar's bottom edge in the
-// bar's own colour, its top corners flaring out into the bar, and it opens by growing down out of
-// it -- one surface that happens to have a panel in it, rather than a card floating below. A panel
-// that sets its own anchoring (the theme picker, flying sideways out of the system menu) is not
-// next to the bar at all, and keeps the floating card: rounded all round, bordered, faded in.
 PopupWindow {
     id: popup
     visible: false
@@ -27,35 +20,17 @@ PopupWindow {
     property int bottomPadding: padding * 2
     property real popupWidth: 1
 
-    // A ring of transparent space around the floating card.
-    //
-    // On a fractionally scaled output -- 1.333 on a 2880x1920 panel run at 2160x1440 -- the
-    // window's last physical column and row can be rounded away, and they take the card's 1px
-    // border with them: the panel renders with no right edge, or no bottom edge, depending on how
-    // its size happens to round. Insetting the card by a whole logical pixel means the border is
-    // never the outermost pixel, so there is nothing at the edge left to lose. (An attached panel
-    // has no border to lose, and its top edge must touch the bar, so it has none.)
+    // Transparent margin round the floating card: at a fractional scale the window's last physical
+    // row/column can be rounded away, taking the border with it.
     readonly property int edgeInset: attached ? 0 : 1
 
-    // Opened from the bar: the anchoring below is left at its defaults. A panel that overrides it
-    // is placed somewhere else (the theme picker, flying sideways out of the system menu).
     readonly property bool fromBar: anchorEdges === (Edges.Left | Edges.Bottom) && anchorRectY < 0
 
-    // Attached to the bar, growing out of it, unless T.Config.panelStyle asks for floating cards
-    // -- and never when not opened from the bar, where flares drawn into thin air would look like
-    // a mistake. Nor when the bar itself is mostly see-through: then there is no visible edge to
-    // grow out of, and the flares bend into nothing, so the panel floats as a card instead. Nor
-    // under the centered bar unless it is a ledge: the floating pill would have to stretch to the
-    // panel's width to carry it, the whole bar changing shape on every click, so a card below
-    // leaves it as it is. The ledge joins its panels its own way (ledgeJoin).
     readonly property bool attached: fromBar && T.Config.panelStyle !== "floating" && T.Config.barOpacity >= 0.5
         && (!T.Config.barCentered || T.Config.barIsLedge)
 
-    // A floating card from the bar hangs this far below it.
     readonly property int floatingGap: 5
 
-    // The first value of `name` found walking up from the trigger: how a panel learns which part
-    // of the bar it was opened from, which the bar marks on its left, centre and right groups.
     function _findUp(name) {
         for (let item = trigger; item; item = item.parent) {
             if (item[name] !== undefined) return item[name];
@@ -63,80 +38,40 @@ PopupWindow {
         return null;
     }
 
-    // Under the centered bar, the body of the pill the trigger is on -- an island (see Bar.qml): the
-    // panel hangs from it, kept within its ends so the flares land on it. Null under the full bar.
-    property Item island: null
-    readonly property bool inIsland: attached && island !== null
+    property Item barBody: null
+    readonly property bool fromPill: attached && barBody !== null
+    readonly property bool cardOnPill: fromBar && !attached && barBody !== null
+    readonly property bool _placedOnPill: fromPill || cardOnPill
 
-    // --- The ledge -------------------------------------------------------------------------------
-    // Under the centered ledge (T.Config.barIsLedge) a panel joins the ledge by how its width
-    // compares with the ledge's natural width L (what the ledge holds, never widened), d = P - L:
-    //
-    //   hang   d < -4r     clearly narrower: the ledge keeps its width, and the panel hangs from its
-    //                      flat bottom edge with flares, as attached panels do under any bar --
-    //                      under the icon that opened it, kept clear of the ledge's ends. (-4r:
-    //                      the panel's flares need the ledge's rounded bottom corners clear, and any
-    //                      closer they landed on the curves.)
-    //   snap   otherwise   the ledge expands to max(L, P) and grows on down into the panel as one
-    //                      shape: straight sides from the small flares at the screen's edge to the
-    //                      rounded bottom, nothing at the join but the bar's hairline (Bar.qml). A
-    //                      T, with the panel wider than the ledge below it, read as a tab on a card.
-    //
-    // Either way the panel is the bar's colour, so the two read as one silhouette. Hanging from the
-    // ledge's centre instead, a panel could land a long way from its icon on a wide ledge.
-    readonly property bool onLedge: inIsland && T.Config.barIsLedge
-    readonly property real _ledgeNatural: island && island.naturalWidth !== undefined ? island.naturalWidth : 0
+    readonly property bool onLedge: fromPill && T.Config.barIsLedge
+    readonly property real _ledgeNatural: barBody && barBody.naturalWidth !== undefined ? barBody.naturalWidth : 0
     readonly property string ledgeJoin: {
         if (!onLedge) return "";
         const d = popupWidth - _ledgeNatural;
         const r = T.Config.popupRadius;
         return d < -4 * r ? "hang" : "snap";
     }
-    // Snapped, the panel has no flares of its own: its sides carry on from the ledge's.
     readonly property bool _ledgeCard: ledgeJoin === "snap"
-    // A snapped panel narrower than the ledge widens to it, so both sides run straight.
     readonly property real _cardWidth: ledgeJoin === "snap" ? Math.max(popupWidth, _ledgeNatural) : popupWidth
 
-    // Under the full bar, the bar strip (see Bar.qml), which spans the screen. Read on opening to
-    // decide whether the panel snaps to the screen's right edge.
     property Item barStrip: null
 
-    // Snapped flush with the screen's right edge, rather than centred under the trigger. Only when
-    // centring would leave the panel within `snapDistance` of the edge -- or push it past, which
-    // the compositor would otherwise slide it back from: a sliver of desktop beside the panel is
-    // neither attached to the edge nor clearly apart from it, so it goes all the way. A panel
-    // whose trigger is further in stays centred under it.
     property bool snapRight: false
-    readonly property bool atRightEdge: attached && !inIsland && snapRight
+    readonly property bool atRightEdge: attached && !fromPill && snapRight
     readonly property real snapDistance: T.Config.popupRadius * 2
-    // A floating bar's corners are rounded, so its end is a curve a panel cannot sit flush with:
-    // there a snapped panel stops a corner's width short of the end, keeping its right flare, so it
-    // grows out of the flat of the bar's underside like any other. Panels near the left end are
-    // nudged in by the same amount rather than left for the compositor to slide to the screen's
-    // edge, past the bar's.
     readonly property real _barInset: barStrip && barStrip.radius > 0 ? barStrip.radius : 0
     property real _nudge: 0
 
-    // The flares reach outside the card, so an attached window is that much wider on each side --
-    // or, snapped to the right edge, on the left only.
     readonly property real flare: attached && !_ledgeCard ? T.Config.popupRadius : 0
     readonly property real _flareRight: atRightEdge && _barInset === 0 ? 0 : flare
 
     readonly property real cardHeight: contentLayout.implicitHeight + padding + bottomPadding
 
     implicitWidth: _cardWidth + flare + _flareRight + edgeInset * 2
-    // A pixel more when attached, for the bottom outline: it is drawn centred on the edge, and
-    // half of it would otherwise fall outside the window.
     implicitHeight: cardHeight + edgeInset * 2 + (attached ? 1 : 0)
 
     property bool open: false
 
-    // How far open, 0 to 1. Drives the attached panel's growth out of the bar; a floating card
-    // only fades.
-    //
-    // Animated on the way open only. Closing is instant -- the window goes, and with it anything
-    // following `reveal` (the bar's outline, an island widened to carry the panel) drops back at
-    // once rather than retracting after the panel has already gone.
     property real reveal: 0
     NumberAnimation {
         id: revealAnimation
@@ -149,12 +84,11 @@ PopupWindow {
     }
 
     function showPanel() {
-        // Before the window shows, so it is sized and anchored for its place from the start.
-        island = _findUp("barIsland");
+        barBody = _findUp("barPill");
         barStrip = _findUp("barStrip");
         snapRight = false;
         _nudge = 0;
-        if (attached && !inIsland && barStrip && trigger) {
+        if (attached && !fromPill && barStrip && trigger) {
             const centre = trigger.mapToItem(barStrip, trigger.width / 2, 0).x;
             const centredWidth = popupWidth + flare * 2;
             snapRight = barStrip.width - _barInset - (centre + centredWidth / 2) < snapDistance;
@@ -192,103 +126,65 @@ PopupWindow {
         }
     }
 
-    // Where the panel sits relative to its trigger. The defaults are the bar case -- hanging from
-    // the bar below a bar module -- and are what every panel but one uses. A panel opened from
-    // inside another panel overrides them to fly out sideways instead.
-    //
-    // anchorRectY < 0 means "the bar's bottom edge": worked out here from where the trigger sits in
-    // its window, so the panel starts exactly where the bar ends whatever the trigger's own height.
     property int anchorEdges: Edges.Left | Edges.Bottom
     property int anchorGravity: Edges.Bottom | Edges.Middle
     property real anchorRectY: -1
 
-    // The anchor rect is relative to the trigger. For an attached panel it is a one-pixel line
-    // under the trigger at the bar's bottom edge -- one pixel high, so less one -- raised a further
-    // pixel so the panel overlaps the bar by that much: on a fractionally scaled output the two
-    // surfaces' edges are rounded separately, and without the overlap a hairline of whatever is
-    // behind can show between them.
-    // Where the trigger sits in the bar, measured as the panel is placed rather than bound:
-    // mapToItem is not reactive, so a binding would hold wherever the trigger was when the shell
-    // started, before the bar had laid out. Measured in `anchoring`, which fires before every
-    // placement, rather than in showPanel, which a panel may replace with its own.
     property real _triggerTop: 0
-    // From an island: where the panel's left edge goes, relative to the island. Centred under the
-    // trigger, but kept a corner's width inside the island's ends so the flares clear its rounded
-    // corners. The island's body is already as wide as it will grow to carry this panel
-    // (BarPanels.targetWidth), so there is always room; centring on it is only the fallback.
-    property real _islandLeft: 0
+    property real _pillLeft: 0
     Connections {
         target: popup.anchor
         function onAnchoring() {
             if (!popup.trigger) return;
             popup._triggerTop = popup.trigger.mapToItem(null, 0, 0).y;
             if (popup.ledgeJoin === "snap") {
-                // Expanded into the ledge: the same width as it, so centred on it.
-                popup._islandLeft = (popup.island.width - popup.width) / 2;
-            } else if (popup.inIsland) {
-                const margin = T.Config.popupRadius;
-                const islandWidth = popup.island.width;
-                const centre = popup.trigger.mapToItem(popup.island, popup.trigger.width / 2, 0).x;
-                if (popup.width + margin * 2 > islandWidth)
-                    popup._islandLeft = (islandWidth - popup.width) / 2;
+                popup._pillLeft = (popup.barBody.width - popup.width) / 2;
+            } else if (popup._placedOnPill) {
+                const margin = popup.fromPill ? T.Config.popupRadius : 0;
+                const pillWidth = popup.barBody.width;
+                const centre = popup.trigger.mapToItem(popup.barBody, popup.trigger.width / 2, 0).x;
+                if (popup.width + margin * 2 > pillWidth)
+                    popup._pillLeft = (pillWidth - popup.width) / 2;
                 else
-                    popup._islandLeft = Math.max(margin, Math.min(islandWidth - popup.width - margin, centre - popup.width / 2));
+                    popup._pillLeft = Math.max(margin, Math.min(pillWidth - popup.width - margin, centre - popup.width / 2));
             }
         }
     }
-    // The pixel the panel overlaps the bar by -- only while the bar is solid. With the bar
-    // see-through, that row is painted twice, by the bar and by the panel, and shows as a dark line
-    // along the join; the two edges meet exactly instead, at the same logical position, which
-    // rounds to the same physical row on both surfaces.
+    // Overlap the bar by a pixel only while it is solid; see-through, the doubled row shows as a
+    // dark line.
     readonly property int _overlap: T.Config.barOpacity >= 0.99 ? 1 : 0
     readonly property real _barBottomRectY: T.Config.barBottom - _triggerTop - 1 - _overlap
 
-    // From an island, the anchor is a point on the island's bottom edge, and the panel's left edge
-    // goes there; the island's body is the bar's height, so its bottom edge is the bar's.
-    //
-    // Snapped to the right edge, the anchor is the bar strip's bottom-right corner, and the panel
-    // grows leftwards from it.
     anchor {
-        item: popup.inIsland ? popup.island : popup.atRightEdge ? popup.barStrip : popup.trigger
-        edges: popup.inIsland ? Edges.Bottom | Edges.Left
+        item: popup._placedOnPill ? popup.barBody : popup.atRightEdge ? popup.barStrip : popup.trigger
+        edges: popup._placedOnPill ? Edges.Bottom | Edges.Left
             : popup.atRightEdge ? Edges.Bottom | Edges.Right
             : popup.fromBar ? Edges.Bottom : popup.anchorEdges
-        gravity: popup.inIsland ? Edges.Bottom | Edges.Right
+        gravity: popup._placedOnPill ? Edges.Bottom | Edges.Right
             : popup.atRightEdge ? Edges.Bottom | Edges.Left : popup.anchorGravity
-        // No Flip for an attached panel: flipped, it would open upwards off the top of the screen.
-        // Nothing at all at the right edge: the panel is placed against the edge on purpose, so
-        // there is nothing to slide it back from -- and Hyprland (0.56) slides one that fits
-        // exactly anyway, leaving a 4px strip of desktop between it and the edge.
+        // No Flip for attached panels (it would open off the top). Nothing at the right edge:
+        // Hyprland slides an exact fit anyway, leaving a 4px gap.
         adjustment: popup.atRightEdge ? PopupAdjustment.None
             : popup.attached ? PopupAdjustment.Slide : PopupAdjustment.Slide | PopupAdjustment.Flip
-        rect.x: popup.inIsland ? popup._islandLeft
+        rect.x: popup._placedOnPill ? popup._pillLeft
             : popup.atRightEdge ? popup.barStrip.width - 1 - popup._barInset
             : popup._nudge
-        rect.width: popup.inIsland || popup.atRightEdge ? 1 : popup.trigger ? popup.trigger.width : 1
-        // An island's body and the bar strip are both the bar's height, so their bottom edge is the
-        // bar's. A floating card from the bar sits `floatingGap` below it.
-        rect.y: popup.inIsland || popup.atRightEdge ? T.Config.barHeight - 1 - popup._overlap
+        rect.width: popup._placedOnPill || popup.atRightEdge ? 1 : popup.trigger ? popup.trigger.width : 1
+        rect.y: popup.fromPill || popup.atRightEdge ? T.Config.barHeight - 1 - popup._overlap
+            : popup.cardOnPill ? T.Config.barHeight - 1 + popup.floatingGap
             : popup.attached ? popup._barBottomRectY
             : popup.fromBar ? T.Config.barBottom - popup._triggerTop - 1 + popup.floatingGap
             : popup.anchorRectY
         rect.height: 1
     }
 
-    // Input only where the panel has been drawn so far, so the part of the window it has not yet
-    // grown into does not swallow clicks meant for what is underneath.
-    // (No mask at all for a floating card: a Region with no item is an empty region, which would
-    // take every click away from it.)
+    // No mask for a floating card: a Region with no item is empty and would swallow every click.
     mask: popup.attached ? attachedMask : null
     Region {
         id: attachedMask
         item: attachedBody
     }
 
-    // Blur behind the panel while it is see-through (T.Config.panelBlur), as far as it has grown.
-    // Attached: the card's body, square along the top where it meets the bar -- a rounded region
-    // with a strip over its top corners -- and rounded at the bottom. The flares are left out: a
-    // region cannot follow their inward curve, and a square of blur there would show past it.
-    // Floating: the card, rounded all round.
     BackgroundEffect.blurRegion: !T.Config.panelBlur ? null : popup.attached ? attachedBlur : floatingBlur
     Region {
         id: attachedBlur
@@ -311,30 +207,18 @@ PopupWindow {
     Item {
         anchors.fill: parent
 
-        // As wide as the window: the card and its flares.
         AttachedSurface {
             id: attachedSurface
             visible: popup.attached
             width: parent.width
             height: popup.cardHeight * popup.reveal
             flare: popup.flare
-            // Square at the screen's right edge, when snapped there.
             rightFlush: popup.atRightEdge && popup._barInset === 0
-            // On the ledge, the bar's colour: ledge and panel are one silhouette.
             fillColor: popup.onLedge ? T.Config.barBackground : T.Config.panelBackground
-            // Carries on the bar's outline round the rest of the shape, or is the only outline --
-            // or, faded, an outline that only appears below the join (T.Config.panelOutline).
             outlineOpacity: ["panel", "bar", "fade"].indexOf(T.Config.panelOutline) !== -1 ? popup.reveal : 0
-            // Over the flare's height: the outline traces the curve up towards the bar, fading to
-            // nothing where it meets it, and is at full strength once the side runs straight.
-            // Snapped to the ledge there is no flare: the outline carries straight on from the
-            // ledge's own, down the sides and round the bottom.
             outlineFade: T.Config.panelOutline === "fade" && !popup._ledgeCard ? popup.flare : 0
         }
 
-        // The card's own rectangle within the shape. The content is laid out at full size from
-        // the start and this clips it, so the panel is uncovered from the top down as it grows
-        // rather than reflowing on every frame.
         Item {
             id: attachedBody
             visible: popup.attached
@@ -351,10 +235,6 @@ PopupWindow {
             anchors.margins: popup.edgeInset
             radius: T.Config.popupRadius
             antialiasing: true
-            // Solid unless an opacity setting says otherwise -- a panel sits over windows, not over
-            // the wallpaper, so what shows through is arbitrary rather than the desktop. A panel
-            // from the bar follows panelOpacity in either style; anything else (the theme picker)
-            // is an overlay, and follows popupOpacity.
             color: popup.fromBar ? T.Config.panelBackground : T.Config.popupBackground
             border.width: 1
             border.color: T.Config.outline
@@ -369,11 +249,9 @@ PopupWindow {
             }
         }
 
-        // One content column for both looks, parented to whichever is showing.
         Item {
             id: contentHost
             parent: popup.attached ? attachedBody : contentSection
-            // Centred in a snapped card made wider than the panel to match the ledge.
             x: popup._ledgeCard ? Math.round((parent.width - width) / 2) : 0
             width: popup.popupWidth
             height: popup.cardHeight
@@ -382,10 +260,8 @@ PopupWindow {
             HoverHandler {
                 onHoveredChanged: {
                     popup.popupHover = hovered;
-                    // A turn of the event loop later, never inside the hover delivery: a hover
-                    // change can come from the window resizing under a still pointer, and closing
-                    // the window from inside that delivery crashed Qt (6.11) as it went on to map
-                    // the pointer into items of the window just hidden.
+                    // Deferred: a hover change can come from the window resizing under the pointer,
+                    // and closing inside that delivery crashed Qt 6.11.
                     Qt.callLater(popup._updateHover);
                 }
             }

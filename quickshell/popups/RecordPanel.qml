@@ -5,11 +5,10 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// Screen recording in the Readout design: the target, then record -- or, while recording, stop.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 420
+    popupWidth: 480
 
     property string target: "region"
 
@@ -42,12 +41,12 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: panel.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: "record"
             status: S.Capture.recording ? "recording " + S.Capture.recordingElapsed : ""
             active: S.Capture.recording
         }
-        ReadoutText {
+        Note {
             visible: text.length > 0
             text: {
                 if (S.Capture.backendError.length > 0) return S.Capture.backendError.toLowerCase();
@@ -56,19 +55,19 @@ HoverPopupWindow {
             }
         }
 
-        ReadoutKeyRow {
+        KeyRow {
             visible: !S.Capture.recording && S.Capture.recordAvailable
             key: "target"
-            ReadoutChoice {
+            Choice {
                 options: S.Capture.windowCapture ? ["region", "window", "pick", "screen", "all"] : ["region", "screen", "all"]
                 current: panel.target
                 onPicked: v => panel.target = v
             }
         }
 
-        ReadoutDivider {}
+        Divider {}
 
-        ReadoutRow {
+        ListRow {
             visible: !S.Capture.recording && S.Capture.recordAvailable
             icon: "󰕧"
             value: "record"
@@ -79,7 +78,7 @@ HoverPopupWindow {
                 S.Capture.startRecording(mode[0], mode[1]);
             }
         }
-        ReadoutRow {
+        ListRow {
             visible: S.Capture.recording
             icon: "󰙧"
             value: "stop"
@@ -88,7 +87,7 @@ HoverPopupWindow {
             active: true
             onClicked: S.Capture.stopRecording()
         }
-        ReadoutRow {
+        ListRow {
             visible: S.Capture.recordingDirectory.length > 0
             icon: "󰉋"
             value: "open folder"

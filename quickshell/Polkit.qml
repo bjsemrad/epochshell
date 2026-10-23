@@ -4,6 +4,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Polkit
 import Quickshell.Wayland
+import qs.commonwidgets
+import qs.services as S
 import qs.theme as T
 
 Item {
@@ -16,19 +18,20 @@ Item {
     property bool responseRequired: false
     property bool responseVisible: false
     property bool errorFlash: false
-    // pam_fprintd appears in the polkit PAM stack (a sensor is enrolled).
     property bool fingerprintConfigured: false
-    // Lid shut right now — the reader is physically unreachable, so we fall back
-    // to the password even when a sensor is enrolled. Refreshed per request.
     property bool laptopClosed: false
     property int shakeOffset: 0
 
     readonly property bool dialogVisible: polkitAgent.isActive || closing
-    // We show one method at a time. Fingerprint owns the dialog while PAM is
-    // waiting on the reader (lid open, sensor enrolled); the moment PAM asks for
-    // a password — including immediately when the lid is shut and the clamshell
-    // gate skips pam_fprintd — we switch to the password field instead.
-    readonly property bool fingerprintMode: fingerprintConfigured && !laptopClosed && dialogVisible && !responseRequired && !submitted && !errorFlash
+    property int failedAttempts: 0
+    property bool passwordChosen: false
+    readonly property bool fingerprintMode: fingerprintConfigured && !laptopClosed && !passwordChosen && dialogVisible && !responseRequired && !submitted && !errorFlash
+
+    readonly property string focusedScreenName: {
+        const focused = S.CompositorService.monitors.find(m => m.focused === true);
+        if (focused) return String(focused.name);
+        return Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "";
+    }
 
     function authorizationLabel(message) {
         var text = String(message || "")
@@ -37,9 +40,8 @@ Item {
     }
 
     function fingerprintConfiguredFromPamConfig(raw) {
-        // Fingerprint is available whenever pam_fprintd appears anywhere in the auth
-        // stack — it need not be the first module. A clamshell gate (pam_exec) may
-        // legitimately precede it to skip fingerprint while the lid is closed.
+        // pam_fprintd may sit anywhere in the stack; a clamshell pam_exec gate may skip it while
+        // the lid is shut.
         var lines = String(raw || "").split("\n")
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].replace(/^\s+|\s+$/g, "")
@@ -84,6 +86,8 @@ Item {
         closeTimer.stop()
         closing = false
         submitted = false
+        failedAttempts = 0
+        passwordChosen = false
         passwordInput.text = ""
         refreshLidState()
         syncFromFlow()
@@ -92,8 +96,6 @@ Item {
 
     function refocus() {
         if (!dialogVisible) return
-        // In fingerprint mode there is no field to type into — park focus on the
-        // dialog so Escape still cancels; otherwise focus the password field.
         if (fingerprintMode) dialog.forceActiveFocus()
         else passwordInput.forceActiveFocus()
     }
@@ -118,6 +120,7 @@ Item {
     }
 
     function triggerFailureFeedback() {
+        failedAttempts += 1
         submitted = false
         errorFlash = true
         passwordInput.text = ""
@@ -211,14 +214,36 @@ Item {
         }
     }
 
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            required property var modelData
+            screen: modelData
+            visible: root.dialogVisible && modelData.name !== root.focusedScreenName
+            anchors { top: true; bottom: true; left: true; right: true; }
+            color: Qt.rgba(0, 0, 0, 0.6)
+            // No exclusiveZone: setting one reverts exclusionMode to Normal, undoing Ignore.
+            WlrLayershell.namespace: "epochshell-polkit-dim"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+            exclusionMode: ExclusionMode.Ignore
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.AllButtons
+            }
+        }
+    }
+
     PanelWindow {
         id: panel
         visible: root.dialogVisible
         anchors { top: true; bottom: true; left: true; right: true; }
-        color: "transparent"
-        exclusiveZone: 0
+        color: Qt.rgba(0, 0, 0, 0.6)
+        // No exclusiveZone: setting one reverts exclusionMode to Normal, undoing Ignore.
         focusable: true
-        screen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
+        screen: Quickshell.screens.find(s => s.name === root.focusedScreenName) || (Quickshell.screens.length > 0 ? Quickshell.screens[0] : null)
+
         WlrLayershell.namespace: "epochshell-polkit"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
@@ -226,34 +251,17 @@ Item {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.cancelRequest()
+            acceptedButtons: Qt.AllButtons
+            onClicked: Qt.callLater(root.refocus)
         }
 
         Rectangle {
             id: dialog
             readonly property real maxWidth: Math.max(240, panel.width - 40)
-            readonly property real passwordWidth: 420
-            readonly property real fingerprintWidth: fpNaturalMeasure.implicitWidth
-                + T.Config.popupPadding * 6
-                + T.Config.popupLayoutSpacing
-                + T.Config.fontSizeXLarge
-            readonly property real messageWidth: msgNaturalMeasure.implicitWidth + T.Config.popupPadding * 4
-
-            width: Math.min(
-                Math.max(240, root.fingerprintMode ? Math.max(fingerprintWidth, messageWidth) : Math.max(passwordWidth, messageWidth)),
-                maxWidth
-            )
-            height: Math.min(
-                T.Config.popupPadding * 4
-                + msgMeasure.height
-                + inputCard.implicitHeight
-                + dialogDivider.implicitHeight
-                + footerRow.implicitHeight
-                + T.Config.popupLayoutSpacing * 3,
-                Math.max(panel.height - 60 - 24, 0)
-            )
-            anchors.horizontalCenterOffset: root.shakeOffset
+            width: Math.min(Math.max(440, messageMeasure.implicitWidth + 48), dialog.maxWidth)
+            height: Math.min(contentCol.implicitHeight + 32, Math.max(panel.height - 80, 0))
             anchors.centerIn: parent
+            anchors.horizontalCenterOffset: root.shakeOffset
             radius: T.Config.popupRadius
             antialiasing: true
             color: T.Config.popupBackground
@@ -262,7 +270,14 @@ Item {
             clip: true
             focus: true
 
-            Behavior on border.color { ColorAnimation { duration: 120 } }
+            readonly property color failureText: {
+                const red = T.Config.red;
+                for (let t = 0; t <= 1; t += 0.1) {
+                    const c = Qt.rgba(red.r + (1 - red.r) * t, red.g + (1 - red.g) * t, red.b + (1 - red.b) * t, 1);
+                    if (Ui.contrast(c, T.Config.background) >= 4.5) return c;
+                }
+                return Qt.rgba(1, 1, 1, 1);
+            }
 
             Keys.onPressed: function(event) {
                 if (event.key === Qt.Key_Escape) {
@@ -270,6 +285,10 @@ Item {
                     event.accepted = true
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                     if (root.responseRequired) root.submitResponse()
+                    event.accepted = true
+                } else if (event.key === Qt.Key_P && root.fingerprintMode) {
+                    root.passwordChosen = true
+                    Qt.callLater(root.refocus)
                     event.accepted = true
                 }
             }
@@ -280,217 +299,284 @@ Item {
             }
 
             Text {
-                id: msgNaturalMeasure
+                id: messageMeasure
                 visible: false
                 text: root.authorizationLabel(root.currentMessage)
-                font.family: T.Config.fontFamily
-                font.pixelSize: T.Config.fontSizeLarge
-            }
-
-            Text {
-                id: fpNaturalMeasure
-                visible: false
-                text: "Place your finger on the reader"
-                font.family: T.Config.fontFamily
-                font.pixelSize: T.Config.fontSizeLarge
+                font.family: Ui.font
+                font.pixelSize: Ui.valueSize
             }
 
             Flickable {
                 id: scroller
-                anchors {
-                    fill: parent
-                    margins: T.Config.popupPadding * 2
-                }
+                anchors.fill: parent
+                anchors.margins: 16
                 clip: true
                 contentWidth: width
                 contentHeight: contentCol.implicitHeight
                 flickableDirection: Flickable.VerticalFlick
                 boundsBehavior: Flickable.StopAtBounds
 
-            Text {
-                id: msgMeasure
-                visible: false
-                width: contentCol.width
-                text: root.authorizationLabel(root.currentMessage)
-                color: T.Config.surfaceText
-                font.family: T.Config.fontFamily
-                font.pixelSize: T.Config.fontSizeLarge
-                wrapMode: Text.WrapAnywhere
-            }
+                ColumnLayout {
+                    id: contentCol
+                    width: scroller.width
+                    spacing: 0
 
-            ColumnLayout {
-                id: contentCol
-                width: scroller.width
-                anchors.top: parent.top
-                spacing: T.Config.popupLayoutSpacing
-
-                Text {
-                    id: messageText
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: msgMeasure.height
-                    text: root.authorizationLabel(root.currentMessage)
-                    color: T.Config.surfaceText
-                    font.family: T.Config.fontFamily
-                    font.pixelSize: T.Config.fontSizeLarge
-                    wrapMode: Text.WrapAnywhere
-                    clip: true
-                }
-
-                Text {
-                    id: fpMeasure
-                    visible: false
-                    width: fpWrapText.width
-                    text: "Place your finger on the reader"
-                    color: T.Config.surfaceText
-                    font.family: T.Config.fontFamily
-                    font.pixelSize: T.Config.fontSizeLarge
-                    wrapMode: Text.WrapAnywhere
-                }
-
-                Rectangle {
-                    id: inputCard
-                    Layout.fillWidth: true
-                    implicitHeight: root.fingerprintMode
-                        ? fpMeasure.height + T.Config.barModuleVerticalPadding * 2
-                        : fieldRow.implicitHeight + T.Config.barModuleVerticalPadding * 2
-                    radius: T.Config.cardRadius
-                    antialiasing: true
-                    color: T.Config.surfaceContainer
-                    border.width: 1
-                    border.color: root.errorFlash ? T.Config.red
-                               : passwordInput.activeFocus ? T.Config.accent
-                               : T.Config.outline
-
-                    Behavior on border.color { ColorAnimation { duration: 120 } }
-
-                    Item {
-                        id: fpContent
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            leftMargin: T.Config.popupPadding
-                            rightMargin: T.Config.popupPadding
-                            verticalCenter: parent.verticalCenter
-                        }
-                        visible: root.fingerprintMode
-                        height: fpMeasure.height
-
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.bottomMargin: 10
+                        spacing: 10
                         Text {
-                            id: sensorGlyph
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: ""
-                            color: root.errorFlash ? T.Config.red : T.Config.accent
-                            font.family: T.Config.fontFamily
-                            font.pixelSize: T.Config.fontSizeXLarge
+                            text: "󰒃"
+                            color: T.Config.yellow
+                            font.pixelSize: Ui.iconSize
+                            font.family: Ui.font
                         }
-
                         Text {
-                            id: fpWrapText
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.left: sensorGlyph.right
-                            anchors.right: parent.right
-                            anchors.leftMargin: T.Config.popupLayoutSpacing
-                            height: parent.height
-                            text: "Place your finger on the reader"
-                            color: T.Config.surfaceText
-                            font.family: T.Config.fontFamily
-                            font.pixelSize: T.Config.fontSizeLarge
-                            verticalAlignment: Text.AlignVCenter
-                            wrapMode: Text.WrapAnywhere
-                            clip: true
+                            Layout.fillWidth: true
+                            text: "authentication required"
+                            color: T.Config.yellow
+                            font.pixelSize: Ui.valueSize
+                            font.family: Ui.font
                         }
+                    }
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.bottomMargin: 12
+                        implicitHeight: 1
+                        color: Ui.divider
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        Layout.bottomMargin: 8
+                        textFormat: Text.StyledText
+                        text: {
+                            const esc = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            return esc(root.authorizationLabel(root.currentMessage))
+                                .replace(/(\/[^\s'`]+)/g, "<font color=\"#ffffff\">$1</font>");
+                        }
+                        color: Ui.value
+                        font.pixelSize: Ui.valueSize
+                        font.family: Ui.font
+                        wrapMode: Text.WrapAnywhere
+                    }
+
+                    KeyRow {
+                        readonly property string actionId: polkitAgent.flow ? String(polkitAgent.flow.actionId || "") : ""
+                        visible: actionId.length > 0
+                        key: "action"
+                        text: actionId
+                        textColor: Ui.detail
+                    }
+
+                    KeyRow {
+                        id: asRow
+                        readonly property var identities: polkitAgent.flow ? (polkitAgent.flow.identities || []) : []
+                        function nameOf(identity) {
+                            if (!identity) return "";
+                            const name = String(identity.displayName || identity.name || identity.id || "");
+                            return (identity.isGroup ? "group " : "") + name;
+                        }
+                        visible: identities.length > 0
+                        key: "as"
+                        text: identities.length === 1 ? nameOf(identities[0]) : ""
+                        Choice {
+                            visible: asRow.identities.length > 1
+                            options: asRow.identities.map((identity, i) => ({ value: String(i), label: asRow.nameOf(identity) }))
+                            current: String(asRow.identities.indexOf(polkitAgent.flow ? polkitAgent.flow.selectedIdentity : null))
+                            onPicked: v => { if (polkitAgent.flow) polkitAgent.flow.selectedIdentity = asRow.identities[Number(v)]; }
+                        }
+                    }
+
+                    ListRow {
+                        id: detailsRow
+                        property bool open: false
+                        value: "details"
+                        valueWidth: Ui.keyColumn - 10
+                        hasPage: !open
+                        detail: open ? "" : ""
+                        onOpened: open = true
+                        onClicked: open = !open
+                    }
+                    Note {
+                        visible: detailsRow.open
+                        text: [polkitAgent.flow && polkitAgent.flow.iconName ? "icon " + polkitAgent.flow.iconName : "",
+                            root.currentMessage].filter(x => x.length > 0).join("\n")
                     }
 
                     RowLayout {
-                        id: fieldRow
-                        visible: !root.fingerprintMode
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            verticalCenter: parent.verticalCenter
-                            leftMargin: T.Config.popupPadding
-                            rightMargin: T.Config.popupPadding
-                        }
-                        spacing: T.Config.popupLayoutSpacing
-
+                        visible: T.Config.polkitPhrase.length > 0
+                        Layout.fillWidth: true
+                        Layout.topMargin: 6
+                        spacing: 10
                         Text {
-                            text: "\uF023"
-                            color: root.errorFlash ? T.Config.red
-                                 : passwordInput.activeFocus ? T.Config.accent : T.Config.inactive
-                            font.family: T.Config.fontFamily
-                            font.pixelSize: T.Config.fontSizeXLarge
+                            text: "󰌆"
+                            color: Ui.detail
+                            font.pixelSize: Ui.detailSize
+                            font.family: Ui.font
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: T.Config.polkitPhrase
+                            color: Ui.value
+                            font.pixelSize: Ui.detailSize
+                            font.family: Ui.font
+                            elide: Text.ElideRight
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 14
+                        implicitHeight: 48
+                        color: Ui.hover
+
+                        Rectangle {
+                            width: Ui.tick
+                            height: parent.height
+                            color: root.errorFlash ? T.Config.red : T.Config.accent
                         }
 
-                        TextInput {
-                            id: passwordInput
-                            Layout.fillWidth: true
-                            color: T.Config.surfaceText
-                            font.family: T.Config.fontFamily
-                            font.pixelSize: T.Config.fontSizeLarge
-                            clip: true
-                            selectionColor: T.Config.accent
-                            selectedTextColor: T.Config.background
-                            cursorVisible: activeFocus && !root.submitted && !root.errorFlash
-                            readOnly: root.submitted || root.errorFlash
-                            echoMode: root.responseVisible ? TextInput.Normal : TextInput.Password
-                            passwordCharacter: "\u2022"
-                            activeFocusOnPress: true
-                            onAccepted: root.submitResponse()
-                            Keys.onPressed: function(event) {
-                                if (event.key === Qt.Key_Escape) {
-                                    root.cancelRequest()
-                                    event.accepted = true
+                        RowLayout {
+                            visible: !root.fingerprintMode
+                            anchors.fill: parent
+                            anchors.leftMargin: 14
+                            anchors.rightMargin: 14
+                            spacing: 10
+                            Text {
+                                text: "›"
+                                color: root.errorFlash ? T.Config.red : T.Config.accent
+                                font.pixelSize: Ui.valueSize + 4
+                                font.family: Ui.font
+                            }
+                            TextInput {
+                                id: passwordInput
+                                Layout.fillWidth: true
+                                color: Ui.value
+                                font.family: Ui.font
+                                font.pixelSize: Ui.valueSize + 2
+                                clip: true
+                                selectionColor: T.Config.accent
+                                selectedTextColor: T.Config.background
+                                cursorVisible: activeFocus && !root.submitted && !root.errorFlash
+                                readOnly: root.submitted || root.errorFlash
+                                echoMode: root.responseVisible ? TextInput.Normal : TextInput.Password
+                                passwordCharacter: "\u2022"
+                                activeFocusOnPress: true
+                                onAccepted: root.submitResponse()
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Escape) {
+                                        root.cancelRequest()
+                                        event.accepted = true
+                                    }
+                                }
+                                Text {
+                                    anchors.fill: parent
+                                    visible: parent.text.length === 0
+                                    text: {
+                                        if (root.submitted) return "checking…";
+                                        const prompt = polkitAgent.flow ? String(polkitAgent.flow.inputPrompt || "") : "";
+                                        const cleaned = prompt.replace(/:\s*$/, "").trim().toLowerCase();
+                                        return cleaned.length > 0 ? cleaned : "password";
+                                    }
+                                    color: Ui.detail
+                                    font.family: Ui.font
+                                    font.pixelSize: Ui.valueSize + 2
+                                    verticalAlignment: Text.AlignVCenter
                                 }
                             }
+                        }
 
+                        RowLayout {
+                            visible: root.fingerprintMode
+                            anchors.fill: parent
+                            anchors.leftMargin: 14
+                            anchors.rightMargin: 14
+                            spacing: 12
                             Text {
-                                anchors.fill: parent
-                                visible: parent.text.length === 0 && !parent.activeFocus
-                                text: root.errorFlash ? "Wrong password" : (root.submitted ? "Checking..." : "Enter password")
-                                color: root.errorFlash ? T.Config.red : T.Config.inactive
-                                font.family: T.Config.fontFamily
-                                font.pixelSize: T.Config.fontSizeLarge
-                                verticalAlignment: Text.AlignVCenter
-                                horizontalAlignment: Text.AlignLeft
+                                text: "󰈷"
+                                color: T.Config.accent
+                                font.pixelSize: 28
+                                font.family: Ui.font
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                Text {
+                                    text: "touch the reader"
+                                    color: Ui.value
+                                    font.pixelSize: Ui.valueSize
+                                    font.family: Ui.font
+                                }
+                                Text {
+                                    text: "p · use password"
+                                    color: Ui.detail
+                                    font.pixelSize: Ui.detailSize
+                                    font.family: Ui.font
+                                }
                             }
                         }
                     }
-                }
-
-                Rectangle {
-                    id: dialogDivider
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: T.Config.surfaceVariant
-                }
-
-                RowLayout {
-                    id: footerRow
-                    Layout.fillWidth: true
-                    spacing: 6
 
                     Text {
+                        visible: root.failedAttempts > 0
                         Layout.fillWidth: true
-                        text: root.scopeLabel() + (root.currentSupplementary.length > 0 ? " · " + root.currentSupplementary : "")
-                        color: root.fingerprintMode ? T.Config.accent : T.Config.inactive
-                        font.family: T.Config.fontFamily
-                        font.pixelSize: T.Config.fontSizeSubtext
-                        elide: Text.ElideRight
-                        clip: true
+                        Layout.topMargin: 6
+                        text: {
+                            const what = root.currentSupplementary.length > 0 ? root.currentSupplementary.toLowerCase() : "wrong password";
+                            const max = T.Config.polkitMaxAttempts;
+                            const left = max - root.failedAttempts;
+                            const count = max > 0 ? (left === 1 ? "1 attempt left" : Math.max(0, left) + " attempts left") : "attempt " + (root.failedAttempts + 1);
+                            return what + " · " + count;
+                        }
+                        color: dialog.failureText
+                        font.pixelSize: Ui.detailSize
+                        font.family: Ui.font
+                        wrapMode: Text.Wrap
                     }
 
-                    Item {
+                    RowLayout {
                         Layout.fillWidth: true
+                        Layout.topMargin: 14
+                        spacing: 0
+                        Text {
+                            text: "esc · cancel"
+                            color: cancelMouse.containsMouse ? Ui.value : Ui.detail
+                            font.pixelSize: Ui.detailSize
+                            font.family: Ui.font
+                            MouseArea {
+                                id: cancelMouse
+                                anchors.fill: parent
+                                anchors.margins: -6
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.cancelRequest()
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
+                        Rectangle {
+                            visible: !root.fingerprintMode
+                            implicitWidth: authText.implicitWidth + 16
+                            implicitHeight: authText.implicitHeight + 8
+                            radius: Ui.hoverRadius
+                            color: authMouse.containsMouse ? Ui.alpha(T.Config.surfaceText, 0.14) : Ui.hover
+                            Text {
+                                id: authText
+                                anchors.centerIn: parent
+                                text: "↵ authenticate"
+                                color: Ui.value
+                                font.pixelSize: Ui.detailSize
+                                font.family: Ui.font
+                            }
+                            MouseArea {
+                                id: authMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.submitResponse()
+                            }
+                        }
                     }
-
-                    Text {
-                        text: root.fingerprintMode ? "Fingerprint" : "Password"
-                        color: root.fingerprintMode ? T.Config.accent : T.Config.inactive
-                        font.family: T.Config.fontFamily
-font.pixelSize: T.Config.fontSizeSubtext
-                    }
-}
                 }
             }
         }

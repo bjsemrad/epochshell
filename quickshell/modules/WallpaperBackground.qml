@@ -4,25 +4,10 @@ import Quickshell.Wayland
 import qs.theme as T
 import qs.services as S
 
-// The wallpaper itself, when this shell is what draws it: one background-layer surface per screen,
-// showing whatever EpochOxide says is current.
-//
-// Only when EpochOxide reports `backend: "shell"`. Under hyprpaper this builds nothing at all, so
-// the two never stack up and nothing is decoded twice. See wallpaper.rs for how the backend is
-// chosen.
-//
-// On niri, the overview draws its backdrop rather than the background layer, so the wallpaper only
-// shows behind the zoomed-out workspaces with a layer rule naming this surface:
-//
-//     layer-rule {
-//         match namespace="^epochshell-wallpaper$"
-//         place-within-backdrop true
-//     }
 Scope {
     id: root
 
-    // Sticky: only an explicit answer changes it. A daemon restart briefly reports no backend at
-    // all, and treating that as "stop drawing" would blank the desktop for as long as it takes.
+    // Sticky: a daemon restart briefly reports no backend, which would blank the desktop.
     property bool drawing: false
 
     function follow() {
@@ -56,21 +41,13 @@ Scope {
                 left: true
                 right: true
             }
-            // Opaque on purpose, unlike every other surface here: nothing is meant to show through a
-            // wallpaper, and an opaque surface is one the compositor can skip blending. This is
-            // also what shows before the first image has decoded, and around a transparent one.
             color: T.Config.background
-            // The desktop is not this surface's to click on.
             mask: Region {}
 
             readonly property string wanted: S.Wallpaper.current
             readonly property string fitMode: S.Wallpaper.fitMode
 
-            // Two images, crossfaded: the new one decodes behind the old and fades in once it is
-            // ready, so a switch never shows an empty frame -- and stepping through the picker
-            // looks like a slideshow rather than a flicker.
             property Image front: imageA
-            // The image being brought in, or null between switches.
             property Image incoming: null
 
             readonly property int fill: {
@@ -79,8 +56,7 @@ Scope {
                     return Image.PreserveAspectFit;
                 case "tile":
                     return Image.Tile;
-                // hyprpaper.conf calls stretching "fill" and hyprctl calls it "fit"; all three words
-                // mean the same thing here.
+                // hyprpaper's "fill" and hyprctl's "fit" both mean stretch.
                 case "stretch":
                 case "fill":
                 case "fit":
@@ -90,13 +66,6 @@ Scope {
                 }
             }
 
-            // Decode at the size it will be shown, not the size of the file: an 8K image on a 1440p
-            // screen is otherwise four times the memory for nothing. Tiles are left at their own
-            // size (0 means unconstrained), since scaling those is exactly what tiling is not.
-            //
-            // Taken from the screen, not the window. The window passes through placeholder sizes
-            // (100, 0, 500) before the compositor configures it, and every change of this size
-            // restarts the decode -- measured at four decodes of the first image at startup.
             readonly property real pixelRatio: modelData.devicePixelRatio || 1
             readonly property size decodeSize: fill === Image.Tile
                 ? Qt.size(0, 0)
@@ -105,18 +74,14 @@ Scope {
             onWantedChanged: show(wanted)
             Component.onCompleted: show(wanted)
 
-            // Paths go into a URL, so each segment is escaped: a `#` or `?` in a file name would
-            // otherwise be read as a fragment or a query and the image would not be found.
+            // Each path segment is escaped: a # or ? in a file name would be read as a fragment or
+            // query.
             function urlFor(path) {
                 return "file://" + path.split("/").map(encodeURIComponent).join("/");
             }
 
             function show(path) {
-                // Asked again for what is already on its way: the window's own startup does this,
-                // and so do the two connections Wallpaper.qml keeps, which both hear of a switch.
                 if (win.incoming && path && String(win.incoming.source) === urlFor(path)) return;
-                // Mid-fade, the one fading in wins straight away; mid-decode, it is dropped. Only
-                // the latest choice is worth waiting for.
                 settle();
                 if (!path) {
                     imageA.source = "";
@@ -132,12 +97,10 @@ Scope {
                 back.z = 1;
                 win.front.z = 0;
                 back.source = url;
-                // An image already in memory can be Ready before onStatusChanged has anything to
-                // report.
+                // An image already in memory can be Ready before onStatusChanged fires.
                 if (back.status === Image.Ready) fade.begin(back);
             }
 
-            // Finish whatever switch is under way: completed if its image arrived, abandoned if not.
             function settle() {
                 const coming = win.incoming;
                 if (!coming) return;
@@ -147,8 +110,6 @@ Scope {
                     coming.opacity = 1;
                     const old = win.front;
                     win.front = coming;
-                    // Let the old decode go: two full-screen images per screen is the most this
-                    // should ever hold, and only for the length of a fade.
                     old.source = "";
                 } else {
                     coming.source = "";
@@ -186,8 +147,8 @@ Scope {
                 id: imageA
                 anchors.fill: parent
                 asynchronous: true
-                // Held by this item only. Qt's cache would keep every image stepped past in the
-                // picker alive, which is a lot of memory for full-screen pictures.
+                // Uncached: Qt's cache would keep every full-screen image stepped past in the
+                // picker.
                 cache: false
                 smooth: true
                 fillMode: win.fill

@@ -3,15 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Stay awake, over EpochOxide's API.
-//
-// The lock itself lives in the backend, which holds a `systemd-inhibit` process: that is what lets
-// `epochctl toggle stay-awake` work with the shell closed, and what keeps the state across a shell
-// reload. This service asks what that state is and offers to flip it.
-//
-// The shell adds one thing the backend cannot: a Wayland idle-inhibit against its own surface, so
-// the compositor never reports idle in the first place. That belongs here because a Wayland
-// inhibitor needs a surface, and the daemon has none. See Bar.qml for where it is attached.
 Singleton {
     id: root
 
@@ -27,7 +18,6 @@ Singleton {
     readonly property bool connected: socketLoader.item !== null && socketLoader.item.connected
     readonly property string icon: "󰒳"
 
-    // "12 minutes", for the tooltip-ish line in a panel.
     readonly property string held: {
         const total = root.seconds;
         if (total < 60) return "moments";
@@ -41,8 +31,6 @@ Singleton {
         request("system.stayAwake", {});
     }
 
-    // Omitting `enabled` asks the backend to flip whatever it currently is, which is what a
-    // keybinding or a click means; the state is decided there so two callers cannot disagree.
     function toggle() {
         request("system.setStayAwake", {});
     }
@@ -76,8 +64,6 @@ Singleton {
         socketLoader.active = true;
     }
 
-    // The clock is ticked locally and the backend asked rarely: the state only changes when
-    // something asks it to, and this is drawn in the bar.
     Timer {
         interval: 1000
         repeat: true
@@ -85,9 +71,8 @@ Singleton {
         onTriggered: root.seconds += 1
     }
 
-    // triggeredOnStart matters more than the interval: a request sent from the connect handler is
-    // dropped when the socket is not writable yet, and without this the state stays unknown -- and
-    // anything bound to it invisible -- until the first tick half a minute later.
+    // triggeredOnStart: a request sent from the connect handler is dropped when the socket is not
+    // writable yet.
     Timer {
         interval: 30000
         repeat: true

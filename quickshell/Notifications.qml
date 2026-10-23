@@ -7,6 +7,12 @@ import qs.services as S
 import qs.theme as T
 
 Scope {
+    readonly property string focusedName: {
+        const focused = S.CompositorService.monitors.find(m => m.focused === true);
+        if (focused) return String(focused.name);
+        return Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "";
+    }
+
     Variants {
         model: Quickshell.screens
 
@@ -14,16 +20,13 @@ Scope {
             id: popupWindow
             required property var modelData
             screen: modelData
-            visible: S.Notifications.toastModel.count > 0
+            visible: S.Notifications.toastModel.count > 0 && modelData.name === focusedName
             color: "transparent"
             exclusiveZone: 0
 
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-            // Input only where the toasts are. The window spans the screen so the column can sit
-            // anywhere in it; without this, everything under it -- every window -- stopped taking
-            // clicks for as long as a toast was up.
             mask: Region {
                 item: toastColumn
             }
@@ -59,6 +62,10 @@ Scope {
                         required property string body
                         required property string image
                         required property int urgency
+                        required property real timestamp
+                        required property string actions
+                        required property int groupCount
+                        required property int serial
 
                         Layout.preferredWidth: card.implicitWidth
                         implicitHeight: card.implicitHeight
@@ -66,11 +73,13 @@ Scope {
                         property bool hovered: false
 
                         Timer {
+                            id: expiry
                             interval: S.Notifications.timeoutFor(slot.urgency)
                             running: interval > 0 && !slot.hovered
                             repeat: false
                             onTriggered: S.Notifications.expireToast(slot.index)
                         }
+                        onSerialChanged: if (expiry.running) expiry.restart()
 
                         HoverHandler {
                             onHoveredChanged: slot.hovered = hovered
@@ -84,8 +93,19 @@ Scope {
                             body: slot.body
                             image: slot.image
                             urgency: slot.urgency
+                            timestamp: slot.timestamp
+                            count: slot.groupCount
+                            actions: {
+                                try {
+                                    return JSON.parse(slot.actions || "[]");
+                                } catch (e) {
+                                    return [];
+                                }
+                            }
                             onDismissRequested: S.Notifications.dismissToast(slot.index)
-                            onClicked: S.Notifications.focusAndDismiss(slot.notificationId, slot.appName, slot.windowClass)
+                            onClicked: S.Notifications.focusAndDismissToast(slot.index)
+                            onActionInvoked: actionId => S.Notifications.invokeAction(slot.notificationId, actionId)
+                            onHistoryRequested: S.PopupManager.openPanel("notifications")
                         }
                     }
                 }

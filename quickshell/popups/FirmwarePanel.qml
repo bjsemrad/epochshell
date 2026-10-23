@@ -4,12 +4,10 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// Firmware in the Readout design, the same shape as Nix: the machine, each update waiting, and the
-// actions.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 460
+    popupWidth: 500
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "firmware")
@@ -27,33 +25,33 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: panel.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: "firmware"
             status: !S.SystemInfo.firmwareAvailable ? "unavailable" : S.SystemInfo.hasFirmwareUpdates ? "update" : "current"
             active: S.SystemInfo.hasFirmwareUpdates
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: text.length > 0
             key: "machine"
             text: [S.SystemInfo.vendor, S.SystemInfo.product].filter(x => x && x.length > 0).join(" ")
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.SystemInfo.biosVersion.length > 0
             key: "bios"
             text: S.SystemInfo.biosVersion
         }
-        ReadoutText {
+        Note {
             visible: !S.SystemInfo.firmwareAvailable
             text: "fwupd is not available"
         }
 
-        ReadoutSection {
+        SectionHeader {
             visible: S.SystemInfo.firmwareUpdates.length > 0
             text: "updates"
         }
         Repeater {
             model: S.SystemInfo.firmwareUpdates
-            delegate: ReadoutRow {
+            delegate: ListRow {
                 required property var modelData
                 icon: S.SystemInfo.firmwareIcon
                 value: String(modelData.name || "")
@@ -64,14 +62,14 @@ HoverPopupWindow {
             }
         }
 
-        ReadoutDivider {}
+        Divider {}
 
-        ReadoutRow {
+        ListRow {
             icon: "󰑐"
             value: "check again"
             onClicked: S.SystemInfo.refreshFirmware(true)
         }
-        ReadoutRow {
+        ListRow {
             visible: S.SystemInfo.hasFirmwareUpdates
             icon: "󰚰"
             value: "install updates"

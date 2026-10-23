@@ -6,7 +6,7 @@ import Quickshell.Io
 Singleton {
     id: net
 
-    property var networkConnections: {} // map of device,  { name, type, strength, ipv4 }
+    property var networkConnections: {}
 
     property bool wifiEnabled: true
     property bool wifiScanning: false
@@ -15,7 +15,7 @@ Singleton {
     property string ssid: ""
     property int strength: 0
 
-    property var accessPoints: []        // array of { ssid, strength, active }
+    property var accessPoints: []
     property alias savedAccessPoints: savedWifiModel
     ListModel {
         id: savedWifiModel
@@ -306,7 +306,6 @@ Singleton {
     function _parseWifiStatus(text) {
         let lines = text.trim().split("\n");
         if (lines.length === 0) {
-            //  = false
             ssid = "";
             strength = 0;
             return;
@@ -337,7 +336,6 @@ Singleton {
             });
         }
 
-        // Dedupe by SSID
         let map = {};
         for (let ap of aps) {
             if (!ap.ssid)

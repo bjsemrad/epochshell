@@ -5,14 +5,11 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// Capture in the Readout design: what to take and how to keep it as key rows, then the one action.
-// Text (OCR) is offered for a region, which is what reading text needs.
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 420
+    popupWidth: 480
 
-    // "region", "window", "pick", "screen", "all".
     property string target: "region"
     property bool readText: false
 
@@ -51,11 +48,11 @@ HoverPopupWindow {
 
         Keys.onEscapePressed: panel.hidePanel()
 
-        ReadoutHeader {
+        PageHeader {
             title: "capture"
             status: S.Capture.busy ? "busy…" : ""
         }
-        ReadoutText {
+        Note {
             visible: text.length > 0
             text: {
                 if (S.Capture.backendError.length > 0) return S.Capture.backendError.toLowerCase();
@@ -64,57 +61,67 @@ HoverPopupWindow {
             }
         }
 
-        ReadoutKeyRow {
+        KeyRow {
             key: "target"
-            ReadoutChoice {
+            Choice {
                 options: S.Capture.windowCapture ? ["region", "window", "pick", "screen", "all"] : ["region", "screen", "all"]
                 current: panel.target
                 onPicked: v => panel.target = v
             }
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.Capture.ocrAvailable && panel.target === "region"
             key: "text"
-            ReadoutSwitch {
+            toggles: true
+            onToggled: panel.readText = !panel.readText
+            ToggleSwitch {
                 checked: panel.readText
                 onToggled: panel.readText = !panel.readText
             }
         }
-        ReadoutKeyRow {
+        KeyRow {
             key: "clipboard"
-            ReadoutSwitch {
+            toggles: true
+            onToggled: S.Capture.setCopyToClipboard(!S.Capture.copyToClipboard)
+            ToggleSwitch {
                 checked: S.Capture.copyToClipboard
                 onToggled: S.Capture.setCopyToClipboard(!S.Capture.copyToClipboard)
             }
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: !panel.ocr
             key: "save"
-            ReadoutSwitch {
+            toggles: true
+            onToggled: S.Capture.setSaveToDisk(!S.Capture.saveToDisk)
+            ToggleSwitch {
                 checked: S.Capture.saveToDisk
                 onToggled: S.Capture.setSaveToDisk(!S.Capture.saveToDisk)
             }
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: !panel.ocr
             key: "pointer"
-            ReadoutSwitch {
+            toggles: true
+            onToggled: S.Capture.setIncludeCursor(!S.Capture.includeCursor)
+            ToggleSwitch {
                 checked: S.Capture.includeCursor
                 onToggled: S.Capture.setIncludeCursor(!S.Capture.includeCursor)
             }
         }
-        ReadoutKeyRow {
+        KeyRow {
             visible: S.Capture.annotateAvailable && !panel.ocr
             key: "annotate"
-            ReadoutSwitch {
+            toggles: true
+            onToggled: S.Capture.setAnnotate(!S.Capture.annotate)
+            ToggleSwitch {
                 checked: S.Capture.annotate
                 onToggled: S.Capture.setAnnotate(!S.Capture.annotate)
             }
         }
 
-        ReadoutDivider {}
+        Divider {}
 
-        ReadoutRow {
+        ListRow {
             icon: panel.ocr ? "󰈙" : S.Capture.icon
             value: panel.ocr ? "read text" : "capture"
             status: "↵"
@@ -122,7 +129,7 @@ HoverPopupWindow {
             interactive: !S.Capture.busy
             onClicked: panel.go()
         }
-        ReadoutRow {
+        ListRow {
             visible: S.Capture.directory.length > 0
             icon: "󰉋"
             value: "open folder"

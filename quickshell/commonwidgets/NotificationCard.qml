@@ -3,19 +3,6 @@ import QtQuick.Layouts
 import Quickshell
 import qs.theme as T
 
-// A notification, in the panels' language: the app's icon (or a bell in a disc), the app's name
-// small and quiet, the summary in bold, the body underneath in the secondary text colour -- the
-// interface font for words, the icon font only for icons.
-//
-// Two settings for it:
-//   a toast (`embedded` false) floats over whatever window is underneath, so it keeps a ground
-//   and a soft edge to separate it from that;
-//   in the history panel (`embedded` true) it is a row of a list, like ListRow: no box of its
-//   own, only lifted a shade under the pointer.
-// A critical one says so with a red edge and a red app name.
-//
-// Clicking it goes to whatever sent it; right-clicking, or the close button that appears under
-// the pointer, dismisses it.
 Rectangle {
     id: root
 
@@ -25,18 +12,20 @@ Rectangle {
     property string body: ""
     property string image: ""
     property int urgency: 1
-    property bool closeVisible: true
-    property bool embedded: false
-    property int contentPadding: T.Config.popupPadding + 2
+    property real timestamp: 0
+    property int count: 1
+    property var actions: []
 
     signal dismissRequested()
     signal clicked()
+    signal actionInvoked(string actionId)
+    signal historyRequested()
 
     readonly property bool critical: urgency === 2
-    readonly property bool hovered: mouseArea.containsMouse || closeButton.hovered
-
-    readonly property string iconSource: image.length > 0 ? image : iconSourceOf(appIcon)
-
+    readonly property bool low: urgency === 0
+    readonly property bool hovered: mouseArea.containsMouse || closeMouse.containsMouse || moreMouse.containsMouse
+    readonly property string iconSource: iconSourceOf(appIcon.length > 0 ? appIcon : image)
+    readonly property string pictureSource: image.length > 0 && image !== appIcon ? iconSourceOf(image) : ""
     function iconSourceOf(icon) {
         const value = String(icon || "");
         if (value.length === 0) return "";
@@ -44,19 +33,48 @@ Rectangle {
         if (value.startsWith("/")) return "file://" + value;
         return Quickshell.iconPath(value, true);
     }
+    function readableRed() {
+        const red = T.Config.red;
+        for (let t = 0; t <= 1; t += 0.1) {
+            const c = Qt.rgba(red.r + (1 - red.r) * t, red.g + (1 - red.g) * t, red.b + (1 - red.b) * t, 1);
+            if (Ui.contrast(c, T.Config.background) >= 4.5) return c;
+        }
+        return Qt.rgba(1, 1, 1, 1);
+    }
+    function plain(text) {
+        return String(text || "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    }
 
-    implicitWidth: 380
-    implicitHeight: content.implicitHeight + contentPadding * 2
+    SystemClock {
+        id: clock
+        precision: SystemClock.Minutes
+    }
+    readonly property string age: {
+        const minutes = Math.max(0, Math.floor((clock.date.getTime() - root.timestamp) / 60000));
+        if (minutes < 1) return "now";
+        if (minutes < 60) return minutes + "m";
+        return Math.floor(minutes / 60) + "h";
+    }
+
+    implicitWidth: 340
+    implicitHeight: content.implicitHeight + 24
     width: implicitWidth
     height: implicitHeight
-    radius: T.Config.cardRadius
+    radius: T.Config.popupRadius
     antialiasing: true
     clip: true
-    color: root.embedded
-        ? (root.hovered ? T.Config.onPanel(T.Config.surfaceContainerHigh) : "transparent")
-        : (root.hovered ? T.Config.surfaceContainerHigh : T.Config.popupBackground)
-    border.width: root.critical || !root.embedded ? 1 : 0
-    border.color: root.critical ? T.Config.red : T.Config.surfaceVariant
+    color: root.hovered ? Ui.over(T.Config.surfaceContainer, 0.6) : T.Config.popupBackground
+    border.width: 1
+    border.color: root.critical ? T.Config.red : T.Config.outline
+
+    Rectangle {
+        visible: root.critical
+        x: 1
+        y: 1
+        width: Ui.tick
+        height: parent.height - 2
+        color: T.Config.red
+    }
 
     MouseArea {
         id: mouseArea
@@ -72,104 +90,153 @@ Rectangle {
 
     RowLayout {
         id: content
-        anchors {
-            left: parent.left
-            right: parent.right
-            top: parent.top
-            margins: root.contentPadding
-        }
-        spacing: T.Config.layoutMarginSmall * 2
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 12
+        spacing: 8
 
-        // The sender's image or icon; a bell in a disc when it gave neither, so every
-        // notification is laid out the same.
         Item {
-            Layout.preferredWidth: T.Config.connectedIconSize
-            Layout.preferredHeight: T.Config.connectedIconSize
+            Layout.preferredWidth: 22
+            Layout.preferredHeight: 18
             Layout.alignment: Qt.AlignTop
-
+            Layout.topMargin: 1
             Image {
-                id: iconImage
-                anchors.fill: parent
+                id: appIconImage
+                width: 18
+                height: 18
                 visible: root.iconSource.length > 0 && status !== Image.Error
                 source: root.iconSource
-                sourceSize.width: T.Config.connectedIconSize * Screen.devicePixelRatio
-                sourceSize.height: T.Config.connectedIconSize * Screen.devicePixelRatio
+                sourceSize.width: 18 * Screen.devicePixelRatio
+                sourceSize.height: 18 * Screen.devicePixelRatio
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 smooth: true
             }
-
-            Rectangle {
-                anchors.fill: parent
-                visible: !iconImage.visible
-                radius: width / 2
-                antialiasing: true
-                color: T.Config.onPanel(T.Config.surfaceContainerHigh)
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰂚"
-                    color: root.critical ? T.Config.red : T.Config.accent
-                    font.pixelSize: T.Config.fontSizeLarge
-                    font.family: T.Config.fontFamily
-                }
+            Text {
+                visible: !appIconImage.visible
+                text: "󰂚"
+                color: Ui.detail
+                font.pixelSize: 16
+                font.family: Ui.font
             }
         }
 
         ColumnLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
-            spacing: 2
+            spacing: 3
 
-            Text {
-                visible: root.appName.length > 0
-                text: root.appName
-                color: root.critical ? T.Config.red : T.Config.outline
-                font.pixelSize: T.Config.fontSizeSubtext
-                font.bold: true
-                elide: Text.ElideRight
+            RowLayout {
                 Layout.fillWidth: true
+                spacing: 4
+                Text {
+                    Layout.fillWidth: true
+                    text: [root.appName.toLowerCase(), root.critical ? "critical" : "", root.count > 1 ? root.count + " new" : "", root.age]
+                        .filter(x => x.length > 0).join(" · ")
+                    color: root.critical ? root.readableRed() : Ui.key
+                    font.pixelSize: Ui.detailSize - 1
+                    font.family: Ui.font
+                    elide: Text.ElideRight
+                }
+                Text {
+                    visible: root.count > 1
+                    text: "›"
+                    color: moreMouse.containsMouse ? Ui.value : Ui.detail
+                    font.pixelSize: Ui.valueSize
+                    font.family: Ui.font
+                    MouseArea {
+                        id: moreMouse
+                        anchors.fill: parent
+                        anchors.margins: -6
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.historyRequested()
+                    }
+                }
             }
 
             Text {
-                visible: root.summary.length > 0
-                text: root.summary
-                color: T.Config.surfaceText
-                font.pixelSize: T.Config.fontSizeNormal
-                font.bold: true
-                wrapMode: Text.WordWrap
-                maximumLineCount: 2
-                elide: Text.ElideRight
+                visible: text.length > 0
                 Layout.fillWidth: true
+                text: root.plain(root.summary)
+                color: root.low ? Ui.detail : Ui.value
+                font.pixelSize: Ui.valueSize - 1
+                font.family: Ui.font
+                elide: Text.ElideRight
+                maximumLineCount: 1
             }
 
             Text {
-                visible: root.body.length > 0
-                text: root.body
-                color: T.Config.inactive
-                font.pixelSize: T.Config.fontSizeNormal
-                wrapMode: Text.WordWrap
+                visible: text.length > 0
+                Layout.fillWidth: true
+                text: root.plain(root.body)
+                color: Ui.detail
+                font.pixelSize: Ui.detailSize
+                font.family: Ui.font
+                wrapMode: Text.Wrap
                 maximumLineCount: 3
                 elide: Text.ElideRight
+            }
+
+            Image {
+                visible: root.pictureSource.length > 0 && status === Image.Ready
                 Layout.fillWidth: true
+                Layout.preferredHeight: visible ? Math.min(120, implicitHeight > 0 ? implicitHeight * width / Math.max(1, implicitWidth) : 120) : 0
+                Layout.topMargin: 4
+                source: root.pictureSource
+                sourceSize.width: 340
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+            }
+
+            Row {
+                visible: root.actions.length > 0
+                Layout.topMargin: 4
+                spacing: 4
+                Repeater {
+                    model: root.actions
+                    delegate: Rectangle {
+                        required property var modelData
+                        width: actionText.implicitWidth + 10
+                        height: actionText.implicitHeight + 6
+                        radius: Ui.hoverRadius
+                        color: actionMouse.containsMouse ? Ui.hover : "transparent"
+                        Text {
+                            id: actionText
+                            anchors.centerIn: parent
+                            text: modelData.label
+                            color: Ui.value
+                            font.pixelSize: Ui.detailSize
+                            font.family: Ui.font
+                        }
+                        MouseArea {
+                            id: actionMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.actionInvoked(modelData.id)
+                        }
+                    }
+                }
             }
         }
 
-        // Dismiss: there when the pointer is, out of the way when it is not. Its space is kept
-        // either way, so the text does not reflow under the pointer.
-        IconButton {
-            id: closeButton
-            readonly property bool hovered: closeMouse.containsMouse
+        Text {
             Layout.alignment: Qt.AlignTop
-            size: T.Config.barIconSize + 8
-            icon: "󰅖"
-            iconColor: T.Config.inactive
-            opacity: root.closeVisible && root.hovered ? 1 : 0
-            enabled: root.closeVisible
-            onClicked: root.dismissRequested()
-
-            HoverHandler {
+            Layout.preferredWidth: 14
+            text: "×"
+            opacity: root.hovered ? 1 : 0
+            color: closeMouse.containsMouse ? Ui.value : Ui.detail
+            font.pixelSize: Ui.valueSize
+            font.family: Ui.font
+            MouseArea {
                 id: closeMouse
+                anchors.fill: parent
+                anchors.margins: -6
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.dismissRequested()
             }
         }
     }

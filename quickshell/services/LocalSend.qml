@@ -3,21 +3,11 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// LocalSend devices and transfers, over EpochOxide's API.
-//
-// Structured like Tailscale.qml: one socket, a small request queue, and normalized state. Nothing
-// here knows the LocalSend protocol -- discovery, TLS pinning and the upload handshake all live in
-// the backend.
-//
-// Discovery is not continuous. It announces and waits for answers, so it runs when the panel is
-// opened or refreshed rather than on a timer, which would put a multicast burst on the network
-// every few seconds for a panel nobody is looking at.
 Singleton {
     id: root
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
-    // each row: { alias, fingerprint, deviceModel, deviceType, ip, port, protocol }
     property var devices: []
     property bool scanning: false
     property bool scanned: false
@@ -28,8 +18,6 @@ Singleton {
     property var incomingTransfers: []
     property string receiveStatus: ""
 
-    // Turning receiving off frees the LocalSend port so the desktop app can be used instead.
-    // The state itself lives in receivingAvailable, which applyStatus keeps current.
     property bool togglingReceive: false
 
     property string selectedFile: ""
@@ -102,8 +90,6 @@ Singleton {
         if (target.length === 0) return;
         sendTarget = target;
         sendingFile = true;
-        // The receiving device shows a prompt, so this can sit for a long time; say so rather
-        // than looking stuck.
         sendStatus = "Waiting for " + target + " to accept " + fileName(selectedFile) + "...";
         apiRequest("localsend.send", { device: target, files: [selectedFile] }, { kind: "send", file: selectedFile, target: target });
     }
@@ -156,10 +142,8 @@ Singleton {
     }
 
     function apiRequest(method, params, meta) {
-        // Only the newest polling request matters; a queued one that has not gone out yet is dropped.
         if (method === "localsend.devices" || method === "localsend.status" || method === "localsend.pending") {
-            // Never drop the request that has already gone out: its response is still coming, and
-            // the reader identifies a response by this queue's first entry.
+            // Never drop the in-flight request: responses are matched to this queue's first entry.
             const inFlight = _requestInFlight && _requestQueue.length > 0 ? [_requestQueue[0]] : [];
             const queued = _requestQueue.slice(inFlight.length).filter(request => request.method !== method);
             _requestQueue = inFlight.concat(queued);
@@ -176,7 +160,6 @@ Singleton {
         const request = _requestQueue[0];
         socket.write(JSON.stringify({ type: "api", method: request.method, params: request.params, version: 1 }) + "\n");
         socket.flush();
-        // Discovery listens for answers for over a second; a send waits on a person.
         requestTimeout.interval = request.meta.kind === "send" ? 200000 : 8000;
         requestTimeout.restart();
     }
@@ -255,9 +238,6 @@ Singleton {
                 }
                 root.backendError = "";
                 root.sendNextRequest();
-                // Ask what the receiver is doing as soon as there is a connection to ask over.
-                // Discovery is deliberately not run here: it puts a multicast burst on the network,
-                // which is the panel's business to ask for, not a reconnection's.
                 root.refreshIncoming();
             }
 
@@ -280,10 +260,7 @@ Singleton {
                     const ok = response.ok !== false;
                     const data = response.data || {};
                     const error = response.error || data.message || "";
-                    // An "unavailable" answer is a feature state, not a transport failure:
-                    // receiving is switched off, and the sections that care already say so.
-                    // Treating it as a backend error paints the whole panel red for something
-                    // that is working exactly as asked.
+                    // "unavailable" is a feature state (receiving off), not a transport failure.
                     if (ok) root.backendError = "";
                     else if (data.code !== "unavailable") root.backendError = error;
                     if (request.meta.kind === "devices") {

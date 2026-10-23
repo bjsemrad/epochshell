@@ -3,50 +3,29 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Screen capture, over EpochOxide's API.
-//
-// Structured like LocalSend.qml: one socket, a small request queue, and normalized state. Nothing
-// here knows what takes the picture -- grim, slurp, the clipboard and the notification all live in
-// the backend, and this only says what to capture and what to do with it afterwards.
-//
-// One rule shapes the whole file: the shell must not be in the shot. Every capture closes the
-// panels first, and the modes that do not stop to ask the user for a selection are given a short
-// delay so the compositor has actually finished drawing without them.
 Singleton {
     id: root
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
-    // Where shots land, and whether this compositor can hand over a window rectangle. Both come
-    // from capture.status rather than being assumed here.
     property string directory: ""
     property bool windowCapture: false
     property bool available: false
     property string unavailableReason: ""
-    // Reading text needs tesseract, which is installed separately from the screenshot tools, so
-    // the OCR action hides itself rather than failing when it is missing.
     property bool ocrAvailable: false
     property string ocrLanguage: ""
-    // Recording needs wf-recorder, installed separately again.
     property bool recordAvailable: false
-    // satty is installed, so a shot can be opened to annotate before it is kept.
     property bool annotateAvailable: false
     property string recordingDirectory: ""
 
-    // The recording in progress, as the backend reports it. `recordingSeconds` is counted here
-    // between polls so the bar indicator ticks once a second without asking the daemon that often.
     property bool recording: false
     property string recordingPath: ""
     property string recordingMode: ""
     property int recordingSeconds: 0
 
-    // What to do with a shot. Seeded from the backend's configured defaults, then owned by the
-    // panel's switches for the rest of the session.
     property bool copyToClipboard: true
     property bool saveToDisk: true
     property bool includeCursor: false
-    // Open each shot in satty first; copying and saving then happen from the editor, as the two
-    // switches above say. Off by default: most shots are kept as taken.
     property bool annotate: false
 
     property bool busy: false
@@ -60,12 +39,8 @@ Singleton {
     readonly property bool connected: socketLoader.item !== null && socketLoader.item.connected
     readonly property string icon: "󰄀"
 
-    // How long to wait after the panels are told to close before a mode that asks the user
-    // nothing fires. Long enough for the compositor to draw a frame without them, short enough
-    // that it still feels like the click took the picture.
     readonly property real settleDelay: 0.4
 
-    // 0:42, 3:07, 1:02:13 -- what the bar shows while recording.
     readonly property string recordingElapsed: {
         const total = root.recordingSeconds;
         const hours = Math.floor(total / 3600);
@@ -85,16 +60,12 @@ Singleton {
         apiRequest("capture.status", {}, { kind: "status" });
     }
 
-    // mode is one of region, window, fullscreen, all. `select` asks the user to click a window
-    // instead of taking the focused one.
     function shoot(mode, select) {
         if (busy) return;
         const interactive = mode === "region" || (mode === "window" && select === true);
         busy = true;
         status = interactive ? "Waiting for a selection..." : "Taking a screenshot...";
         lastPath = "";
-        // Nothing should be looking at a panel while the screen is captured, least of all the
-        // camera.
         PopupManager.closeAll();
         apiRequest("capture.screenshot", {
             mode: String(mode),
@@ -107,8 +78,6 @@ Singleton {
         }, { kind: "screenshot", mode: String(mode) });
     }
 
-    // Read the text out of a region instead of keeping the picture of it. The image is a means to
-    // an end, so it is not saved even when the save switch is on -- the text is the result.
     function readText(mode, select) {
         if (busy) return;
         const interactive = mode === "region" || (mode === "window" && select === true);
@@ -125,9 +94,6 @@ Singleton {
         }, { kind: "ocr", mode: String(mode) });
     }
 
-    // Recording outlives the request that starts it, so the panel's job is only to ask; what is
-    // running comes back from the daemon, which is also how a recording started from a keybinding
-    // shows up in the bar.
     function startRecording(mode, select) {
         if (busy || recording) return;
         const interactive = mode === "region" || (mode === "window" && select === true);
@@ -154,8 +120,6 @@ Singleton {
 
     function setCopyToClipboard(value) {
         copyToClipboard = value === true;
-        // A shot that is neither kept nor copied is thrown away the moment it is taken, so the
-        // other switch takes over rather than letting both be off.
         if (!copyToClipboard && !saveToDisk) saveToDisk = true;
     }
 
@@ -185,8 +149,6 @@ Singleton {
         recordAvailable = data.record === true;
         annotateAvailable = data.annotate === true;
         recordingDirectory = String(data.recording_directory || "");
-        // capture.status answers even when the group cannot run, which is exactly when the tool
-        // list matters: a missing required tool is what makes capture unavailable.
         const tools = Array.isArray(data.tools) ? data.tools : [];
         const missing = tools.filter(tool => tool.required === true && !tool.path);
         available = missing.length === 0;
@@ -200,13 +162,11 @@ Singleton {
             status = error || "Screenshot failed";
             return;
         }
-        // Escape is a decision, not a failure. Say nothing louder than that.
         if (data.cancelled === true) {
             status = "Cancelled";
             return;
         }
         lastPath = String(data.path || "");
-        // In the editor: nothing is copied or saved yet -- that happens from satty.
         if (data.annotating === true) {
             status = "Opened in the editor";
             return;
@@ -234,13 +194,9 @@ Singleton {
         status = (data.copied === true ? "Copied " : "Read ") + characters + (characters === 1 ? " character" : " characters");
     }
 
-    // One reader for every answer that describes a recording -- starting, stopping, and polling
-    // all come back in the same shape, so they cannot disagree about what is running.
     function applySession(ok, data, error, kind) {
         if (kind !== "recording") busy = false;
         if (!ok) {
-            // A poll that fails should not overwrite what the panel is saying; only an action the
-            // user just took is worth a message.
             if (kind !== "recording") status = error || "Recording failed";
             return;
         }
@@ -258,8 +214,6 @@ Singleton {
             return;
         }
         if (kind === "stopRecording" || (kind === "recording" && wasRecording)) {
-            // A stop with no file behind it is a recorder that wrote nothing, which the
-            // notification already explains; the panel says the short version.
             status = recordingPath.length > 0 ? ("Saved " + root.fileName(recordingPath)) : "Nothing was recorded";
             recordingPath = "";
         }
@@ -278,8 +232,6 @@ Singleton {
         const request = _requestQueue[0];
         socket.write(JSON.stringify({ type: "api", method: request.method, params: request.params, version: 1 }) + "\n");
         socket.flush();
-        // A selection waits on a person deciding what to capture, which has no upper bound worth
-        // guessing; a status query answers from memory.
         requestTimeout.interval = request.meta.kind === "screenshot" ? 300000 : 8000;
         requestTimeout.restart();
     }
@@ -324,9 +276,6 @@ Singleton {
         }
     }
 
-    // While something is recording the elapsed time is ticked locally and the daemon is asked
-    // once a second; otherwise the poll is slow, and exists only so a recording started from a
-    // keybinding still lights up the bar.
     Timer {
         id: recordingPoll
         interval: root.recording ? 1000 : 5000
@@ -386,9 +335,7 @@ Singleton {
                     const ok = response.ok !== false;
                     const data = response.data || {};
                     const error = response.error || data.message || "";
-                    // "unavailable" is a machine without grim, not a broken connection. The panel
-                    // already says which tool is missing, so it must not also go red as though
-                    // the backend had fallen over.
+                    // "unavailable" means a missing tool, not a broken backend.
                     if (ok) root.backendError = "";
                     else if (data.code !== "unavailable") root.backendError = error;
                     if (request.meta.kind === "status") {

@@ -2,9 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import qs.theme as T
 
-// The first row of a page: ‹ back (when the page was opened from the dashboard) · title · status
-// · the page's main switch (Wi-Fi, Bluetooth, do-not-disturb...) when it has one. The status is
-// information, or -- `switchable` -- a link ("today", "refresh"); never "on" or "off".
 Item {
     id: header
 
@@ -12,7 +9,6 @@ Item {
     property string title: ""
     property string status: ""
     property bool active: false
-    // Whether the status is a link.
     property bool switchable: false
     property bool hasSwitch: false
     property bool checked: false
@@ -21,7 +17,7 @@ Item {
     signal toggled()
 
     Layout.fillWidth: true
-    implicitHeight: Readout.rowHeight + 4
+    implicitHeight: Ui.rowHeight + 4
 
     RowLayout {
         id: line
@@ -38,9 +34,9 @@ Item {
             Text {
                 anchors.centerIn: parent
                 text: "‹"
-                color: backMouse.containsMouse ? Readout.value : Readout.detail
-                font.pixelSize: Readout.chevronSize
-                font.family: Readout.font
+                color: backMouse.containsMouse ? Ui.value : Ui.detail
+                font.pixelSize: Ui.chevronSize
+                font.family: Ui.font
             }
         }
 
@@ -48,9 +44,9 @@ Item {
             id: titleText
             Layout.fillWidth: true
             text: header.title
-            color: backMouse.containsMouse ? Readout.accent : Readout.value
-            font.pixelSize: Readout.valueSize
-            font.family: Readout.font
+            color: backMouse.containsMouse ? Ui.accent : Ui.value
+            font.pixelSize: Ui.valueSize
+            font.family: Ui.font
             font.bold: true
             elide: Text.ElideRight
         }
@@ -58,9 +54,9 @@ Item {
         Text {
             visible: text.length > 0
             text: header.status
-            color: statusMouse.containsMouse ? Readout.value : header.active ? Readout.accent : Readout.detail
-            font.pixelSize: Readout.detailSize
-            font.family: Readout.font
+            color: statusMouse.containsMouse ? Ui.value : header.active ? Ui.accent : Ui.detail
+            font.pixelSize: Ui.detailSize
+            font.family: Ui.font
             MouseArea {
                 id: statusMouse
                 anchors.fill: parent
@@ -72,7 +68,7 @@ Item {
             }
         }
 
-        ReadoutSwitch {
+        ToggleSwitch {
             visible: header.hasSwitch
             Layout.alignment: Qt.AlignVCenter
             checked: header.checked
@@ -80,8 +76,6 @@ Item {
         }
     }
 
-    // Back: the arrow and the title together, "‹ wi-fi" as one target, from the header's left
-    // edge to the end of the title's text.
     MouseArea {
         id: backMouse
         enabled: header.showBack

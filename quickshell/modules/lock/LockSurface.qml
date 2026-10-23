@@ -2,33 +2,51 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import qs.theme as T
 import qs.services as S
 
-// One screen of the lock: the wallpaper, blurred and dimmed, a clock, and the password field.
-//
-// Every screen gets one and every one takes typing. The typed text lives in LockService, so the
-// dots match on every screen and moving the pointer to another one mid-password loses nothing.
 WlSessionLockSurface {
     id: surface
 
-    // Shown under everything, and all there is if the wallpaper has not decoded yet. Opaque on
-    // purpose: a lock surface that let anything through would not be one.
     color: T.Config.background
 
     readonly property bool shown: S.Lock.locked && !S.Lock.unlocking
 
-    // Seconds, though only minutes are shown. SystemClock waits for the next tick on a timer that
-    // does not count time asleep, so a minute clock wakes still owing the rest of the minute it
-    // went to sleep in: the lock showed the time of the suspend after waking, and a fingerprint
-    // unlock beat the catch-up. A second clock is out by a second at most.
+    readonly property bool focusedHere: {
+        const focused = S.CompositorService.monitors.find(m => m.focused === true);
+        const name = focused ? String(focused.name) : (Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "");
+        return !surface.screen || surface.screen.name === name;
+    }
+
+    property string hostname: ""
+    FileView {
+        path: "/etc/hostname"
+        printErrors: false
+        onLoaded: surface.hostname = text().trim()
+    }
+
+    readonly property color readableRed: {
+        const red = T.Config.red;
+        const lum = c => {
+            const lin = v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+            return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+        };
+        const ground = 0.11;
+        for (let t = 0; t <= 1; t += 0.1) {
+            const c = Qt.rgba(red.r + (1 - red.r) * t, red.g + (1 - red.g) * t, red.b + (1 - red.b) * t, 1);
+            if ((lum(c) + 0.05) / (ground + 0.05) >= 4.5) return c;
+        }
+        return Qt.rgba(1, 1, 1, 1);
+    }
+
+    // Ticks in seconds: SystemClock's minute timer does not count time asleep, so it woke showing
+    // the time it slept at.
     SystemClock {
         id: clock
         precision: SystemClock.Seconds
     }
-
-    // --- Background -------------------------------------------------------------------------
 
     Item {
         id: backdrop
@@ -43,8 +61,6 @@ WlSessionLockSurface {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: false
-            // A quarter of the screen is plenty for something about to be blurred this hard, and
-            // it is a sixteenth of the memory and decode time of a full-size image.
             sourceSize: Qt.size(Math.ceil(surface.width / 4), Math.ceil(surface.height / 4))
             visible: false
         }
@@ -59,15 +75,12 @@ WlSessionLockSurface {
             saturation: -0.15
         }
 
-        // Dims the picture enough that light text reads over any wallpaper.
         Rectangle {
             anchors.fill: parent
             color: "black"
             opacity: 0.45
         }
     }
-
-    // --- Foreground -------------------------------------------------------------------------
 
     Item {
         id: content
@@ -88,20 +101,23 @@ WlSessionLockSurface {
             }
         }
 
-        // A click anywhere leaves the field ready to type into, whichever screen it was on.
         MouseArea {
             anchors.fill: parent
             onPressed: field.focusInput()
         }
 
+        // Transparent rather than hidden, so every screen's field still takes keys.
+        Item {
+            id: face
+            anchors.fill: parent
+            opacity: surface.focusedHere ? 1 : 0
+
         ColumnLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.verticalCenter
             anchors.bottomMargin: 40
-            spacing: 4
+            spacing: 10
 
-            // Twelve-hour, like the bar's clock, with the AM/PM set small beside it so the hour
-            // stays the thing that reads from across a room.
             Row {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 10
@@ -111,25 +127,26 @@ WlSessionLockSurface {
                     text: Qt.formatDateTime(clock.date, "h:mm AP").split(" ")[0]
                     color: "white"
                     font.family: T.Config.fontFamily
-                    font.pixelSize: 112
+                    font.pixelSize: 96
                     font.weight: Font.Light
+                    font.letterSpacing: -2
                 }
 
                 Text {
                     anchors.baseline: time.baseline
-                    text: Qt.formatDateTime(clock.date, "AP")
+                    text: Qt.formatDateTime(clock.date, "AP").toLowerCase()
                     color: Qt.rgba(1, 1, 1, 0.7)
                     font.family: T.Config.fontFamily
-                    font.pixelSize: 32
+                    font.pixelSize: 24
                 }
             }
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: Qt.formatDateTime(clock.date, "dddd, MMMM d")
-                color: Qt.rgba(1, 1, 1, 0.8)
+                text: Qt.formatDateTime(clock.date, "dddd · MMMM d").toLowerCase()
+                color: Qt.rgba(1, 1, 1, 0.75)
                 font.family: T.Config.fontFamily
-                font.pixelSize: T.Config.fontSizeXLarge
+                font.pixelSize: T.Config.fontSizeLarge
             }
         }
 
@@ -138,87 +155,91 @@ WlSessionLockSurface {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.verticalCenter
             anchors.topMargin: 24
-            spacing: 14
-
-            // Who this is, as a circle with an initial: a lock screen is read at a glance, and a
-            // name alone is easy to miss.
-            Rectangle {
-                Layout.alignment: Qt.AlignHCenter
-                implicitWidth: 64
-                implicitHeight: 64
-                radius: 32
-                color: Qt.rgba(1, 1, 1, 0.12)
-                border.width: 1
-                border.color: Qt.rgba(1, 1, 1, 0.25)
-
-                Text {
-                    anchors.centerIn: parent
-                    text: (Quickshell.env("USER") || "?").charAt(0).toUpperCase()
-                    color: "white"
-                    font.family: T.Config.fontFamily
-                    font.pixelSize: 28
-                }
-            }
-
-            Text {
-                Layout.alignment: Qt.AlignHCenter
-                text: Quickshell.env("USER") || ""
-                color: Qt.rgba(1, 1, 1, 0.85)
-                font.family: T.Config.fontFamily
-                font.pixelSize: T.Config.fontSizeMedium
-            }
+            spacing: 8
 
             PasswordField {
                 id: field
                 Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: 6
             }
 
-            // Status: what went wrong, what PAM said, or a hint. Always takes its height, so the
-            // layout does not jump when a message appears.
             Text {
-                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: field.width
                 Layout.preferredHeight: T.Config.fontSizeNormal * 1.6
+                leftPadding: field.textIndent
                 text: {
-                    if (S.Lock.checking) return "Checking…";
-                    if (S.Lock.message.length > 0) return S.Lock.message;
-                    if (field.capsLock) return "Caps Lock is on";
+                    if (S.Lock.checking) return "checking…";
+                    if (S.Lock.message.length > 0)
+                        return S.Lock.message.toLowerCase() + (S.Lock.failures >= 2 ? " · attempt " + S.Lock.failures : "");
+                    if (field.capsLock) return "caps lock is on";
                     return "";
                 }
                 color: {
-                    if (S.Lock.messageIsError && !S.Lock.checking) return T.Config.red;
-                    if (field.capsLock && S.Lock.message.length === 0) return T.Config.orange;
+                    if (S.Lock.messageIsError && !S.Lock.checking && S.Lock.message.length > 0) return surface.readableRed;
+                    if (field.capsLock && S.Lock.message.length === 0 && !S.Lock.checking) return T.Config.orange;
                     return Qt.rgba(1, 1, 1, 0.65);
                 }
+                font.family: T.Config.fontFamily
+                font.pixelSize: T.Config.fontSizeNormal
+                elide: Text.ElideRight
+            }
+        }
+
+        // $HOSTNAME is rarely exported to a session.
+        Row {
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.margins: 32
+            Text {
+                text: Quickshell.env("USER") || ""
+                color: T.Config.accent
+                font.family: T.Config.fontFamily
+                font.pixelSize: T.Config.fontSizeNormal
+            }
+            Text {
+                visible: surface.hostname.length > 0
+                text: "@" + surface.hostname
+                color: Qt.rgba(1, 1, 1, 0.65)
                 font.family: T.Config.fontFamily
                 font.pixelSize: T.Config.fontSizeNormal
             }
         }
 
-        // Battery, bottom right: a laptop left locked is a laptop someone will want to know
-        // about before walking away from the charger.
         Row {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             anchors.margins: 32
-            spacing: 8
-            visible: S.BatteryService.hasBattery
+            spacing: 14
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: S.BatteryService.batteryIcon()
-                color: Qt.rgba(1, 1, 1, 0.8)
-                font.family: T.Config.fontFamily
-                font.pixelSize: T.Config.fontSizeXLarge
+            component Pair: Row {
+                property string icon
+                property string value
+                spacing: 6
+                Text {
+                    text: parent.icon
+                    color: Qt.rgba(1, 1, 1, 0.65)
+                    font.family: T.Config.fontFamily
+                    font.pixelSize: T.Config.fontSizeNormal
+                }
+                Text {
+                    visible: text.length > 0
+                    text: parent.value
+                    color: Qt.rgba(1, 1, 1, 0.85)
+                    font.family: T.Config.fontFamily
+                    font.pixelSize: T.Config.fontSizeNormal
+                }
             }
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: Math.round(S.BatteryService.percentage) + "%"
-                color: Qt.rgba(1, 1, 1, 0.8)
-                font.family: T.Config.fontFamily
-                font.pixelSize: T.Config.fontSizeMedium
+            Pair {
+                visible: S.Network.ethernetConnected || S.Network.wifiConnected
+                icon: S.Network.ethernetConnected ? S.Network.currentEthernetIcon : S.Network.currentWifiIcon
+                value: S.Network.ethernetConnected ? "wired" : S.Network.ssid
             }
+            Pair {
+                visible: S.BatteryService.hasBattery
+                icon: S.BatteryService.batteryIcon()
+                value: Math.round(S.BatteryService.percentage) + "%" + (S.BatteryService.charging ? " 󱐋" : "")
+            }
+        }
         }
     }
 }

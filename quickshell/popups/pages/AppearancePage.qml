@@ -4,14 +4,10 @@ import qs.commonwidgets
 import qs.services as S
 import qs.theme as T
 
-// The look of the shell, Readout style: the theme and wallpaper, the bar, the workspaces and the
-// panels. Writes through T.Config.setSetting,
-// as the Appearance window does, so a choice applies live and is kept in settings.toml.
 ColumnLayout {
     id: page
 
     property bool showBack: false
-    // The panel this page is in, closed before an overlay (the wallpaper picker) opens.
     property var panel: null
     signal back()
     signal openTheme()
@@ -24,14 +20,14 @@ ColumnLayout {
         T.Config.setSetting(key, value);
     }
 
-    ReadoutHeader {
+    PageHeader {
         showBack: page.showBack
         title: "appearance"
         onBack: page.back()
     }
 
-    ReadoutSection { text: "theme" }
-    ReadoutRow {
+    SectionHeader { text: "theme" }
+    ListRow {
         visible: T.Config.availableThemes.length > 1
         icon: "󰏘"
         value: "theme"
@@ -39,7 +35,7 @@ ColumnLayout {
         hasPage: true
         onOpened: page.openTheme()
     }
-    ReadoutRow {
+    ListRow {
         visible: S.Wallpaper.connected
         icon: "󰸉"
         value: "wallpaper"
@@ -53,60 +49,86 @@ ColumnLayout {
         }
     }
 
-    ReadoutSection { text: "bar" }
-    ReadoutKeyRow {
+    SectionHeader { text: "bar" }
+    KeyRow {
         key: "style"
-        ReadoutChoice {
+        Choice {
             options: ["full", { value: "floating", label: "float" }, "centered"]
             current: ["floating", "centered"].indexOf(T.Config.barStyle) >= 0 ? T.Config.barStyle : "full"
             onPicked: v => page.choose("barStyle", v)
         }
     }
-    ReadoutKeyRow {
+    KeyRow {
         visible: T.Config.barCentered
         key: "ledge"
-        ReadoutSwitch {
+        toggles: true
+        onToggled: page.choose("barLedge", !T.Config.barLedge)
+        ToggleSwitch {
             checked: T.Config.barLedge
             onToggled: page.choose("barLedge", !T.Config.barLedge)
         }
     }
-    ReadoutKeyRow {
+    KeyRow {
         key: "status"
-        ReadoutChoice {
+        Choice {
             options: [{ value: "individual", label: "icons" }, "dashboard"]
             current: T.Config.statusStyle === "dashboard" ? "dashboard" : "individual"
             onPicked: v => page.choose("statusStyle", v)
         }
     }
-    ReadoutKeyRow {
+    KeyRow {
         key: "opacity"
-        ReadoutGauge {
+        LevelSlider {
             value: T.Config.barOpacity
             onMoved: v => T.Config.barOpacity = v
             onCommitted: v => T.Config.setSetting("barOpacity", v)
         }
     }
+    KeyRow {
+        visible: T.Config.barFloating && !T.Config.barIsLedge
+        key: "top gap"
+        LevelSlider {
+            value: T.Config.barFloatingGap / 24
+            step: 1 / 24
+            label: T.Config.barFloatingGap + "px"
+            onMoved: v => T.Config.barFloatingGap = Math.round(v * 24)
+            onCommitted: v => T.Config.setSetting("barFloatingGap", Math.round(v * 24))
+        }
+    }
+    KeyRow {
+        visible: T.Config.barFloating
+        key: "side gap"
+        LevelSlider {
+            value: T.Config.barFloatingSideGap / 48
+            step: 1 / 48
+            label: T.Config.barFloatingSideGap + "px"
+            onMoved: v => T.Config.barFloatingSideGap = Math.round(v * 48)
+            onCommitted: v => T.Config.setSetting("barFloatingSideGap", Math.round(v * 48))
+        }
+    }
 
-    ReadoutSection { text: "workspaces" }
-    ReadoutKeyRow {
+    SectionHeader { text: "workspaces" }
+    KeyRow {
         key: "style"
-        ReadoutChoice {
-            options: ["pill", "plain", "ledge"]
-            current: ["plain", "ledge"].indexOf(T.Config.workspaceStyle) >= 0 ? T.Config.workspaceStyle : "pill"
+        Choice {
+            options: ["pill", "plain", "ledge", "minimap"]
+            current: ["plain", "ledge", "minimap"].indexOf(T.Config.workspaceStyle) >= 0 ? T.Config.workspaceStyle : "pill"
             onPicked: v => page.choose("workspaceStyle", v)
         }
     }
-    ReadoutKeyRow {
+    KeyRow {
         key: "icons"
-        ReadoutSwitch {
+        toggles: true
+        onToggled: page.choose("workspaceIcons", !T.Config.workspaceIcons)
+        ToggleSwitch {
             checked: T.Config.workspaceIcons
             onToggled: page.choose("workspaceIcons", !T.Config.workspaceIcons)
         }
     }
-    ReadoutKeyRow {
-        visible: T.Config.workspaceStyle === "ledge"
+    KeyRow {
+        visible: T.Config.workspaceStyle === "ledge" || T.Config.workspaceStyle === "minimap"
         key: "icon limit"
-        ReadoutStepper {
+        Stepper {
             value: T.Config.workspaceIconLimit
             from: 0
             to: 6
@@ -114,29 +136,74 @@ ColumnLayout {
         }
     }
 
-    ReadoutSection { text: "panels" }
-    ReadoutKeyRow {
+    KeyRow {
+        visible: T.Config.workspaceStyle === "ledge" || T.Config.workspaceStyle === "minimap"
+        key: "colour"
+        Choice {
+            options: ["color", "mono"]
+            current: T.Config.workspaceIconsMono ? "mono" : "color"
+            onPicked: v => page.choose("workspaceIconColor", v)
+        }
+    }
+    KeyRow {
+        visible: T.Config.workspaceStyle === "minimap"
+        key: "title"
+        toggles: true
+        onToggled: page.choose("workspaceShowTitle", !T.Config.workspaceShowTitle)
+        ToggleSwitch {
+            checked: T.Config.workspaceShowTitle
+            onToggled: page.choose("workspaceShowTitle", !T.Config.workspaceShowTitle)
+        }
+    }
+
+    SectionHeader { text: "panels" }
+    KeyRow {
+        key: "launcher"
+        Choice {
+            options: ["attached", "floating"]
+            current: T.Config.launcherStyle === "floating" ? "floating" : "attached"
+            onPicked: v => page.choose("launcherStyle", v)
+        }
+    }
+    KeyRow {
         key: "attach"
-        ReadoutChoice {
+        Choice {
             options: ["attached", "floating"]
             current: T.Config.panelStyle === "floating" ? "floating" : "attached"
             onPicked: v => page.choose("panelStyle", v)
         }
     }
-    ReadoutKeyRow {
+    KeyRow {
         key: "outline"
-        ReadoutChoice {
+        Choice {
             options: ["none", "panel", "fade", "bar"]
             current: ["none", "panel", "fade", "bar"].indexOf(T.Config.panelOutline) >= 0 ? T.Config.panelOutline : "none"
             onPicked: v => page.choose("panelOutline", v)
         }
     }
-    ReadoutKeyRow {
+    KeyRow {
         key: "opacity"
-        ReadoutGauge {
+        LevelSlider {
             value: T.Config.panelOpacity
             onMoved: v => T.Config.panelOpacity = v
             onCommitted: v => T.Config.setSetting("panelOpacity", v)
+        }
+    }
+    KeyRow {
+        key: "overlays"
+        LevelSlider {
+            value: T.Config.popupOpacity
+            onMoved: v => T.Config.popupOpacity = v
+            onCommitted: v => T.Config.setSetting("popupOpacity", v)
+        }
+    }
+    KeyRow {
+        key: "blur"
+        toggles: true
+        onToggled: page.choose("blur", !T.Config.blur)
+        ToggleSwitch {
+            checked: T.Config.blur
+            onToggled: page.choose("blur", !T.Config.blur)
         }
     }
 }

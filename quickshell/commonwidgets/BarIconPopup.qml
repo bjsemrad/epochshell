@@ -5,13 +5,10 @@ import Quickshell.Io
 import qs.theme as T
 import qs.services as S
 
-// No border. The hover and open states are carried by the fill alone -- a 1px outline was being
-// drawn here with no border.color set, which meant Qt's default black: a hard ring around every
-// bar icon, obvious on a light theme and a dark smudge on a dark one.
+// No border: an uncoloured 1px border draws black.
 Rectangle {
     id: root
-    // `popup` can be briefly null: while a panel is being rebuilt (the status style changed), the
-    // old one goes before the new one is built.
+    // `popup` is briefly null while a panel is rebuilt (status style change).
     color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
@@ -25,6 +22,7 @@ Rectangle {
     property int fontPixelSize: T.Config.barIconSize
     property int verticalPadding: T.Config.barModuleVerticalPadding
     property color iconColor: T.Config.surfaceText
+    property string badgeText: ""
     property alias isHovered: mouseArea.containsMouse
 
     MouseArea {
@@ -70,7 +68,7 @@ Rectangle {
 
     Rectangle {
         id: inner
-        implicitWidth: T.Config.barIconSize
+        implicitWidth: T.Config.barIconSize + (badge.visible ? badge.implicitWidth + 3 : 0)
         implicitHeight: T.Config.barIconSize
         color: "transparent"
         anchors.centerIn: parent
@@ -79,8 +77,19 @@ Rectangle {
             text: root.iconText
             font.pixelSize: root.fontPixelSize
             font.family: T.Config.fontFamily
-            anchors.centerIn: parent
+            anchors.verticalCenter: parent.verticalCenter
+            x: (T.Config.barIconSize - implicitWidth) / 2
             color: root.iconColor
+        }
+        Text {
+            id: badge
+            visible: root.badgeText.length > 0
+            anchors.verticalCenter: parent.verticalCenter
+            x: T.Config.barIconSize + 3
+            text: root.badgeText
+            color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.62)
+            font.pixelSize: T.Config.fontSizeSubtext
+            font.family: T.Config.fontFamily
         }
     }
 }

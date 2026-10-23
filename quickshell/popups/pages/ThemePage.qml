@@ -3,8 +3,6 @@ import QtQuick.Layouts
 import qs.commonwidgets
 import qs.theme as T
 
-// The themes as rows, each with a strip of its colours; the current one marked. Hovering one tries
-// it on, as the theme overlay does, and clicking keeps it.
 ColumnLayout {
     id: page
 
@@ -16,16 +14,15 @@ ColumnLayout {
 
     onVisibleChanged: if (!visible) T.Config.endPreview()
 
-    // The widest theme name, measured in the rows' own font.
     TextMetrics {
         id: longest
-        font.family: Readout.font
-        font.pixelSize: Readout.valueSize
+        font.family: Ui.font
+        font.pixelSize: Ui.valueSize
         text: T.Config.availableThemes.reduce((a, b) => (b.length > a.length ? b : a), "")
     }
     readonly property real nameWidth: Math.ceil(longest.width) + 12
 
-    ReadoutHeader {
+    PageHeader {
         showBack: page.showBack
         title: "theme"
         status: T.Config.themeName
@@ -42,17 +39,17 @@ ColumnLayout {
 
         Repeater {
             model: T.Config.availableThemes
-            delegate: ReadoutRow {
+            delegate: ListRow {
                 id: themeRow
                 required property string modelData
-                readonly property bool current: modelData === T.Config.themeName
-                icon: current ? "󰄬" : ""
+                readonly property bool isCurrent: modelData === T.Config.themeName
+                icon: isCurrent ? "󰄬" : ""
                 value: modelData
-                // The longest theme name, so every row's colours line up in one column.
                 valueWidth: page.nameWidth
-                active: current
-                status: current ? "current" : ""
-                hoverStatus: current ? "" : "keep"
+                active: isCurrent
+                current: isCurrent
+                status: isCurrent ? "current" : ""
+                hoverStatus: isCurrent ? "" : "keep"
                 onClicked: T.Config.selectTheme(modelData)
 
                 Row {
@@ -68,7 +65,6 @@ ColumnLayout {
                     }
                 }
 
-                // Hovered (or focused from the keyboard): try it on.
                 onLitChanged: if (lit) T.Config.previewTheme(themeRow.modelData)
             }
         }

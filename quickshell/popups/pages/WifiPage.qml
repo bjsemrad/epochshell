@@ -3,9 +3,6 @@ import QtQuick.Layouts
 import qs.commonwidgets
 import qs.services as S
 
-// The Wi-Fi page, Readout style: shared by the dashboard and the standalone Wi-Fi panel. The
-// connected network once, then the saved ones, then what is in range -- each network appears in
-// one place only.
 ColumnLayout {
     id: page
 
@@ -30,11 +27,10 @@ ColumnLayout {
     }
     readonly property bool connected: S.Network.wifiConnected && S.Network.ssid.length > 0
 
-    // Asked for the networks in range whenever the page comes up, rather than behind a click.
     onVisibleChanged: if (visible) S.Network.refreshAvailable()
     Component.onCompleted: if (visible) S.Network.refreshAvailable()
 
-    ReadoutHeader {
+    PageHeader {
         showBack: page.showBack
         title: "wi-fi"
         active: S.Network.wifiEnabled
@@ -44,17 +40,18 @@ ColumnLayout {
         onBack: page.back()
     }
 
-    ReadoutRow {
+    ListRow {
         visible: page.connected
         icon: S.Network.currentWifiIcon
         value: S.Network.ssid
         status: S.Network.wifiConnectedIP
         active: true
+        current: true
         hoverStatus: "settings"
         onClicked: S.Network.editNetworks()
     }
 
-    ReadoutSection {
+    SectionHeader {
         visible: savedRepeater.count > (page.connected ? 1 : 0)
         text: "saved"
     }
@@ -62,12 +59,12 @@ ColumnLayout {
     Repeater {
         id: savedRepeater
         model: S.Network.savedAccessPoints
-        delegate: ReadoutRow {
+        delegate: ListRow {
             required property string ssid
             readonly property bool connecting: S.Network.wifiConnecting && S.Network.wifiConnectingTo === ssid
             visible: !(page.connected && ssid === S.Network.ssid)
             icon: "󰤨"
-            iconColor: Readout.detail
+            iconColor: Ui.detail
             value: ssid
             status: connecting ? "connecting…" : ""
             hoverStatus: connecting ? "" : "connect · right-click forget"
@@ -76,7 +73,7 @@ ColumnLayout {
         }
     }
 
-    ReadoutSection {
+    SectionHeader {
         text: "available"
         trailing: S.Network.wifiScanning ? "scanning…" : "scan"
         trailingClickable: !S.Network.wifiScanning
@@ -85,11 +82,11 @@ ColumnLayout {
 
     Repeater {
         model: S.Network.accessPoints.filter(ap => !ap.active && !page.isSaved(ap.ssid))
-        delegate: ReadoutRow {
+        delegate: ListRow {
             required property var modelData
             readonly property bool connecting: S.Network.wifiConnecting && S.Network.wifiConnectingTo === modelData.ssid
             icon: page.strengthIcon(modelData.strength)
-            iconColor: Readout.detail
+            iconColor: Ui.detail
             value: modelData.ssid
             detail: modelData.strength + "%"
             status: connecting ? "connecting…" : ""
@@ -98,7 +95,7 @@ ColumnLayout {
         }
     }
 
-    ReadoutText {
+    Note {
         visible: !S.Network.wifiScanning && S.Network.accessPoints.filter(ap => !ap.active && !page.isSaved(ap.ssid)).length === 0
         text: "nothing else in range"
     }

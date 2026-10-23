@@ -8,18 +8,12 @@ import qs.services as S
 import qs.theme as T
 import qs.popups.pages
 
-// Quick settings, opened from the bar's status capsule: one column of rows. Every switch is a row;
-// what needs attention is a row with the tick; the tools and the tray are a line of icons;
-// everything with more behind it opens a page in place. It answers to the names of the panels it
-// stands in for ("wifi", "audio", ...), opening on the matching page, so keybindings made for the
-// individual panels still land somewhere sensible.
 HoverPopupWindow {
     id: dash
 
-    // "main", "wifi", "ethernet", "bluetooth", "audio", "battery", "power", "appearance", "theme".
     property string page: "main"
 
-    popupWidth: 480
+    popupWidth: 520
 
     readonly property var pageForName: ({
         "wifi": "wifi",
@@ -29,20 +23,17 @@ HoverPopupWindow {
         "battery": "battery"
     })
 
-    // Called by PopupManager for a named open, in place of showPanel.
     function showPage(name) {
         page = pageForName[name] || "main";
         showPanel();
     }
 
-    // What wants attention, for the capsule's dot and the rows below.
     readonly property bool needsAttention: S.NixUpdates.hasUpdates || S.SystemInfo.hasFirmwareUpdates
         || S.StayAwake.enabled || S.LocalSend.hasIncomingFiles || S.Tailscale.hasIncomingFiles
         || S.Notifications.unreadCount > 0
 
-    // Moving between pages from a click. A page can be much shorter than the one it replaces, and
-    // the panel shrinks out from under the pointer, which reads as the pointer leaving and would
-    // close it on the spot; so the panel holds open through the switch.
+    // Held open through a page change: a shorter page shrinks out from under the pointer, which
+    // reads as leaving and would close it.
     function goTo(name) {
         dash.stopHide = true;
         dash.page = name;
@@ -59,7 +50,6 @@ HoverPopupWindow {
         onTriggered: dash.stopHide = false
     }
 
-    // Opening another panel by name from a row here: this one gives way to it.
     function openOther(name) {
         S.PopupManager.openPanel(name);
     }
@@ -131,12 +121,10 @@ HoverPopupWindow {
         return icon;
     }
 
-    // The main page's rows as a table: every name in a column this wide, so the gauges and the
-    // details after them start at the same place.
     TextMetrics {
         id: longestName
-        font.family: Readout.font
-        font.pixelSize: Readout.valueSize
+        font.family: Ui.font
+        font.pixelSize: Ui.valueSize
         text: "notifications"
     }
     readonly property real valueColumn: Math.ceil(longestName.width) + 10
@@ -150,21 +138,14 @@ HoverPopupWindow {
         Layout.fillWidth: true
         spacing: 0
 
-        // Left or Escape: back a page, or close from the main one. Rows pass what they do not
-        // use up to here.
         Keys.onEscapePressed: dash.page === "main" ? dash.hidePanel() : dash.back()
         Keys.onLeftPressed: if (dash.page !== "main") dash.back()
-
-        // ===========================================================================================
-        // Main page
-        // ===========================================================================================
 
         ColumnLayout {
             visible: dash.page === "main"
             Layout.fillWidth: true
             spacing: 0
 
-            // Who, where, when -- and the way out.
             RowLayout {
                 Layout.fillWidth: true
                 Layout.bottomMargin: 4
@@ -175,12 +156,12 @@ HoverPopupWindow {
                     Layout.leftMargin: 6
                     text: [dash.username, [dash.hostname, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" "),
                         Qt.formatDate(clock.date, "ddd d MMM").toLowerCase()].filter(x => x && x.length > 0).join(" · ")
-                    color: Readout.detail
-                    font.pixelSize: Readout.detailSize
-                    font.family: Readout.font
+                    color: Ui.detail
+                    font.pixelSize: Ui.detailSize
+                    font.family: Ui.font
                     elide: Text.ElideRight
                 }
-                ReadoutIcon {
+                IconButton {
                     icon: "󰌾"
                     name: "lock"
                     onClicked: {
@@ -188,16 +169,14 @@ HoverPopupWindow {
                         S.Lock.lock();
                     }
                 }
-                ReadoutIcon {
+                IconButton {
                     icon: "⏻"
                     name: "power"
                     onClicked: dash.goTo("power")
                 }
             }
 
-            // Notifications first: the thing most often opened from here. Always a row -- "none" when
-            // there is nothing -- with the tick and the count while any are unread.
-            ReadoutRow {
+            ListRow {
                 icon: S.Notifications.doNotDisturb ? "󰂛" : S.Notifications.unreadCount > 0 ? "󰂚" : "󰂜"
                 value: "notifications"
                 valueWidth: dash.valueColumn
@@ -209,10 +188,7 @@ HoverPopupWindow {
                 onOpened: dash.openOther("notifications")
             }
 
-            // --- Connections ---
-            // A click opens the connection's page, where its header switches it on and off: these
-            // have a network to pick, so the page is what a click is usually after.
-            ReadoutRow {
+            ListRow {
                 visible: dash.wired
                 icon: S.Network.currentEthernetIcon
                 value: "ethernet"
@@ -223,7 +199,7 @@ HoverPopupWindow {
                 hasPage: true
                 onOpened: dash.goTo("ethernet")
             }
-            ReadoutRow {
+            ListRow {
                 visible: !dash.wired && S.Network.wifiDevice
                 icon: S.Network.wifiEnabled ? S.Network.currentWifiIcon : "󰤮"
                 value: "wi-fi"
@@ -235,7 +211,7 @@ HoverPopupWindow {
                 hasPage: true
                 onOpened: dash.goTo("wifi")
             }
-            ReadoutRow {
+            ListRow {
                 icon: S.Bluetooth.currentBluetoothIcon
                 value: "bluetooth"
                 valueWidth: dash.valueColumn
@@ -250,8 +226,7 @@ HoverPopupWindow {
                 hasPage: true
                 onOpened: dash.goTo("bluetooth")
             }
-            // A network, not a tool: it is a connection you are on or off (switched in its panel).
-            ReadoutRow {
+            ListRow {
                 visible: S.Tailscale.available
                 icon: S.Tailscale.currentTailscaleIcon
                 value: "tailscale"
@@ -264,8 +239,7 @@ HoverPopupWindow {
                 onOpened: dash.openOther("tailscale")
             }
 
-            // --- Sound ---
-            ReadoutRow {
+            ListRow {
                 visible: dash.sink !== null
                 readonly property bool muted: dash.sink && dash.sink.audio ? dash.sink.audio.muted : false
                 icon: S.AudioService.currentAudioIcon
@@ -278,13 +252,14 @@ HoverPopupWindow {
                 onToggled: if (dash.sink && dash.sink.audio) dash.sink.audio.muted = !dash.sink.audio.muted
                 onOpened: dash.goTo("audio")
 
-                ReadoutGauge {
+                LevelSlider {
+                    trackWidth: 110
                     value: dash.sink && dash.sink.audio ? dash.sink.audio.volume : 0
                     muted: dash.sink !== null && dash.sink.audio !== null && dash.sink.audio.muted
                     onMoved: v => { if (dash.sink && dash.sink.audio) dash.sink.audio.volume = v; }
                 }
             }
-            ReadoutRow {
+            ListRow {
                 visible: dash.source !== null
                 readonly property bool muted: dash.source && dash.source.audio ? dash.source.audio.muted : false
                 icon: muted ? "󰍭" : "󰍬"
@@ -298,8 +273,7 @@ HoverPopupWindow {
                 onOpened: dash.goTo("audio")
             }
 
-            // --- The machine ---
-            ReadoutRow {
+            ListRow {
                 icon: S.NightLight.icon
                 value: "night mode"
                 valueWidth: dash.valueColumn
@@ -310,7 +284,7 @@ HoverPopupWindow {
                 toggleable: true
                 onToggled: S.NightLight.set(!S.NightLight.enabled)
             }
-            ReadoutRow {
+            ListRow {
                 visible: S.StayAwake.available
                 icon: S.StayAwake.icon
                 value: "stay awake"
@@ -320,7 +294,7 @@ HoverPopupWindow {
                 toggleable: true
                 onToggled: S.StayAwake.set(!S.StayAwake.enabled)
             }
-            ReadoutRow {
+            ListRow {
                 visible: S.BatteryService.hasBattery || S.PowerProfile.available
                 icon: S.BatteryService.hasBattery ? S.BatteryService.batteryIcon() : "󰓅"
                 value: S.BatteryService.hasBattery ? "battery" : "power"
@@ -330,15 +304,13 @@ HoverPopupWindow {
                 hasPage: true
                 onOpened: dash.goTo("battery")
 
-                ReadoutGauge {
+                Gauge {
                     visible: S.BatteryService.hasBattery
-                    interactive: false
                     value: S.BatteryService.percentage / 100
                 }
             }
 
-            // --- What wants attention: only when there is something, each with the tick ---
-            ReadoutRow {
+            ListRow {
                 visible: S.NixUpdates.hasUpdates
                 icon: S.NixUpdates.icon
                 value: "nix"
@@ -349,7 +321,7 @@ HoverPopupWindow {
                 hasPage: true
                 onOpened: dash.openOther("nix")
             }
-            ReadoutRow {
+            ListRow {
                 visible: S.SystemInfo.hasFirmwareUpdates
                 icon: S.SystemInfo.firmwareIcon
                 value: "firmware"
@@ -360,7 +332,7 @@ HoverPopupWindow {
                 hasPage: true
                 onOpened: dash.openOther("firmware")
             }
-            ReadoutRow {
+            ListRow {
                 visible: S.LocalSend.hasIncomingFiles
                 icon: S.LocalSend.icon
                 value: "localsend"
@@ -371,7 +343,7 @@ HoverPopupWindow {
                 hasPage: true
                 onOpened: dash.openOther("localsend")
             }
-            ReadoutRow {
+            ListRow {
                 visible: S.Tailscale.hasIncomingFiles
                 icon: "󰒄"
                 value: "taildrop"
@@ -383,27 +355,26 @@ HoverPopupWindow {
                 onOpened: dash.openOther("tailscale")
             }
 
-            ReadoutDivider {}
+            Divider {}
 
-            // Tools on the left -- one-shot actions only -- and the tray on the right.
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 2
 
-                ReadoutIcon {
+                IconButton {
                     visible: S.Capture.connected
                     icon: S.Capture.icon
                     name: "capture"
                     onClicked: dash.openOther("capture")
                 }
-                ReadoutIcon {
+                IconButton {
                     visible: S.Capture.connected && S.Capture.recordAvailable
                     icon: S.Capture.recording ? "󰙧" : "󰕧"
                     name: S.Capture.recording ? "stop recording" : "record"
                     active: S.Capture.recording
                     onClicked: S.Capture.recording ? S.Capture.stopRecording() : dash.openOther("record")
                 }
-                ReadoutIcon {
+                IconButton {
                     icon: "󰨸"
                     name: "clipboard"
                     onClicked: {
@@ -413,7 +384,7 @@ HoverPopupWindow {
                         launcher.openProvider("clipboard");
                     }
                 }
-                ReadoutIcon {
+                IconButton {
                     icon: "󰴱"
                     name: "pick colour"
                     onClicked: {
@@ -421,7 +392,7 @@ HoverPopupWindow {
                         colorPicker.running = true;
                     }
                 }
-                ReadoutIcon {
+                IconButton {
                     visible: S.LocalSend.connected
                     icon: S.LocalSend.icon
                     name: "send with localsend"
@@ -432,7 +403,7 @@ HoverPopupWindow {
 
                 Repeater {
                     model: S.SystemTray.trayItems
-                    delegate: ReadoutIcon {
+                    delegate: IconButton {
                         id: trayIcon
                         required property var modelData
                         source: dash.trayIconSource(modelData)
@@ -456,9 +427,9 @@ HoverPopupWindow {
                 }
             }
 
-            ReadoutDivider {}
+            Divider {}
 
-            ReadoutRow {
+            ListRow {
                 icon: "󰏘"
                 value: "appearance"
                 valueWidth: dash.valueColumn
@@ -468,10 +439,6 @@ HoverPopupWindow {
                 onOpened: dash.goTo("appearance")
             }
         }
-
-        // ===========================================================================================
-        // Pages
-        // ===========================================================================================
 
         WifiPage {
             visible: dash.page === "wifi"

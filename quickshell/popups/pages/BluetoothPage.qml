@@ -4,8 +4,6 @@ import Quickshell.Bluetooth
 import qs.commonwidgets
 import qs.services as S
 
-// Bluetooth, Readout style: what is connected, what is paired, and -- while scanning -- what is
-// in range.
 ColumnLayout {
     id: page
 
@@ -15,7 +13,7 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: 0
 
-    // By `connected`, as the dashboard's Bluetooth row counts them: `state` can lag behind it.
+    // By `connected`: `state` can lag behind it.
     readonly property var connectedDevices: (S.Bluetooth.pairedDevices || []).filter(d => d.connected)
     readonly property var otherPaired: (S.Bluetooth.pairedDevices || []).filter(d => !d.connected)
 
@@ -23,10 +21,9 @@ ColumnLayout {
         return device && device.batteryAvailable ? Math.round(device.battery * 100) + "%" : "";
     }
 
-    // A scan is for the page while it is up, not left running behind it.
     onVisibleChanged: if (!visible) S.Bluetooth.stopScan()
 
-    ReadoutHeader {
+    PageHeader {
         showBack: page.showBack
         title: "bluetooth"
         active: S.Bluetooth.enabled
@@ -36,35 +33,36 @@ ColumnLayout {
         onBack: page.back()
     }
 
-    ReadoutSection {
+    SectionHeader {
         visible: page.connectedDevices.length > 0
         text: "connected"
     }
     Repeater {
         model: page.connectedDevices
-        delegate: ReadoutRow {
+        delegate: ListRow {
             required property var modelData
             icon: S.Bluetooth.getDeviceIcon(modelData)
             value: modelData.name || ""
             detail: page.batteryText(modelData)
             status: "active"
             active: true
+            current: true
             hoverStatus: "disconnect"
             onClicked: modelData.disconnect()
         }
     }
 
-    ReadoutSection {
+    SectionHeader {
         visible: page.otherPaired.length > 0
         text: "paired"
     }
     Repeater {
         model: page.otherPaired
-        delegate: ReadoutRow {
+        delegate: ListRow {
             required property var modelData
             readonly property bool connecting: modelData.state === BluetoothDeviceState.Connecting
             icon: S.Bluetooth.getDeviceIcon(modelData)
-            iconColor: Readout.detail
+            iconColor: Ui.detail
             value: modelData.name || ""
             status: connecting ? "connecting…" : ""
             hoverStatus: connecting ? "" : "connect"
@@ -72,7 +70,7 @@ ColumnLayout {
         }
     }
 
-    ReadoutSection {
+    SectionHeader {
         visible: S.Bluetooth.enabled
         text: "available"
         trailing: S.Bluetooth.discovering ? "scanning… stop" : "scan"
@@ -81,10 +79,10 @@ ColumnLayout {
     }
     Repeater {
         model: S.Bluetooth.discovering ? S.Bluetooth.devices : []
-        delegate: ReadoutRow {
+        delegate: ListRow {
             required property var modelData
             icon: S.Bluetooth.getDeviceIcon(modelData)
-            iconColor: Readout.detail
+            iconColor: Ui.detail
             value: modelData.name || ""
             hoverStatus: "pair"
             onClicked: {

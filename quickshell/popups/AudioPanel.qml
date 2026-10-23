@@ -5,11 +5,10 @@ import qs.services as S
 import qs.theme as T
 import qs.popups.pages
 
-// Sound in the Readout design, for the individual status icons (AudioPage).
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 420
+    popupWidth: 480
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "audio")
