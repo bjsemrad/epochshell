@@ -7,27 +7,27 @@ Item {
     property bool checked: false
     signal toggled()
 
-    implicitWidth: 34
-    implicitHeight: 18
+    implicitWidth: Ui.switchWidth
+    implicitHeight: Ui.switchHeight
 
     Rectangle {
         anchors.fill: parent
-        radius: 4
-        color: control.checked ? T.Config.accent : Ui.alpha(T.Config.surfaceText, 0.18)
+        radius: Ui.switchRadius
+        color: control.checked ? T.Config.accent : Ui.alpha(T.Config.surfaceText, Ui.switchOffAlpha)
 
         Rectangle {
-            x: control.checked ? parent.width - width - 3 : 3
+            x: control.checked ? parent.width - width - Ui.switchKnobInset : Ui.switchKnobInset
             anchors.verticalCenter: parent.verticalCenter
-            width: 12
-            height: 12
-            radius: 3
-            color: control.checked ? T.Config.background : Ui.alpha(T.Config.surfaceText, 0.6)
+            width: Ui.switchKnob
+            height: Ui.switchKnob
+            radius: Ui.switchKnobRadius
+            color: control.checked ? T.Config.background : Ui.alpha(T.Config.surfaceText, Ui.switchKnobOffAlpha)
         }
     }
 
     MouseArea {
         anchors.fill: parent
-        anchors.margins: -6
+        anchors.margins: -Ui.hitSlop
         cursorShape: Qt.PointingHandCursor
         onClicked: control.toggled()
     }

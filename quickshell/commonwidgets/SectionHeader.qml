@@ -11,9 +11,9 @@ Item {
     signal trailingClicked()
 
     Layout.fillWidth: true
-    Layout.topMargin: 12
+    Layout.topMargin: Ui.space2XL
     Layout.bottomMargin: 2
-    implicitHeight: rule.height + 8 + label.implicitHeight
+    implicitHeight: rule.height + Ui.sectionRuleGap + label.implicitHeight
 
     Rectangle {
         id: rule
@@ -24,8 +24,8 @@ Item {
 
     Text {
         id: label
-        x: 6
-        y: rule.height + 8
+        x: Ui.spaceM
+        y: rule.height + Ui.sectionRuleGap
         text: section.text
         color: Ui.value
         font.pixelSize: Ui.valueSize
@@ -35,7 +35,7 @@ Item {
 
     Text {
         anchors.right: parent.right
-        anchors.rightMargin: 6
+        anchors.rightMargin: Ui.spaceM
         anchors.verticalCenter: label.verticalCenter
         visible: text.length > 0
         text: section.trailing
@@ -45,7 +45,7 @@ Item {
         MouseArea {
             id: trailingMouse
             anchors.fill: parent
-            anchors.margins: -4
+            anchors.margins: -Ui.hitSlopSmall
             enabled: section.trailingClickable
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor

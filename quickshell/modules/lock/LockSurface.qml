@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
@@ -29,14 +30,11 @@ WlSessionLockSurface {
 
     readonly property color readableRed: {
         const red = T.Config.red;
-        const lum = c => {
-            const lin = v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-            return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
-        };
+        const lum = Ui.luminance;
         const ground = 0.11;
-        for (let t = 0; t <= 1; t += 0.1) {
+        for (let t = 0; t <= 1; t += Ui.contrastStep) {
             const c = Qt.rgba(red.r + (1 - red.r) * t, red.g + (1 - red.g) * t, red.b + (1 - red.b) * t, 1);
-            if ((lum(c) + 0.05) / (ground + 0.05) >= 4.5) return c;
+            if ((lum(c) + 0.05) / (ground + 0.05) >= Ui.contrastText) return c;
         }
         return Qt.rgba(1, 1, 1, 1);
     }
@@ -61,7 +59,7 @@ WlSessionLockSurface {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: false
-            sourceSize: Qt.size(Math.ceil(surface.width / 4), Math.ceil(surface.height / 4))
+            sourceSize: Qt.size(Math.ceil(surface.width / Ui.lockWallpaperScale), Math.ceil(surface.height / Ui.lockWallpaperScale))
             visible: false
         }
 
@@ -71,14 +69,14 @@ WlSessionLockSurface {
             visible: wallpaper.status === Image.Ready
             blurEnabled: true
             blur: 1.0
-            blurMax: 48
-            saturation: -0.15
+            blurMax: Ui.lockBlur
+            saturation: Ui.lockDesaturate
         }
 
         Rectangle {
             anchors.fill: parent
             color: "black"
-            opacity: 0.45
+            opacity: Ui.lockDim
         }
     }
 
@@ -86,17 +84,17 @@ WlSessionLockSurface {
         id: content
         anchors.fill: parent
         opacity: surface.shown ? 1 : 0
-        scale: surface.shown ? 1 : 1.03
+        scale: surface.shown ? 1 : Ui.lockZoom
 
         Behavior on opacity {
             NumberAnimation {
-                duration: S.Lock.unlocking ? S.Lock.unlockFadeMs : 220
+                duration: S.Lock.unlocking ? S.Lock.unlockFadeMs : Ui.lockFadeMs
                 easing.type: Easing.OutCubic
             }
         }
         Behavior on scale {
             NumberAnimation {
-                duration: S.Lock.unlocking ? S.Lock.unlockFadeMs : 220
+                duration: S.Lock.unlocking ? S.Lock.unlockFadeMs : Ui.lockFadeMs
                 easing.type: Easing.OutCubic
             }
         }
@@ -115,19 +113,19 @@ WlSessionLockSurface {
         ColumnLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.verticalCenter
-            anchors.bottomMargin: 40
-            spacing: 10
+            anchors.bottomMargin: Ui.lockClockBottom
+            spacing: Ui.spaceXL
 
             Row {
                 Layout.alignment: Qt.AlignHCenter
-                spacing: 10
+                spacing: Ui.spaceXL
 
                 Text {
                     id: time
                     text: Qt.formatDateTime(clock.date, "h:mm AP").split(" ")[0]
                     color: "white"
                     font.family: T.Config.fontFamily
-                    font.pixelSize: 96
+                    font.pixelSize: Ui.lockClockSize
                     font.weight: Font.Light
                     font.letterSpacing: -2
                 }
@@ -135,16 +133,16 @@ WlSessionLockSurface {
                 Text {
                     anchors.baseline: time.baseline
                     text: Qt.formatDateTime(clock.date, "AP").toLowerCase()
-                    color: Qt.rgba(1, 1, 1, 0.7)
+                    color: Qt.rgba(1, 1, 1, Ui.lockMeridiemAlpha)
                     font.family: T.Config.fontFamily
-                    font.pixelSize: 24
+                    font.pixelSize: Ui.lockMeridiemSize
                 }
             }
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 text: Qt.formatDateTime(clock.date, "dddd · MMMM d").toLowerCase()
-                color: Qt.rgba(1, 1, 1, 0.75)
+                color: Qt.rgba(1, 1, 1, Ui.lockDateAlpha)
                 font.family: T.Config.fontFamily
                 font.pixelSize: T.Config.fontSizeLarge
             }
@@ -154,8 +152,8 @@ WlSessionLockSurface {
             id: entry
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.verticalCenter
-            anchors.topMargin: 24
-            spacing: 8
+            anchors.topMargin: Ui.lockPromptTop
+            spacing: Ui.spaceL
 
             PasswordField {
                 id: field
@@ -164,7 +162,7 @@ WlSessionLockSurface {
 
             Text {
                 Layout.preferredWidth: field.width
-                Layout.preferredHeight: T.Config.fontSizeNormal * 1.6
+                Layout.preferredHeight: T.Config.fontSizeNormal * Ui.lockStatusLineHeight
                 leftPadding: field.textIndent
                 text: {
                     if (S.Lock.checking) return "checking…";
@@ -176,7 +174,7 @@ WlSessionLockSurface {
                 color: {
                     if (S.Lock.messageIsError && !S.Lock.checking && S.Lock.message.length > 0) return surface.readableRed;
                     if (field.capsLock && S.Lock.message.length === 0 && !S.Lock.checking) return T.Config.orange;
-                    return Qt.rgba(1, 1, 1, 0.65);
+                    return Qt.rgba(1, 1, 1, Ui.lockFooterAlpha);
                 }
                 font.family: T.Config.fontFamily
                 font.pixelSize: T.Config.fontSizeNormal
@@ -188,7 +186,7 @@ WlSessionLockSurface {
         Row {
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            anchors.margins: 32
+            anchors.margins: Ui.lockCornerMargin
             Text {
                 text: Quickshell.env("USER") || ""
                 color: T.Config.accent
@@ -198,7 +196,7 @@ WlSessionLockSurface {
             Text {
                 visible: surface.hostname.length > 0
                 text: "@" + surface.hostname
-                color: Qt.rgba(1, 1, 1, 0.65)
+                color: Qt.rgba(1, 1, 1, Ui.lockFooterAlpha)
                 font.family: T.Config.fontFamily
                 font.pixelSize: T.Config.fontSizeNormal
             }
@@ -207,23 +205,23 @@ WlSessionLockSurface {
         Row {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.margins: 32
-            spacing: 14
+            anchors.margins: Ui.lockCornerMargin
+            spacing: Ui.space3XL
 
             component Pair: Row {
                 property string icon
                 property string value
-                spacing: 6
+                spacing: Ui.spaceM
                 Text {
                     text: parent.icon
-                    color: Qt.rgba(1, 1, 1, 0.65)
+                    color: Qt.rgba(1, 1, 1, Ui.lockFooterAlpha)
                     font.family: T.Config.fontFamily
                     font.pixelSize: T.Config.fontSizeNormal
                 }
                 Text {
                     visible: text.length > 0
                     text: parent.value
-                    color: Qt.rgba(1, 1, 1, 0.85)
+                    color: Qt.rgba(1, 1, 1, Ui.lockFooterValueAlpha)
                     font.family: T.Config.fontFamily
                     font.pixelSize: T.Config.fontSizeNormal
                 }

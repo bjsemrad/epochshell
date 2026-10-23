@@ -20,7 +20,7 @@ ColumnLayout {
         font.pixelSize: Ui.valueSize
         text: T.Config.availableThemes.reduce((a, b) => (b.length > a.length ? b : a), "")
     }
-    readonly property real nameWidth: Math.ceil(longest.width) + 12
+    readonly property real nameWidth: Math.ceil(longest.width) + Ui.space2XL
 
     PageHeader {
         showBack: page.showBack
@@ -58,8 +58,8 @@ ColumnLayout {
                         model: T.Config.swatchKeys
                         delegate: Rectangle {
                             required property string modelData
-                            width: 8
-                            height: 8
+                            width: Ui.swatchSize
+                            height: Ui.swatchSize
                             color: T.Config.themeColor(themeRow.modelData, modelData)
                         }
                     }

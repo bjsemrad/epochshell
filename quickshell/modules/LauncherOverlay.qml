@@ -9,6 +9,10 @@ import qs.theme as T
 
 PanelWindow {
     id: root
+    readonly property int pdfThumbnailPx: 512
+    readonly property int previewTextBytes: 16000
+    readonly property int previewImagePx: 1024
+    readonly property int clipboardPreviewChars: 60
 
     anchors {
         top: true
@@ -133,7 +137,7 @@ PanelWindow {
 
     Timer {
         id: panelAnimateTimer
-        interval: 100
+        interval: Ui.launcherAnimateDelay
         repeat: false
         onTriggered: root.panelAnimate = true
     }
@@ -301,7 +305,7 @@ PanelWindow {
         const cache = root.previewCacheDir + "/" + root.pathStamp(path) + ".png";
         const ext = root.fileExtension(path);
         const convert = ext === "pdf"
-            ? "pdftoppm -f 1 -l 1 -png -singlefile -scale-to 512 \"$1\" \"${2%.png}\""
+            ? "pdftoppm -f 1 -l 1 -png -singlefile -scale-to " + root.pdfThumbnailPx + " \"$1\" \"${2%.png}\""
             : "convert \"$1[0]\" -thumbnail 512x512 -background none \"$2\"";
         previewThumbProc.running = false;
         previewThumbProc.previewReq = root.previewReqCounter = root.previewReqCounter + 1;
@@ -352,7 +356,7 @@ PanelWindow {
                 previewFileProc.previewReq = root.previewReqCounter = root.previewReqCounter + 1;
                 previewFileProc.command = [
                     "sh", "-c",
-                    "if [ -d \"$1\" ]; then ls -A \"$1\" | head -c 16000; else head -c 16000 \"$1\" 2>/dev/null; fi",
+                    "if [ -d \"$1\" ]; then ls -A \"$1\" | head -c " + root.previewTextBytes + "; else head -c " + root.previewTextBytes + " \"$1\" 2>/dev/null; fi",
                     "sh", preview
                 ];
                 previewFileProc.running = true;
@@ -366,7 +370,7 @@ PanelWindow {
 
     Timer {
         id: previewTimer
-        interval: 120
+        interval: Ui.previewDelay
         repeat: false
         onTriggered: root.refreshPreview()
     }
@@ -409,13 +413,13 @@ PanelWindow {
 
     readonly property string mode: root.showingProviders ? "providers" : root.activeProvider()
     readonly property bool split: mode === "files" || mode === "clipboard"
-    readonly property int listWidth: 560
-    readonly property int keybindsWidth: Math.min(Math.round(root.width * 0.6), 760)
-    readonly property int splitWidth: Math.min(Math.round(root.width * 0.6), 1100)
+    readonly property int listWidth: Ui.launcherWidth
+    readonly property int keybindsWidth: Math.min(Math.round(root.width * Ui.launcherScreenFraction), Ui.launcherKeybindsWidth)
+    readonly property int splitWidth: Math.min(Math.round(root.width * Ui.launcherScreenFraction), Ui.launcherSplitWidth)
     readonly property int panelWidth: split ? splitWidth : mode === "keybinds" ? keybindsWidth : listWidth
-    readonly property int maxHeight: Math.min(Math.round(root.height * 0.6), 620)
+    readonly property int maxHeight: Math.min(Math.round(root.height * Ui.launcherScreenFraction), Ui.launcherMaxHeight)
     readonly property int rowHeight: Ui.rowHeight
-    readonly property int promptHeight: 44
+    readonly property int promptHeight: Ui.launcherPromptHeight
 
     readonly property string promptGlyph: {
         if (root.showingProviders) return ";";
@@ -476,7 +480,7 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         visible: !root.ledgeMode
-        color: Qt.rgba(0, 0, 0, 0.25)
+        color: Qt.rgba(0, 0, 0, Ui.backdropAlpha)
     }
 
     AttachedSurface {
@@ -497,7 +501,7 @@ PanelWindow {
         width: root.panelWidth
         height: Math.min(content.implicitHeight, root.maxHeight)
         x: Math.round((root.width - width) / 2)
-        y: root.ledgeMode ? 0 : Math.round(root.height * 0.18)
+        y: root.ledgeMode ? 0 : Math.round(root.height * Ui.launcherTop)
         radius: root.ledgeMode ? 0 : T.Config.popupRadius
         antialiasing: true
         color: root.ledgeMode ? "transparent" : T.Config.popupBackground
@@ -518,9 +522,9 @@ PanelWindow {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.promptHeight
-                Layout.leftMargin: 22
-                Layout.rightMargin: 22
-                spacing: 10
+                Layout.leftMargin: Ui.launcherInset
+                Layout.rightMargin: Ui.launcherInset
+                spacing: Ui.spaceXL
 
                 Text {
                     text: root.promptGlyph
@@ -615,16 +619,16 @@ PanelWindow {
             RowLayout {
                 visible: root.mode === "calc" && listView.count > 0
                 Layout.fillWidth: true
-                Layout.leftMargin: 22
-                Layout.rightMargin: 22
-                Layout.topMargin: 8
-                Layout.bottomMargin: 8
-                spacing: 12
+                Layout.leftMargin: Ui.launcherInset
+                Layout.rightMargin: Ui.launcherInset
+                Layout.topMargin: Ui.spaceL
+                Layout.bottomMargin: Ui.spaceL
+                spacing: Ui.space2XL
                 Text {
                     Layout.fillWidth: true
                     text: { const row = root.rowAt(0); return row ? String(row.text) : ""; }
                     color: Ui.value
-                    font.pixelSize: Ui.valueSize + 10
+                    font.pixelSize: Ui.calcSize
                     font.family: Ui.font
                     elide: Text.ElideRight
                 }
@@ -639,19 +643,19 @@ PanelWindow {
             RowLayout {
                 visible: !(root.mode === "calc")
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(Math.max(listView.contentHeight, root.rowHeight) + 18,
+                Layout.preferredHeight: Math.min(Math.max(listView.contentHeight, root.rowHeight) + Ui.spaceM + Ui.space2XL,
                     root.maxHeight - root.promptHeight - 1)
                 spacing: 0
 
                 Item {
-                    Layout.preferredWidth: root.split ? Math.round(root.panelWidth * 0.46) : root.panelWidth
+                    Layout.preferredWidth: root.split ? Math.round(root.panelWidth * Ui.launcherListFraction) : root.panelWidth
                     Layout.fillHeight: true
 
                     ListView {
                         id: listView
                         anchors.fill: parent
-                        anchors.topMargin: 6
-                        anchors.bottomMargin: 12
+                        anchors.topMargin: Ui.spaceM
+                        anchors.bottomMargin: Ui.space2XL
                         clip: true
                         model: root.showingProviders ? providerModel : S.LauncherService.results
                         spacing: 0
@@ -663,12 +667,12 @@ PanelWindow {
                         section.delegate: Item {
                             required property string section
                             width: listView.width
-                            height: section === "apps" ? 0 : 28
+                            height: section === "apps" ? 0 : Ui.sectionLabelHeight
                             visible: section !== "apps"
                             Text {
-                                x: 22
+                                x: Ui.launcherInset
                                 anchors.bottom: parent.bottom
-                                anchors.bottomMargin: 4
+                                anchors.bottomMargin: Ui.spaceS
                                 text: S.LauncherService.prettyName(section).toLowerCase()
                                 color: Ui.key
                                 font.pixelSize: Ui.detailSize
@@ -699,25 +703,25 @@ PanelWindow {
 
                             Rectangle {
                                 anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
+                                anchors.leftMargin: Ui.spaceXL
+                                anchors.rightMargin: Ui.spaceXL
                                 radius: Ui.hoverRadius
                                 color: delegateRoot.isCurrent ? Ui.hover : "transparent"
                             }
                             Rectangle {
                                 visible: delegateRoot.isCurrent
-                                x: 10
+                                x: Ui.spaceXL
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: Ui.tick
-                                height: parent.height - 10
+                                height: parent.height - Ui.rowHoverInset
                                 color: T.Config.accent
                             }
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 22
-                                anchors.rightMargin: 22
-                                spacing: 10
+                                anchors.leftMargin: Ui.launcherInset
+                                anchors.rightMargin: Ui.launcherInset
+                                spacing: Ui.spaceXL
 
                                 Item {
                                     Layout.preferredWidth: Ui.iconColumn
@@ -729,8 +733,8 @@ PanelWindow {
                                         height: Ui.iconSize
                                         visible: delegateRoot.icon.length > 0 && !root.glyphIcon(delegateRoot.icon) && status === Image.Ready
                                         source: delegateRoot.icon.length > 0 && !root.glyphIcon(delegateRoot.icon) ? "image://icon/" + delegateRoot.icon : ""
-                                        sourceSize.width: 44
-                                        sourceSize.height: 44
+                                        sourceSize.width: Ui.appIconSource
+                                        sourceSize.height: Ui.appIconSource
                                         fillMode: Image.PreserveAspectFit
                                         smooth: true
                                     }
@@ -751,9 +755,9 @@ PanelWindow {
                                 }
 
                                 Text {
-                                    Layout.preferredWidth: delegateRoot.keycaps ? Math.min(implicitWidth, delegateRoot.width * 0.4) : Math.min(implicitWidth, delegateRoot.width * 0.55)
+                                    Layout.preferredWidth: delegateRoot.keycaps ? Math.min(implicitWidth, delegateRoot.width * Ui.keybindNameFraction) : Math.min(implicitWidth, delegateRoot.width * Ui.nameFraction)
                                     Layout.minimumWidth: 0
-                                    text: delegateRoot.provider === "clipboard" ? root.truncate(delegateRoot.text.replace(/\s+/g, " "), 60)
+                                    text: delegateRoot.provider === "clipboard" ? root.truncate(delegateRoot.text.replace(/\s+/g, " "), root.clipboardPreviewChars)
                                         : delegateRoot.provider === "files" ? root.baseName(delegateRoot.text)
                                         : delegateRoot.text
                                     color: Ui.value
@@ -785,17 +789,17 @@ PanelWindow {
                                     Row {
                                         id: caps
                                         anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 3
+                                        spacing: Ui.spaceXS
                                         Repeater {
                                             model: delegateRoot.keycaps ? delegateRoot.keysPart.split("+").map(k => k.trim()).filter(k => k.length > 0) : []
                                             delegate: Rectangle {
                                                 required property string modelData
-                                                width: capText.implicitWidth + 8
-                                                height: capText.implicitHeight + 4
-                                                radius: 3
+                                                width: capText.implicitWidth + Ui.keycapPadX
+                                                height: capText.implicitHeight + Ui.keycapPadY
+                                                radius: Ui.keycapRadius
                                                 color: "transparent"
                                                 border.width: 1
-                                                border.color: Ui.alpha(T.Config.surfaceText, 0.25)
+                                                border.color: Ui.alpha(T.Config.surfaceText, Ui.keycapBorderAlpha)
                                                 Text {
                                                     id: capText
                                                     anchors.centerIn: parent
@@ -856,10 +860,10 @@ PanelWindow {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.top: parent.top
-                        anchors.topMargin: 4
+                        anchors.topMargin: Ui.spaceS
                         height: root.rowHeight
-                        anchors.leftMargin: 22
-                        anchors.rightMargin: 22
+                        anchors.leftMargin: Ui.launcherInset
+                        anchors.rightMargin: Ui.launcherInset
                         Text {
                             Layout.fillWidth: true
                             text: root.backendDown ? "launcher backend not running" : "no matches"
@@ -889,8 +893,8 @@ PanelWindow {
                     visible: root.split
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.margins: 14
-                    spacing: 8
+                    Layout.margins: Ui.space3XL
+                    spacing: Ui.spaceL
 
                     Text {
                         Layout.fillWidth: true
@@ -922,7 +926,7 @@ PanelWindow {
                             width: parent.width
                             text: root.previewText
                             color: Ui.value
-                            font.pixelSize: Ui.detailSize + 1
+                            font.pixelSize: Ui.detailSize
                             font.family: Ui.font
                             wrapMode: Text.WrapAnywhere
                             textFormat: Text.PlainText
@@ -936,7 +940,7 @@ PanelWindow {
                         source: root.previewImage
                         fillMode: Image.PreserveAspectFit
                         asynchronous: true
-                        sourceSize.width: 1024
+                        sourceSize.width: root.previewImagePx
                     }
 
                     Item {

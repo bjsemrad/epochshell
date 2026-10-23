@@ -6,6 +6,10 @@ import Quickshell.Services.UPower
 
 Singleton {
     id: batteryService
+    readonly property int levelFull: 95
+    readonly property int levelHigh: 55
+    readonly property int levelHalf: 45
+    readonly property int levelLow: 20
 
     property real percentage: 0
     property bool charging: false
@@ -21,13 +25,13 @@ Singleton {
 
     function batteryIcon() {
         let pct = Math.round(batteryService.percentage);
-        if (pct > 95)
+        if (pct > batteryService.levelFull)
             return batteryService.charging ? "󰂋" : "󰁹";
-        if (pct > 55)
+        if (pct > batteryService.levelHigh)
             return batteryService.charging ? "󰢞" : "󰂀";
-        if (pct > 45)
+        if (pct > batteryService.levelHalf)
             return batteryService.charging ? "󰂈" : "󰁽";
-        if (pct > 20)
+        if (pct > batteryService.levelLow)
             return batteryService.charging ? "󰂆" : "󰁻";
         return batteryService.charging ? "󰢜" : "󰁺";
     }

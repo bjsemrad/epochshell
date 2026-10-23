@@ -10,9 +10,9 @@ BarIconPopup {
     iconText:  {
         const s = S.Network.strength
         if (!S.Network.wifiConnected) return "󰤭"
-        if (s >= 75) return "󰤨"
-        if (s >= 50) return "󰤢"
-        if (s >= 25) return "󰤟"
+        if (s >= Ui.signalStrong) return "󰤨"
+        if (s >= Ui.signalFair) return "󰤢"
+        if (s >= Ui.signalWeak) return "󰤟"
         return "󰤟"
     }
 }

@@ -12,7 +12,7 @@ HoverPopupWindow {
 
     property string page: "main"
 
-    popupWidth: 480
+    popupWidth: Ui.panelWidth
 
     Component.onDestruction: S.PopupManager.unregister(menu)
     Component.onCompleted: S.PopupManager.register(menu, "system")
@@ -36,7 +36,7 @@ HoverPopupWindow {
     }
     Timer {
         id: settle
-        interval: 400
+        interval: Ui.pageSettleMs
         onTriggered: menu.stopHide = false
     }
 
@@ -71,8 +71,8 @@ HoverPopupWindow {
 
             Text {
                 Layout.fillWidth: true
-                Layout.leftMargin: 6
-                Layout.bottomMargin: 4
+                Layout.leftMargin: Ui.spaceM
+                Layout.bottomMargin: Ui.spaceS
                 text: [menu.username, [menu.hostname, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" "),
                     Qt.formatDate(clock.date, "ddd d MMM").toLowerCase()].filter(x => x && x.length > 0).join(" · ")
                 color: Ui.detail

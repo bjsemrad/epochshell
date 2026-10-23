@@ -5,12 +5,15 @@ import Quickshell.Io
 
 Singleton {
     id: root
+    readonly property int neutralKelvin: 6500
+    readonly property int statusPollMs: 30000
+    readonly property int retryMs: 5000
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
     property bool enabled: false
     property int temperature: 0
-    property int daylight: 6500
+    property int daylight: neutralKelvin
     property string tool: ""
     property bool available: false
     property string unavailableReason: ""
@@ -48,7 +51,7 @@ Singleton {
         }
         enabled = data.enabled === true;
         temperature = Number(data.temperature || 0);
-        daylight = Number(data.daylight || 6500);
+        daylight = Number(data.daylight || root.neutralKelvin);
         tool = String(data.tool || "");
         available = data.available === true;
         unavailableReason = String(data.unavailable_reason || "");
@@ -60,7 +63,7 @@ Singleton {
     }
 
     Timer {
-        interval: 30000
+        interval: root.statusPollMs
         repeat: true
         running: root.connected
         triggeredOnStart: true
@@ -68,7 +71,7 @@ Singleton {
     }
 
     Timer {
-        interval: 5000
+        interval: root.retryMs
         repeat: true
         running: !root.connected
         onTriggered: root.rebuildSocket()

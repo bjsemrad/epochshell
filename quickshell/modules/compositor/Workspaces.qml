@@ -9,7 +9,7 @@ import qs.services as S
 
 Rectangle {
     id: workspaceFrame
-    radius: 20
+    radius: Ui.workspaceFrameRadius
     antialiasing: true
     color: "transparent"
     Layout.alignment: Qt.AlignVCenter
@@ -27,7 +27,7 @@ Rectangle {
 
     RowLayout {
         id: inner
-        spacing: workspaceFrame.ledgeStyle ? T.Config.barModuleSpacing : workspaceFrame.pills ? 6 : padding / 2
+        spacing: workspaceFrame.ledgeStyle ? T.Config.barModuleSpacing : workspaceFrame.pills ? Ui.spaceM : padding / 2
         anchors.centerIn: parent
 
         Repeater {
@@ -51,7 +51,7 @@ Rectangle {
                 Layout.preferredHeight: !visible ? 0 : ledged ? T.Config.barHeight : pilled ? pill.height : innerRow.implicitHeight + verticalPadding / 2
 
                 color: !pilled && !ledged && mwrap.containsMouse ? T.Config.onBar(T.Config.activeSelection) : "transparent"
-                radius: 10
+                radius: Ui.workspaceHoverRadius
                 antialiasing: true
 
                 WrapperMouseArea {
@@ -68,7 +68,7 @@ Rectangle {
                     RowLayout {
                         id: innerRow
                         anchors.fill: parent
-                        spacing: 5
+                        spacing: Ui.spaceWorkspace
 
                         Text {
                             text: workspaceWrapper.wsName
@@ -87,7 +87,7 @@ Rectangle {
                                 implicitWidth: T.Config.barIconSize
                                 implicitHeight: T.Config.barIconSize
                                 source: S.CompositorService.getDesktopIcon(S.CompositorService.getDesktopEntry(String(modelData.app_id || "")))
-                                opacity: modelData.focused ? 1.0 : 0.35
+                                opacity: modelData.focused ? 1.0 : Ui.windowUnfocusedAlpha
                             }
                         }
                     }
@@ -97,7 +97,7 @@ Rectangle {
                     id: pill
                     visible: workspaceWrapper.pilled
                     anchors.centerIn: parent
-                    readonly property int diameter: T.Config.barHeight - 14
+                    readonly property int diameter: T.Config.barHeight - Ui.pillInsetV
                     readonly property int iconSize: Math.round(diameter * 0.58)
                     readonly property int iconSpacing: 6
                     readonly property var shownWindows: T.Config.workspaceIcons ? workspaceWrapper.windows : []
@@ -116,7 +116,7 @@ Rectangle {
                         color: pillMouse.containsMouse ? T.Config.onBar(T.Config.surfaceContainerHigh) : "transparent"
                         border.width: 1
                         border.color: pill.ring
-                        opacity: workspaceWrapper.occupied || workspaceWrapper.active ? 1 : 0.6
+                        opacity: workspaceWrapper.occupied || workspaceWrapper.active ? 1 : Ui.workspaceEmptyAlpha
 
                         Row {
                             anchors.centerIn: parent
@@ -142,7 +142,7 @@ Rectangle {
                                     implicitWidth: pill.iconSize
                                     implicitHeight: pill.iconSize
                                     source: S.CompositorService.getDesktopIcon(S.CompositorService.getDesktopEntry(String(modelData.app_id || "")))
-                                    opacity: modelData.focused || pill.shownWindows.length === 1 ? 1.0 : 0.45
+                                    opacity: modelData.focused || pill.shownWindows.length === 1 ? 1.0 : Ui.windowDimAlpha
                                 }
                             }
                         }
@@ -181,16 +181,16 @@ Rectangle {
                         const gap = 3;
                         const monitorWidth = S.CompositorService.monitorWidthForWorkspace(workspaceWrapper.wsName);
                         const proportional = monitorWidth > 0 && cols.some(c => !c.floating && c.width > 0);
-                        let widths = cols.map(c => (c.floating || !proportional) ? icon + 10
-                            : Math.max(icon + 4, Math.min(56, Math.round(c.width / monitorWidth * 64))));
-                        const max = Math.max(icon + 4, T.Config.workspaceMinimapMaxWidth);
+                        let widths = cols.map(c => (c.floating || !proportional) ? icon + Ui.cellPad
+                            : Math.max(icon + Ui.cellMinPad, Math.min(Ui.cellMaxWidth, Math.round(c.width / monitorWidth * Ui.fullColumnWidth))));
+                        const max = Math.max(icon + Ui.cellMinPad, T.Config.workspaceMinimapMaxWidth);
                         const total = list => list.reduce((a, b) => a + b, 0) + gap * Math.max(0, list.length - 1);
-                        if (total(widths) > max) widths = widths.map(() => icon + 4);
+                        if (total(widths) > max) widths = widths.map(() => icon + Ui.cellMinPad);
                         let start = 0;
                         let end = cols.length;
                         if (total(widths) > max) {
                             const more = 22;
-                            const fit = Math.max(1, Math.floor((max - 2 * more + gap) / (icon + 4 + gap)));
+                            const fit = Math.max(1, Math.floor((max - 2 * more + gap) / (icon + Ui.cellMinPad + gap)));
                             const focus = Math.max(0, cols.findIndex(c => c.focused));
                             start = Math.max(0, Math.min(focus - Math.floor((fit - 1) / 2), cols.length - fit));
                             end = Math.min(cols.length, start + fit);
@@ -218,7 +218,7 @@ Rectangle {
                         id: ledgeRow
                         anchors.horizontalCenter: parent.horizontalCenter
                         y: ledgeItem.snap((parent.height - height) / 2 - 2)
-                        spacing: 5
+                        spacing: Ui.spaceWorkspace
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
@@ -233,7 +233,7 @@ Rectangle {
                         Row {
                             visible: ledgeItem.shown.length > 0 && !ledgeItem.mapped
                             anchors.verticalCenter: parent.verticalCenter
-                            spacing: 3
+                            spacing: Ui.spaceXS
 
                             Repeater {
                                 model: ledgeItem.shown
@@ -251,7 +251,7 @@ Rectangle {
                                     IconImage {
                                         anchors.fill: parent
                                         source: S.CompositorService.getDesktopIcon(S.CompositorService.getDesktopEntry(String(ledgeIcon.modelData.app_id || "")))
-                                        opacity: ledgeIcon.inColour ? 1.0 : 0.6
+                                        opacity: ledgeIcon.inColour ? 1.0 : Ui.iconQuietAlpha
                                         layer.enabled: !ledgeIcon.inColour || ledgeItem.mono
                                         layer.effect: MultiEffect {
                                             saturation: ledgeItem.mono ? -1.0 : -0.5
@@ -261,7 +261,7 @@ Rectangle {
                                     Rectangle {
                                         visible: ledgeIcon.away
                                         x: 0
-                                        y: ledgeItem.snap(parent.height + 4)
+                                        y: ledgeItem.snap(parent.height + Ui.spaceS)
                                         width: parent.width
                                         height: ledgeItem.px(2)
                                         color: T.Config.inactive
@@ -292,7 +292,7 @@ Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
                             leftPadding: 1
                             text: title.length > 28 ? title.slice(0, 27) + "…" : title
-                            color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.45)
+                            color: Ui.alpha(T.Config.surfaceText, Ui.titleAlpha)
                             font.pixelSize: T.Config.fontSizeSubtext
                             font.family: T.Config.fontFamily
                         }
@@ -322,11 +322,11 @@ Rectangle {
                         x: ledgeRow.x + stripSlot.x
                         width: implicitWidth
                         height: parent.height
-                        readonly property real lead: hiddenLeft.visible ? hiddenLeft.implicitWidth + 4 : 0
-                        implicitWidth: lead + ledgeItem.strip.width + (hiddenRight.visible ? hiddenRight.implicitWidth + 4 : 0)
+                        readonly property real lead: hiddenLeft.visible ? hiddenLeft.implicitWidth + Ui.spaceS : 0
+                        implicitWidth: lead + ledgeItem.strip.width + (hiddenRight.visible ? hiddenRight.implicitWidth + Ui.spaceS : 0)
                         readonly property real centre: ledgeRow.y + ledgeRow.height / 2
                         readonly property real barHeight: ledgeItem.px(Ui.tick)
-                        readonly property real barY: Math.floor((height - ledgeItem.px(4) - barHeight) * ledgeItem.dpr) / ledgeItem.dpr
+                        readonly property real barY: Math.floor((height - ledgeItem.px(Ui.spaceS) - barHeight) * ledgeItem.dpr) / ledgeItem.dpr
 
                         component More: Text {
                             y: minimap.centre - height / 2
@@ -361,7 +361,7 @@ Rectangle {
                                     implicitWidth: size
                                     implicitHeight: size
                                     source: S.CompositorService.getDesktopIcon(S.CompositorService.getDesktopEntry(String(window.app_id || "")))
-                                    opacity: cell.lit ? 1.0 : 0.7
+                                    opacity: cell.lit ? 1.0 : Ui.cellDimAlpha
                                     layer.enabled: ledgeItem.mono
                                     layer.effect: MultiEffect {
                                         saturation: -1.0
@@ -395,7 +395,7 @@ Rectangle {
                                     y: Math.round(minimap.centre - height / 2)
                                     text: "+" + (cell.windows.length - 2)
                                     color: T.Config.inactive
-                                    font.pixelSize: Math.max(8, T.Config.fontSizeSubtext - 2)
+                                    font.pixelSize: Ui.stackCountSize
                                     font.family: T.Config.fontFamily
                                 }
 
@@ -405,7 +405,7 @@ Rectangle {
                                     width: cell.width
                                     height: minimap.barHeight
                                     color: cell.column.focused ? (ledgeItem.mono ? T.Config.active : T.Config.accent)
-                                        : Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.20)
+                                        : Ui.alpha(T.Config.surfaceText, Ui.columnBarAlpha)
                                 }
 
                                 MouseArea {
@@ -421,7 +421,7 @@ Rectangle {
                         More {
                             id: hiddenRight
                             visible: ledgeItem.strip.hiddenRight > 0
-                            x: minimap.lead + ledgeItem.strip.width + 4
+                            x: minimap.lead + ledgeItem.strip.width + Ui.spaceS
                             text: "+" + ledgeItem.strip.hiddenRight
                         }
                     }

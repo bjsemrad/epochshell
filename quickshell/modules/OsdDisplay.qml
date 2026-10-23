@@ -7,7 +7,7 @@ import qs.theme as T
 Item {
     id: osd
 
-    implicitWidth: 340
+    implicitWidth: Ui.osdWidth
     implicitHeight: T.Config.barHeight
 
     readonly property bool continuous: S.OsdService.kind === "volume" || S.OsdService.kind === "brightness"
@@ -21,9 +21,9 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        spacing: 12
+        anchors.leftMargin: Ui.space4XL
+        anchors.rightMargin: Ui.space4XL
+        spacing: Ui.space2XL
 
         Text {
             Layout.alignment: Qt.AlignVCenter
@@ -55,7 +55,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 showLabel: false
                 segments: Math.max(1, S.OsdService.steps)
-                segmentHeight: 10
+                segmentHeight: Ui.osdSegmentHeight
                 filled: Ui.value
                 value: S.OsdService.value
             }
@@ -81,7 +81,7 @@ Item {
 
         Text {
             visible: !osd.media
-            Layout.preferredWidth: 44
+            Layout.preferredWidth: Ui.osdLabelWidth
             Layout.alignment: Qt.AlignVCenter
             horizontalAlignment: Text.AlignRight
             text: S.OsdService.label

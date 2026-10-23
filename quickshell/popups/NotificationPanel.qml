@@ -8,7 +8,7 @@ import qs.theme as T
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 500
+    popupWidth: Ui.panelWidthWide
 
     property var expanded: ({})
 
@@ -69,7 +69,7 @@ HoverPopupWindow {
         Flickable {
             visible: S.Notifications.historyModel.count > 0
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.min(list.implicitHeight, 420)
+            Layout.preferredHeight: Math.min(list.implicitHeight, Ui.panelListMaxHeight)
             contentWidth: width
             contentHeight: list.implicitHeight
             clip: true
@@ -121,10 +121,10 @@ HoverPopupWindow {
                         }
                         Note {
                             visible: item.open && item.bodyText.length > 0
-                            Layout.leftMargin: Ui.iconColumn + 12
-                            Layout.bottomMargin: 6
+                            Layout.leftMargin: Ui.iconColumn + Ui.space2XL
+                            Layout.bottomMargin: Ui.spaceM
                             text: item.bodyText
-                            maximumLineCount: 4
+                            maximumLineCount: Ui.notificationBodyLines
                             elide: Text.ElideRight
                         }
                     }

@@ -5,6 +5,10 @@ import Quickshell.Io
 
 Singleton {
     id: root
+    readonly property int sendTimeoutMs: 200000
+    readonly property int requestTimeoutMs: 8000
+    readonly property int retryMs: 2000
+    readonly property int incomingPollMs: 10000
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
@@ -160,7 +164,7 @@ Singleton {
         const request = _requestQueue[0];
         socket.write(JSON.stringify({ type: "api", method: request.method, params: request.params, version: 1 }) + "\n");
         socket.flush();
-        requestTimeout.interval = request.meta.kind === "send" ? 200000 : 8000;
+        requestTimeout.interval = request.meta.kind === "send" ? root.sendTimeoutMs : root.requestTimeoutMs;
         requestTimeout.restart();
     }
 
@@ -206,7 +210,7 @@ Singleton {
 
     Timer {
         id: retry
-        interval: 2000
+        interval: root.retryMs
         repeat: true
         running: !root.connected
         onTriggered: root.rebuildSocket()
@@ -214,7 +218,7 @@ Singleton {
 
     Timer {
         id: incomingPoll
-        interval: 10000
+        interval: root.incomingPollMs
         repeat: true
         running: true
         triggeredOnStart: true

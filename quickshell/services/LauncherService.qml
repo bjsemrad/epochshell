@@ -5,6 +5,12 @@ import Quickshell.Io
 
 Singleton {
     id: root
+    readonly property int emptyQueryLimit: 30
+    readonly property int queryLimit: 10
+    readonly property int filesDebounceMs: 40
+    readonly property int debounceMs: 150
+    readonly property int requestTimeoutMs: 3000
+    readonly property int retryMs: 2000
 
     property string query: ""
     property alias results: resultModel
@@ -167,7 +173,7 @@ Singleton {
     }
 
     function startQuery(providers, q) {
-        const limit = q === "" ? 30 : 10;
+        const limit = q === "" ? root.emptyQueryLimit : root.queryLimit;
         const silent = root._silentRefresh;
         root._silentRefresh = false;
         const meta = { providers: providers, query: q, limit: limit, silent: silent };
@@ -177,7 +183,7 @@ Singleton {
     }
 
     function isDefaultAppsQuery(meta) {
-        return meta.providers === "apps" && meta.query === "" && meta.limit === 30;
+        return meta.providers === "apps" && meta.query === "" && meta.limit === root.emptyQueryLimit;
     }
 
     function showCachedApps() {
@@ -316,14 +322,14 @@ Singleton {
 
     Timer {
         id: debounceTimer
-        interval: root.providerForPrefix(root.prefixFor(root.query)) === "files" ? 40 : 150
+        interval: root.providerForPrefix(root.prefixFor(root.query)) === "files" ? root.filesDebounceMs : root.debounceMs
         repeat: false
         onTriggered: root.runQuery()
     }
 
     Timer {
         id: requestTimeout
-        interval: 3000
+        interval: root.requestTimeoutMs
         repeat: false
         onTriggered: {
             root._requestQueue = [];
@@ -338,7 +344,7 @@ Singleton {
 
     Timer {
         id: retryTimer
-        interval: 2000
+        interval: root.retryMs
         repeat: true
         running: !root.backendConnected
         onTriggered: root.rebuildSocket()

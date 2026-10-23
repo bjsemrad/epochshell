@@ -37,7 +37,7 @@ RowLayout {
             return panel !== null && panel !== undefined && panel.open && panel.visible;
         }
 
-        readonly property int drawerSpacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
+        readonly property int drawerSpacing: Math.max(Ui.spaceS, Math.round(T.Config.barModuleSpacing / 2))
         readonly property bool compact: T.Config.barCompact
         readonly property bool wantsExpanded: !compact && (hovered || menuOpen || servicePopupOpen)
         property int alertExtent: alertItems.item && alertItems.item.implicitWidth > 0 ? alertItems.item.implicitWidth + drawerSpacing : 0
@@ -47,14 +47,14 @@ RowLayout {
         implicitWidth: (compact ? 0 : chevron.implicitWidth) + alertExtent + toolsExtent * revealProgress
 
         Behavior on alertExtent {
-            NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+            NumberAnimation { duration: Ui.drawerSlideMs; easing.type: Easing.OutCubic }
         }
 
         implicitHeight: T.Config.barHeight
         clip: true
 
         Behavior on revealProgress {
-            NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+            NumberAnimation { duration: Ui.drawerSlideMs; easing.type: Easing.OutCubic }
         }
 
         function updateExpanded() {
@@ -72,7 +72,7 @@ RowLayout {
 
         Timer {
             id: collapseTimer
-            interval: 120
+            interval: Ui.drawerCollapseDelay
             repeat: false
             onTriggered: if (!drawer.wantsExpanded) drawer.expanded = false
         }
@@ -156,7 +156,7 @@ RowLayout {
                             if (!itemId) return "?";
                             return itemId.charAt(0).toUpperCase();
                         }
-                        font.pixelSize: T.Config.barIconSize * 0.6
+                        font.pixelSize: T.Config.barIconSize * Ui.trayFallbackScale
                         font.family: T.Config.fontFamily
                         anchors.centerIn: parent
                         color: T.Config.surfaceText
@@ -245,7 +245,7 @@ RowLayout {
                     rotation: drawer.expanded ? 180 : 0
 
                     Behavior on rotation {
-                        NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+                        NumberAnimation { duration: Ui.drawerSlideMs; easing.type: Easing.OutCubic }
                     }
                 }
             }
@@ -338,7 +338,7 @@ RowLayout {
                     visible: S.Notifications.doNotDisturb && S.Notifications.unreadCount > 0
                     Layout.alignment: Qt.AlignVCenter
                     text: "· " + S.Notifications.unreadCount
-                    color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.62)
+                    color: Ui.alpha(T.Config.surfaceText, Ui.detailFloor)
                     font.pixelSize: T.Config.fontSizeSubtext
                     font.family: T.Config.fontFamily
                 }
@@ -350,9 +350,9 @@ RowLayout {
                 anchors.top: parent.top
                 anchors.rightMargin: 2
                 anchors.topMargin: 2
-                width: 7
-                height: 7
-                radius: 3.5
+                width: Ui.dotSize
+                height: Ui.dotSize
+                radius: Ui.dotSize / 2
                 antialiasing: true
                 color: T.Config.accent
             }

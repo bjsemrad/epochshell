@@ -6,6 +6,11 @@ import qs.theme as T
 
 Singleton {
     id: tail
+    readonly property int statusPollMs: 30000
+    readonly property int incomingPollMs: 10000
+    readonly property int transferTimeoutMs: 120000
+    readonly property int requestTimeoutMs: 5000
+    readonly property int retryMs: 2000
 
     property bool connected: false
     property bool available: false
@@ -92,14 +97,14 @@ Singleton {
 
     Timer {
         id: statusProcTim
-        interval: 30000
+        interval: tail.statusPollMs
         running: true
         repeat: true
         onTriggered: refresh()
     }
     Timer {
         id: incomingProcTim
-        interval: 10000
+        interval: tail.incomingPollMs
         running: true
         repeat: true
         onTriggered: refreshIncoming()
@@ -144,7 +149,7 @@ Singleton {
         const request = _requestQueue[0];
         socket.write(JSON.stringify({ type: "api", method: request.method, params: request.params, version: 1 }) + "\n");
         socket.flush();
-        requestTimeout.interval = (request.meta.kind === "send" || request.meta.kind === "receive") ? 120000 : 5000;
+        requestTimeout.interval = (request.meta.kind === "send" || request.meta.kind === "receive") ? tail.transferTimeoutMs : tail.requestTimeoutMs;
         requestTimeout.restart();
     }
 
@@ -256,7 +261,7 @@ Singleton {
 
     Timer {
         id: requestTimeout
-        interval: 5000
+        interval: tail.requestTimeoutMs
         repeat: false
         onTriggered: {
             const request = _requestQueue.length > 0 ? _requestQueue[0] : null;
@@ -271,7 +276,7 @@ Singleton {
 
     Timer {
         id: retryTimer
-        interval: 2000
+        interval: tail.retryMs
         repeat: true
         running: socketLoader.item === null || !socketLoader.item.connected
         onTriggered: rebuildSocket()

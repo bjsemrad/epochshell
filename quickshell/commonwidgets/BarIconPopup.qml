@@ -68,7 +68,7 @@ Rectangle {
 
     Rectangle {
         id: inner
-        implicitWidth: T.Config.barIconSize + (badge.visible ? badge.implicitWidth + 3 : 0)
+        implicitWidth: T.Config.barIconSize + (badge.visible ? badge.implicitWidth + Ui.badgeGap : 0)
         implicitHeight: T.Config.barIconSize
         color: "transparent"
         anchors.centerIn: parent
@@ -85,9 +85,9 @@ Rectangle {
             id: badge
             visible: root.badgeText.length > 0
             anchors.verticalCenter: parent.verticalCenter
-            x: T.Config.barIconSize + 3
+            x: T.Config.barIconSize + Ui.badgeGap
             text: root.badgeText
-            color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.62)
+            color: Ui.alpha(T.Config.surfaceText, Ui.detailFloor)
             font.pixelSize: T.Config.fontSizeSubtext
             font.family: T.Config.fontFamily
         }

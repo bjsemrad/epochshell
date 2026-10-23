@@ -17,19 +17,19 @@ Item {
     signal toggled()
 
     Layout.fillWidth: true
-    implicitHeight: Ui.rowHeight + 4
+    implicitHeight: Ui.headerHeight
 
     RowLayout {
         id: line
         anchors.fill: parent
-        anchors.leftMargin: 6
-        anchors.rightMargin: 6
-        spacing: 8
+        anchors.leftMargin: Ui.spaceM
+        anchors.rightMargin: Ui.spaceM
+        spacing: Ui.spaceL
 
         Item {
             id: backArrow
             visible: header.showBack
-            Layout.preferredWidth: 22
+            Layout.preferredWidth: Ui.chevronColumn
             Layout.fillHeight: true
             Text {
                 anchors.centerIn: parent
@@ -60,7 +60,7 @@ Item {
             MouseArea {
                 id: statusMouse
                 anchors.fill: parent
-                anchors.margins: -6
+                anchors.margins: -Ui.hitSlop
                 enabled: header.switchable
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
@@ -81,7 +81,7 @@ Item {
         enabled: header.showBack
         visible: enabled
         x: 0
-        width: line.x + titleText.x + Math.min(titleText.implicitWidth, titleText.width) + 8
+        width: line.x + titleText.x + Math.min(titleText.implicitWidth, titleText.width) + Ui.spaceL
         height: parent.height
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor

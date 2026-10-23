@@ -13,9 +13,9 @@ ColumnLayout {
     spacing: 0
 
     function strengthIcon(s) {
-        if (s >= 75) return "󰤨";
-        if (s >= 50) return "󰤢";
-        if (s >= 25) return "󰤟";
+        if (s >= Ui.signalStrong) return "󰤨";
+        if (s >= Ui.signalFair) return "󰤢";
+        if (s >= Ui.signalWeak) return "󰤟";
         return "󰤯";
     }
     function isSaved(ssid) {

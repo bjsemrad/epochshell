@@ -29,7 +29,7 @@ PopupWindow {
     readonly property bool attached: fromBar && T.Config.panelStyle !== "floating" && T.Config.barOpacity >= 0.5
         && (!T.Config.barCentered || T.Config.barIsLedge)
 
-    readonly property int floatingGap: 5
+    readonly property int floatingGap: Ui.floatingGap
 
     function _findUp(name) {
         for (let item = trigger; item; item = item.parent) {
@@ -49,7 +49,7 @@ PopupWindow {
         if (!onLedge) return "";
         const d = popupWidth - _ledgeNatural;
         const r = T.Config.popupRadius;
-        return d < -4 * r ? "hang" : "snap";
+        return d < -Ui.ledgeHangCorners * r ? "hang" : "snap";
     }
     readonly property bool _ledgeCard: ledgeJoin === "snap"
     readonly property real _cardWidth: ledgeJoin === "snap" ? Math.max(popupWidth, _ledgeNatural) : popupWidth
@@ -78,7 +78,7 @@ PopupWindow {
         target: popup
         property: "reveal"
         to: 1
-        duration: 260
+        duration: Ui.revealMs
         easing.type: Easing.BezierSpline
         easing.bezierCurve: popup.anim_CURVE_SMOOTH_SLIDE
     }
@@ -152,7 +152,7 @@ PopupWindow {
     }
     // Overlap the bar by a pixel only while it is solid; see-through, the doubled row shows as a
     // dark line.
-    readonly property int _overlap: T.Config.barOpacity >= 0.99 ? 1 : 0
+    readonly property int _overlap: T.Config.barOpacity >= Ui.solidOpacity ? 1 : 0
     readonly property real _barBottomRectY: T.Config.barBottom - _triggerTop - 1 - _overlap
 
     anchor {
@@ -242,7 +242,7 @@ PopupWindow {
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 240
+                    duration: Ui.fadeMs
                     easing.type: Easing.BezierSpline
                     easing.bezierCurve: anim_CURVE_SMOOTH_SLIDE
                 }
@@ -255,7 +255,7 @@ PopupWindow {
             x: popup._ledgeCard ? Math.round((parent.width - width) / 2) : 0
             width: popup.popupWidth
             height: popup.cardHeight
-            opacity: popup.attached ? Math.min(1, popup.reveal * 1.5) : 1
+            opacity: popup.attached ? Math.min(1, popup.reveal * Ui.revealFadeRate) : 1
 
             HoverHandler {
                 onHoveredChanged: {

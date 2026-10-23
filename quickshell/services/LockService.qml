@@ -6,6 +6,12 @@ import Quickshell.Services.Pam
 
 Singleton {
     id: root
+    readonly property int fingerprintRetryMs: 1500
+    readonly property int fingerprintQuickMs: 3000
+    readonly property int fingerprintAgainMs: 200
+    readonly property int fingerprintBackoffSteps: 3
+    readonly property int fingerprintMaxBackoffMs: 35000
+    readonly property int resumeFallbackMs: 20000
 
     property bool locked: false
     property bool secure: false
@@ -190,7 +196,7 @@ Singleton {
     function resumeFingerprint() {
         root.fingerprintPaused = false;
         root.fingerprintFailures = 0;
-        retryFingerprint.interval = 1500;
+        retryFingerprint.interval = root.fingerprintRetryMs;
         if (root.locked && !root.unlocking) retryFingerprint.restart();
     }
 
@@ -246,7 +252,7 @@ Singleton {
 
             // A verify that ended almost at once means the reader is unavailable: back off 1.5s,
             // 3s, 6s, ...
-            const quick = Date.now() - fingerprint.startedAt < 3000;
+            const quick = Date.now() - fingerprint.startedAt < root.fingerprintQuickMs;
             if (quick) {
                 root.fingerprintFailures += 1;
                 console.log("lock: fingerprint reader failed at once (exit " + code + (result ? ", " + result : "")
@@ -254,9 +260,9 @@ Singleton {
             } else {
                 root.fingerprintFailures = 0;
             }
-            retryFingerprint.interval = !quick ? 200
-                : root.fingerprintFailures <= 3 ? 1500 * Math.pow(2, root.fingerprintFailures - 1)
-                : 35000;
+            retryFingerprint.interval = !quick ? root.fingerprintAgainMs
+                : root.fingerprintFailures <= root.fingerprintBackoffSteps ? root.fingerprintRetryMs * Math.pow(2, root.fingerprintFailures - 1)
+                : root.fingerprintMaxBackoffMs;
             retryFingerprint.restart();
         }
     }
@@ -264,13 +270,13 @@ Singleton {
     // Timers do not advance while asleep, so this lands about 20s after waking at the latest.
     Timer {
         running: root.fingerprintPaused
-        interval: 20000
+        interval: root.resumeFallbackMs
         onTriggered: root.resumeFingerprint()
     }
 
     Timer {
         id: retryFingerprint
-        interval: 1500
+        interval: root.fingerprintRetryMs
         onTriggered: root.startFingerprint()
     }
 }

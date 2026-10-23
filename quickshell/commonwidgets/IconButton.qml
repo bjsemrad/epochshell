@@ -13,8 +13,8 @@ Item {
     signal clicked()
     signal secondaryClicked()
 
-    width: Ui.rowHeight + 4
-    height: Ui.rowHeight + 4
+    width: Ui.iconButtonSize
+    height: Ui.iconButtonSize
 
     Rectangle {
         anchors.fill: parent
@@ -39,7 +39,7 @@ Item {
     }
 
     ToolTip.visible: mouse.containsMouse && button.name.length > 0
-    ToolTip.delay: 500
+    ToolTip.delay: Ui.tooltipDelay
     ToolTip.text: button.name
 
     MouseArea {

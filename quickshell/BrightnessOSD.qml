@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
@@ -56,7 +57,7 @@ Scope {
 
     Timer {
         id: pollTimer
-        interval: 250
+        interval: Ui.osdPollMs
         running: true
         repeat: true
         onTriggered: {

@@ -6,6 +6,7 @@ import Quickshell.Io
 
 Singleton {
     id: root
+    readonly property int retryMs: 2000
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
@@ -130,7 +131,7 @@ Singleton {
 
     Timer {
         id: retry
-        interval: 2000
+        interval: root.retryMs
         repeat: true
         running: !root.connected
         onTriggered: root.rebuild()

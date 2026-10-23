@@ -5,6 +5,7 @@ import Quickshell.Io
 
 Singleton {
     id: hass
+    readonly property int refreshMs: 30000
 
     readonly property string configPath: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/epochshell-hass.json"
 
@@ -172,7 +173,7 @@ Singleton {
     }
 
     Timer {
-        interval: 30000
+        interval: hass.refreshMs
         running: configured
         repeat: true
         onTriggered: refresh()

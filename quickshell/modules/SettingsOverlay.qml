@@ -63,8 +63,8 @@ PanelWindow {
     Rectangle {
         id: card
         anchors.centerIn: parent
-        width: 520
-        height: Math.min(content.implicitHeight + T.Config.popupPadding * 3, parent.height - 80)
+        width: Ui.settingsWidth
+        height: Math.min(content.implicitHeight + T.Config.popupPadding * 3, parent.height - Ui.screenMarginV)
         radius: T.Config.popupRadius
         antialiasing: true
         color: T.Config.popupBackground

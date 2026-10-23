@@ -5,6 +5,10 @@ import Quickshell.Io
 
 Singleton {
     id: net
+    readonly property int signalStrong: 75
+    readonly property int signalFair: 50
+    readonly property int signalWeak: 25
+    readonly property int refreshMs: 5000
 
     property var networkConnections: {}
 
@@ -52,18 +56,18 @@ Singleton {
         const s = strength;
         if (!wifiConnected)
             return "󰤭";
-        if (s >= 75)
+        if (s >= net.signalStrong)
             return "󰤨";
-        if (s >= 50)
+        if (s >= net.signalFair)
             return "󰤢";
-        if (s >= 25)
+        if (s >= net.signalWeak)
             return "󰤟";
         return "󰤟";
     }
 
     Timer {
         id: refreshTimer
-        interval: 5000
+        interval: net.refreshMs
         running: true
         repeat: true
         onTriggered: refresh()

@@ -8,7 +8,7 @@ import qs.theme as T
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 480
+    popupWidth: Ui.panelWidth
 
     property string target: "region"
     property bool readText: false

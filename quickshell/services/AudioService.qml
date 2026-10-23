@@ -7,6 +7,9 @@ import Quickshell.Services.Mpris
 
 Singleton {
     id: audioService
+    readonly property int osdHideMs: 1600
+    readonly property int volumeHigh: 65
+    readonly property int volumeLow: 25
 
     property string preferredPlayerKey: ""
     property var playerStartedAt: ({})
@@ -431,7 +434,7 @@ Singleton {
 
     Timer {
         id: osdHideTimer
-        interval: 1600
+        interval: audioService.osdHideMs
         onTriggered: audioService.osdVisible = false
     }
 
@@ -462,9 +465,9 @@ Singleton {
         const vol = Pipewire.defaultAudioSink?.audio.volume * 100;
         if (Pipewire.defaultAudioSink?.audio.muted)
             return "󰝟";
-        if (vol >= 65)
+        if (vol >= audioService.volumeHigh)
             return "󰕾";
-        if (vol >= 25)
+        if (vol >= audioService.volumeLow)
             return "󰖀";
         return "󰕿";
     }

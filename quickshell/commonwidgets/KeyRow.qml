@@ -24,8 +24,8 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 6
-        anchors.rightMargin: 6
+        anchors.leftMargin: Ui.spaceM
+        anchors.rightMargin: Ui.spaceM
         spacing: 0
 
         Text {
@@ -49,7 +49,7 @@ Item {
 
         RowLayout {
             id: slot
-            spacing: 8
+            spacing: Ui.spaceL
         }
 
         Item {

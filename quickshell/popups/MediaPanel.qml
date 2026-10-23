@@ -9,7 +9,7 @@ import qs.theme as T
 HoverPopupWindow {
     id: popup
 
-    popupWidth: 480
+    popupWidth: Ui.panelWidth
     readonly property var player: S.AudioService.player
 
     function _updateHover() {
@@ -20,7 +20,7 @@ HoverPopupWindow {
 
     Timer {
         id: closeTimer
-        interval: 120
+        interval: Ui.hoverCloseDelay
         onTriggered: {
             if (!popup.popupHover && !(popup.trigger && popup.trigger.hovered)) popup.hidePanel();
         }
@@ -80,7 +80,7 @@ HoverPopupWindow {
             visible: popup.player !== null && popup.player.lengthSupported && length > 0
             key: popup.formatTime(seek.position)
             LevelSlider {
-                trackWidth: 200
+                trackWidth: Ui.sliderTrackWide
                 interactive: popup.player !== null && popup.player.canSeek && popup.player.positionSupported
                 value: seek.length > 0 ? seek.position / seek.length : 0
                 label: popup.formatTime(seek.length)
@@ -107,7 +107,7 @@ HoverPopupWindow {
             IconButton {
                 icon: "󰒮"
                 name: "previous"
-                opacity: popup.player && popup.player.canGoPrevious ? 1 : 0.35
+                opacity: popup.player && popup.player.canGoPrevious ? 1 : Ui.disabledAlpha
                 onClicked: S.AudioService.runAction("previous", true, S.AudioService.playerKey(popup.player))
             }
             IconButton {
@@ -119,7 +119,7 @@ HoverPopupWindow {
             IconButton {
                 icon: "󰒭"
                 name: "next"
-                opacity: popup.player && popup.player.canGoNext ? 1 : 0.35
+                opacity: popup.player && popup.player.canGoNext ? 1 : Ui.disabledAlpha
                 onClicked: S.AudioService.runAction("next", true, S.AudioService.playerKey(popup.player))
             }
             IconButton {

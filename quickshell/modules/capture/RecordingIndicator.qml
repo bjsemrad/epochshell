@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import QtQuick.Layouts
 import qs.services as S
 import qs.theme as T
@@ -30,8 +31,8 @@ Rectangle {
             SequentialAnimation on opacity {
                 running: S.Capture.recording && !mouseArea.containsMouse
                 loops: Animation.Infinite
-                NumberAnimation { from: 1.0; to: 0.35; duration: 700; easing.type: Easing.InOutQuad }
-                NumberAnimation { from: 0.35; to: 1.0; duration: 700; easing.type: Easing.InOutQuad }
+                NumberAnimation { from: 1.0; to: Ui.pulseLowAlpha; duration: Ui.pulseMs; easing.type: Easing.InOutQuad }
+                NumberAnimation { from: Ui.pulseLowAlpha; to: 1.0; duration: Ui.pulseMs; easing.type: Easing.InOutQuad }
             }
         }
 

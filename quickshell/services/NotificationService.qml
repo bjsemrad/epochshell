@@ -5,6 +5,11 @@ import Quickshell.Services.Notifications
 
 Singleton {
     id: root
+    readonly property int genericIconPenalty: -100
+    readonly property int iconMatchFloor: -50
+    readonly property int thumbnailMaxBytes: 5242880
+    readonly property int thumbnailTimeoutS: 5
+    readonly property int expirySweepMs: 60000
 
     property alias toastModel: toastModel
     property alias historyModel: historyModel
@@ -123,7 +128,7 @@ Singleton {
         let bestScore = -Infinity;
         for (let i = 0; i < toplevels.length; i++) {
             const t = toplevels[i];
-            let score = t.generic ? -100 : 0;
+            let score = t.generic ? root.genericIconPenalty : 0;
             for (let n = 0; n < signals.length; n++) {
                 if (t.cls.toLowerCase().indexOf(signals[n]) !== -1) score += n === 0 ? 120 : 80;
             }
@@ -143,7 +148,7 @@ Singleton {
             }
         }
 
-        if (bestScore > -50) return best;
+        if (bestScore > root.iconMatchFloor) return best;
 
         if (CompositorService.activeWindowClass.toLowerCase().startsWith(prefix)
                 && !isGenericBrowserClass(prefix, CompositorService.activeWindowClass)) {
@@ -196,7 +201,7 @@ Singleton {
             "dir=$1; shift\n" +
             "mkdir -p \"$dir\" || exit 0\n" +
             "while [ $# -ge 2 ]; do\n" +
-            "  if [ -f \"$1\" ] && timeout 5 head -c 5242881 -- \"$1\" > \"$2.tmp\" 2>/dev/null && [ $(stat -c%s -- \"$2.tmp\") -le 5242880 ]; then mv -f -- \"$2.tmp\" \"$2\"; else rm -f -- \"$2.tmp\"; fi\n" +
+            "  if [ -f \"$1\" ] && timeout " + root.thumbnailTimeoutS + " head -c " + (root.thumbnailMaxBytes + 1) + " -- \"$1\" > \"$2.tmp\" 2>/dev/null && [ $(stat -c%s -- \"$2.tmp\") -le " + root.thumbnailMaxBytes + " ]; then mv -f -- \"$2.tmp\" \"$2\"; else rm -f -- \"$2.tmp\"; fi\n" +
             "  shift 2\n" +
             "done", "--", imageStateDir];
         let copies = 0;
@@ -580,7 +585,7 @@ Singleton {
     }
 
     Timer {
-        interval: 60000
+        interval: root.expirySweepMs
         repeat: true
         running: root.historyLifetimeMinutes > 0
         onTriggered: root.expireHistory()

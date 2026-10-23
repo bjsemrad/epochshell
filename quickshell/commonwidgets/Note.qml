@@ -3,8 +3,8 @@ import QtQuick.Layouts
 
 Text {
     Layout.fillWidth: true
-    Layout.leftMargin: 6
-    Layout.rightMargin: 6
+    Layout.leftMargin: Ui.spaceM
+    Layout.rightMargin: Ui.spaceM
     Layout.topMargin: 2
     Layout.bottomMargin: 2
     color: Ui.detail

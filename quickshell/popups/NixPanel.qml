@@ -7,7 +7,7 @@ import qs.theme as T
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 500
+    popupWidth: Ui.panelWidthWide
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "nix")

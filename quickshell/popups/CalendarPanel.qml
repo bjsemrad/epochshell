@@ -7,7 +7,7 @@ import qs.theme as T
 HoverPopupWindow {
     id: popup
 
-    popupWidth: 380
+    popupWidth: Ui.calendarWidth
 
     property date today: new Date()
     property int viewYear: today.getFullYear()
@@ -56,8 +56,8 @@ HoverPopupWindow {
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.topMargin: 4
-            Layout.bottomMargin: 4
+            Layout.topMargin: Ui.spaceS
+            Layout.bottomMargin: Ui.spaceS
             spacing: 0
 
             component Arrow: Text {
@@ -71,7 +71,7 @@ HoverPopupWindow {
                 MouseArea {
                     id: arrowMouse
                     anchors.fill: parent
-                    anchors.margins: -4
+                    anchors.margins: -Ui.hitSlopSmall
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: popup.moveMonth(arrow.by)
@@ -92,7 +92,7 @@ HoverPopupWindow {
 
         GridLayout {
             Layout.fillWidth: true
-            Layout.bottomMargin: 6
+            Layout.bottomMargin: Ui.spaceM
             columns: 7
             rowSpacing: 2
             columnSpacing: 0
@@ -133,7 +133,7 @@ HoverPopupWindow {
                         visible: parent.isToday
                         anchors.top: number.bottom
                         anchors.horizontalCenter: number.horizontalCenter
-                        width: number.width + 4
+                        width: number.width + Ui.spaceS
                         height: Ui.tick
                         color: Ui.accent
                     }

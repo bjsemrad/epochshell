@@ -25,7 +25,13 @@ Rectangle {
     readonly property bool low: urgency === 0
     readonly property bool hovered: mouseArea.containsMouse || closeMouse.containsMouse || moreMouse.containsMouse
     readonly property string iconSource: iconSourceOf(appIcon.length > 0 ? appIcon : image)
-    readonly property string pictureSource: image.length > 0 && image !== appIcon ? iconSourceOf(image) : ""
+    // `image-path` may be an icon name (Trayscale sends its own): that is an icon, never a picture.
+    readonly property string pictureSource: image.length > 0 && image !== appIcon && isPicture(image) ? iconSourceOf(image) : ""
+    function isPicture(value) {
+        const v = String(value);
+        if (v.startsWith("image://icon/")) return false;
+        return v.startsWith("/") || v.startsWith("file:") || v.startsWith("http") || v.startsWith("data:") || v.startsWith("image:");
+    }
     function iconSourceOf(icon) {
         const value = String(icon || "");
         if (value.length === 0) return "";
@@ -35,9 +41,9 @@ Rectangle {
     }
     function readableRed() {
         const red = T.Config.red;
-        for (let t = 0; t <= 1; t += 0.1) {
+        for (let t = 0; t <= 1; t += Ui.contrastStep) {
             const c = Qt.rgba(red.r + (1 - red.r) * t, red.g + (1 - red.g) * t, red.b + (1 - red.b) * t, 1);
-            if (Ui.contrast(c, T.Config.background) >= 4.5) return c;
+            if (Ui.contrast(c, T.Config.background) >= Ui.contrastText) return c;
         }
         return Qt.rgba(1, 1, 1, 1);
     }
@@ -56,14 +62,14 @@ Rectangle {
         return Math.floor(minutes / 60) + "h";
     }
 
-    implicitWidth: 340
-    implicitHeight: content.implicitHeight + 24
+    implicitWidth: Ui.toastWidth
+    implicitHeight: content.implicitHeight + Ui.toastPadding * 2
     width: implicitWidth
     height: implicitHeight
     radius: T.Config.popupRadius
     antialiasing: true
     clip: true
-    color: root.hovered ? Ui.over(T.Config.surfaceContainer, 0.6) : T.Config.popupBackground
+    color: root.hovered ? Ui.over(T.Config.surfaceContainer, Ui.toastHoverMix) : T.Config.popupBackground
     border.width: 1
     border.color: root.critical ? T.Config.red : T.Config.outline
 
@@ -93,22 +99,22 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: 12
-        spacing: 8
+        anchors.margins: Ui.toastPadding
+        spacing: Ui.spaceL
 
         Item {
-            Layout.preferredWidth: 22
-            Layout.preferredHeight: 18
+            Layout.preferredWidth: Ui.toastIconColumn
+            Layout.preferredHeight: Ui.toastIconSize
             Layout.alignment: Qt.AlignTop
             Layout.topMargin: 1
             Image {
                 id: appIconImage
-                width: 18
-                height: 18
+                width: Ui.toastIconSize
+                height: Ui.toastIconSize
                 visible: root.iconSource.length > 0 && status !== Image.Error
                 source: root.iconSource
-                sourceSize.width: 18 * Screen.devicePixelRatio
-                sourceSize.height: 18 * Screen.devicePixelRatio
+                sourceSize.width: Ui.toastIconSize * Screen.devicePixelRatio
+                sourceSize.height: Ui.toastIconSize * Screen.devicePixelRatio
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 smooth: true
@@ -117,7 +123,7 @@ Rectangle {
                 visible: !appIconImage.visible
                 text: "󰂚"
                 color: Ui.detail
-                font.pixelSize: 16
+                font.pixelSize: Ui.toastIconSize
                 font.family: Ui.font
             }
         }
@@ -125,17 +131,17 @@ Rectangle {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignTop
-            spacing: 3
+            spacing: Ui.spaceXS
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 4
+                spacing: Ui.spaceS
                 Text {
                     Layout.fillWidth: true
                     text: [root.appName.toLowerCase(), root.critical ? "critical" : "", root.count > 1 ? root.count + " new" : "", root.age]
                         .filter(x => x.length > 0).join(" · ")
                     color: root.critical ? root.readableRed() : Ui.key
-                    font.pixelSize: Ui.detailSize - 1
+                    font.pixelSize: Ui.detailSize
                     font.family: Ui.font
                     elide: Text.ElideRight
                 }
@@ -148,7 +154,7 @@ Rectangle {
                     MouseArea {
                         id: moreMouse
                         anchors.fill: parent
-                        anchors.margins: -6
+                        anchors.margins: -Ui.hitSlop
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: root.historyRequested()
@@ -161,7 +167,7 @@ Rectangle {
                 Layout.fillWidth: true
                 text: root.plain(root.summary)
                 color: root.low ? Ui.detail : Ui.value
-                font.pixelSize: Ui.valueSize - 1
+                font.pixelSize: Ui.valueSize
                 font.family: Ui.font
                 elide: Text.ElideRight
                 maximumLineCount: 1
@@ -175,31 +181,31 @@ Rectangle {
                 font.pixelSize: Ui.detailSize
                 font.family: Ui.font
                 wrapMode: Text.Wrap
-                maximumLineCount: 3
+                maximumLineCount: Ui.toastBodyLines
                 elide: Text.ElideRight
             }
 
             Image {
                 visible: root.pictureSource.length > 0 && status === Image.Ready
                 Layout.fillWidth: true
-                Layout.preferredHeight: visible ? Math.min(120, implicitHeight > 0 ? implicitHeight * width / Math.max(1, implicitWidth) : 120) : 0
-                Layout.topMargin: 4
+                Layout.preferredHeight: visible ? Math.min(Ui.toastImageMaxHeight, implicitHeight > 0 ? implicitHeight * width / Math.max(1, implicitWidth) : Ui.toastImageMaxHeight) : 0
+                Layout.topMargin: Ui.spaceS
                 source: root.pictureSource
-                sourceSize.width: 340
+                sourceSize.width: Ui.toastWidth
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
             }
 
             Row {
                 visible: root.actions.length > 0
-                Layout.topMargin: 4
-                spacing: 4
+                Layout.topMargin: Ui.spaceS
+                spacing: Ui.spaceS
                 Repeater {
                     model: root.actions
                     delegate: Rectangle {
                         required property var modelData
-                        width: actionText.implicitWidth + 10
-                        height: actionText.implicitHeight + 6
+                        width: actionText.implicitWidth + Ui.actionPadX
+                        height: actionText.implicitHeight + Ui.actionPadY
                         radius: Ui.hoverRadius
                         color: actionMouse.containsMouse ? Ui.hover : "transparent"
                         Text {
@@ -224,7 +230,7 @@ Rectangle {
 
         Text {
             Layout.alignment: Qt.AlignTop
-            Layout.preferredWidth: 14
+            Layout.preferredWidth: Ui.toastCloseColumn
             text: "×"
             opacity: root.hovered ? 1 : 0
             color: closeMouse.containsMouse ? Ui.value : Ui.detail
@@ -233,7 +239,7 @@ Rectangle {
             MouseArea {
                 id: closeMouse
                 anchors.fill: parent
-                anchors.margins: -6
+                anchors.margins: -Ui.hitSlop
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.dismissRequested()

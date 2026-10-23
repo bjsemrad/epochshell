@@ -1,12 +1,13 @@
 import QtQuick
+import qs.commonwidgets
 import qs.theme as T
 import qs.services as S
 
 Item {
     id: root
 
-    implicitWidth: 320
-    implicitHeight: 46
+    implicitWidth: Ui.lockFieldWidth
+    implicitHeight: Ui.lockFieldHeight
 
     // Qt does not report Caps Lock; inferred from a letter's case against Shift.
     property bool capsLock: false
@@ -31,54 +32,54 @@ Item {
         width: parent.width
         height: parent.height
         radius: 2
-        color: Qt.rgba(0, 0, 0, 0.55)
+        color: Qt.rgba(0, 0, 0, Ui.lockFieldAlpha)
 
         SequentialAnimation {
             id: shake
             loops: 1
-            NumberAnimation { target: pill; property: "x"; to: -10; duration: 45; easing.type: Easing.OutQuad }
-            NumberAnimation { target: pill; property: "x"; to: 10; duration: 70; easing.type: Easing.InOutQuad }
-            NumberAnimation { target: pill; property: "x"; to: -6; duration: 60; easing.type: Easing.InOutQuad }
-            NumberAnimation { target: pill; property: "x"; to: 4; duration: 50; easing.type: Easing.InOutQuad }
-            NumberAnimation { target: pill; property: "x"; to: 0; duration: 40; easing.type: Easing.OutQuad }
+            NumberAnimation { target: pill; property: "x"; to: Ui.shakeLarge[0]; duration: Ui.shakeLargeMs[0]; easing.type: Easing.OutQuad }
+            NumberAnimation { target: pill; property: "x"; to: Ui.shakeLarge[1]; duration: Ui.shakeLargeMs[1]; easing.type: Easing.InOutQuad }
+            NumberAnimation { target: pill; property: "x"; to: Ui.shakeLarge[2]; duration: Ui.shakeLargeMs[2]; easing.type: Easing.InOutQuad }
+            NumberAnimation { target: pill; property: "x"; to: Ui.shakeLarge[3]; duration: Ui.shakeLargeMs[3]; easing.type: Easing.InOutQuad }
+            NumberAnimation { target: pill; property: "x"; to: Ui.shakeLarge[4]; duration: Ui.shakeLargeMs[4]; easing.type: Easing.OutQuad }
         }
 
         Rectangle {
-            width: 3
+            width: Ui.tick
             height: parent.height
             color: root.failed ? T.Config.red : T.Config.accent
         }
 
         Text {
             id: promptGlyph
-            x: 12
+            x: Ui.space2XL
             anchors.verticalCenter: parent.verticalCenter
             text: "›"
             color: root.failed ? T.Config.red : T.Config.accent
             font.family: T.Config.fontFamily
-            font.pixelSize: T.Config.fontSizeNormal + 6
+            font.pixelSize: Ui.lockGlyphSize
         }
 
         Text {
-            x: promptGlyph.x + promptGlyph.width + 10
+            x: promptGlyph.x + promptGlyph.width + Ui.spaceXL
             anchors.verticalCenter: parent.verticalCenter
             visible: S.Lock.buffer.length === 0 && !S.Lock.checking
             text: S.Lock.fingerprintActive ? "password or touch the reader" : "password"
-            color: Qt.rgba(1, 1, 1, 0.55)
+            color: Qt.rgba(1, 1, 1, Ui.lockHintAlpha)
             font.family: T.Config.fontFamily
             font.pixelSize: T.Config.fontSizeNormal
         }
 
         Row {
-            x: promptGlyph.x + promptGlyph.width + 10
+            x: promptGlyph.x + promptGlyph.width + Ui.spaceXL
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 6
+            spacing: Ui.spaceM
             visible: !S.Lock.checking
             Repeater {
-                model: Math.min(S.Lock.buffer.length, 20)
+                model: Math.min(S.Lock.buffer.length, Ui.lockMaxDots)
                 delegate: Rectangle {
-                    width: 7
-                    height: 7
+                    width: Ui.dotSize
+                    height: Ui.dotSize
                     radius: 2
                     color: "white"
                 }
@@ -86,25 +87,25 @@ Item {
         }
 
         Row {
-            x: promptGlyph.x + promptGlyph.width + 10
+            x: promptGlyph.x + promptGlyph.width + Ui.spaceXL
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 6
+            spacing: Ui.spaceM
             visible: S.Lock.checking
             Repeater {
-                model: 3
+                model: Ui.busyDots
                 delegate: Rectangle {
                     required property int index
-                    width: 7
-                    height: 7
+                    width: Ui.dotSize
+                    height: Ui.dotSize
                     radius: 2
                     color: "white"
                     SequentialAnimation on opacity {
                         running: S.Lock.checking
                         loops: Animation.Infinite
-                        PauseAnimation { duration: index * 150 }
-                        NumberAnimation { from: 0.25; to: 1; duration: 300 }
-                        NumberAnimation { from: 1; to: 0.25; duration: 300 }
-                        PauseAnimation { duration: (2 - index) * 150 }
+                        PauseAnimation { duration: index * Ui.busyStaggerMs }
+                        NumberAnimation { from: Ui.busyLowAlpha; to: 1; duration: Ui.busyPulseMs }
+                        NumberAnimation { from: 1; to: Ui.busyLowAlpha; duration: Ui.busyPulseMs }
+                        PauseAnimation { duration: (Ui.busyDots - 1 - index) * Ui.busyStaggerMs }
                     }
                 }
             }
@@ -112,17 +113,17 @@ Item {
 
         Text {
             anchors.right: parent.right
-            anchors.rightMargin: 14
+            anchors.rightMargin: Ui.space3XL
             anchors.verticalCenter: parent.verticalCenter
             visible: S.Lock.fingerprintActive
             text: "󰈷"
-            color: Qt.rgba(1, 1, 1, 0.6)
+            color: Qt.rgba(1, 1, 1, Ui.lockGlyphAlpha)
             font.family: T.Config.fontFamily
             font.pixelSize: T.Config.fontSizeLarge
         }
     }
 
-    readonly property real textIndent: promptGlyph.x + promptGlyph.width + 10
+    readonly property real textIndent: promptGlyph.x + promptGlyph.width + Ui.spaceXL
 
     // Invisible; Password echo so nothing inspecting the item (an accessibility tree) can read it
     // back.

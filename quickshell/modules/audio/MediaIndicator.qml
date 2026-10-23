@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import QtQuick.Layouts
 import Quickshell.Widgets
 import qs.services as S
@@ -6,6 +7,8 @@ import qs.theme as T
 
 Rectangle {
     id: root
+    readonly property int marqueeMinMs: 6000
+    readonly property int marqueeMsPerPx: 25
 
     property var popup
     readonly property var player: S.AudioService.player
@@ -17,7 +20,7 @@ Rectangle {
     color: popup && popup.open ? T.Config.onBar(T.Config.surfaceContainer) : mouseArea.containsMouse ? T.Config.onBar(T.Config.surfaceContainer) : "transparent"
     radius: T.Config.popupRadius
     antialiasing: true
-    implicitWidth: buttonOnly ? implicitHeight : Math.min(content.implicitWidth + T.Config.barModuleHorizontalPadding, 220)
+    implicitWidth: buttonOnly ? implicitHeight : Math.min(content.implicitWidth + T.Config.barModuleHorizontalPadding, Ui.mediaButtonMaxWidth)
     implicitHeight: content.implicitHeight + T.Config.barModuleVerticalPadding
 
     MouseArea {
@@ -50,7 +53,7 @@ Rectangle {
 
     Timer {
         id: hoverOpen
-        interval: 250
+        interval: Ui.hoverOpenDelay
         onTriggered: if (root.hovered && root.popup && !root.popup.open) root.popup.showPanel()
     }
 
@@ -80,7 +83,7 @@ Rectangle {
 
         Item {
             id: titleClip
-            Layout.preferredWidth: Math.min(titleText.implicitWidth, 160)
+            Layout.preferredWidth: Math.min(titleText.implicitWidth, Ui.mediaTitleMax)
             Layout.preferredHeight: titleText.implicitHeight
             Layout.alignment: Qt.AlignVCenter
             clip: true
@@ -128,7 +131,7 @@ Rectangle {
                     id: scrollAnim
                     target: titleText
                     property: "x"
-                    duration: Math.max(6000, titleText.implicitWidth * 25)
+                    duration: Math.max(root.marqueeMinMs, titleText.implicitWidth * root.marqueeMsPerPx)
                     from: titleClip.width
                     to: -titleText.implicitWidth
                     easing.type: Easing.Linear

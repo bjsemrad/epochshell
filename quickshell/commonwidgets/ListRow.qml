@@ -72,7 +72,7 @@ Item {
         visible: row.current
         x: 0
         width: Ui.tick
-        height: parent.height - 10
+        height: parent.height - Ui.rowHoverInset
         anchors.verticalCenter: parent.verticalCenter
         color: Ui.accent
     }
@@ -80,9 +80,9 @@ Item {
     RowLayout {
         id: content
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 6
-        spacing: 6
+        anchors.leftMargin: Ui.tickClearance
+        anchors.rightMargin: Ui.spaceM
+        spacing: Ui.spaceM
 
         Item {
             visible: row.iconSource.length > 0
@@ -131,7 +131,7 @@ Item {
             Layout.preferredWidth: implicitWidth
             text: row.detail
             // opacity, not visible, so the layout does not change with it.
-            opacity: truncated && width < 72 ? 0 : 1
+            opacity: truncated && width < Ui.detailMinWidth ? 0 : 1
             color: Ui.detail
             font.pixelSize: Ui.detailSize
             font.family: Ui.font
@@ -158,8 +158,8 @@ Item {
 
         Item {
             visible: row.hasPage
-            Layout.preferredWidth: 22
-            Layout.minimumWidth: 22
+            Layout.preferredWidth: Ui.chevronColumn
+            Layout.minimumWidth: Ui.chevronColumn
             Layout.fillHeight: true
 
             Text {
@@ -173,8 +173,8 @@ Item {
             MouseArea {
                 id: chevronMouse
                 anchors.fill: parent
-                anchors.leftMargin: -8
-                anchors.rightMargin: -6
+                anchors.leftMargin: -Ui.chevronSlop
+                anchors.rightMargin: -Ui.hitSlop
                 enabled: row.interactive && row.toggleable && row.hasPage
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor

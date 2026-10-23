@@ -8,7 +8,7 @@ Row {
     property string current: ""
     signal picked(string value)
 
-    spacing: 12
+    spacing: Ui.space2XL
 
     Repeater {
         model: choice.options

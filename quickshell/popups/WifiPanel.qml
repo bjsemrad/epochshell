@@ -8,7 +8,7 @@ import qs.popups.pages
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 480
+    popupWidth: Ui.panelWidth
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "wifi")

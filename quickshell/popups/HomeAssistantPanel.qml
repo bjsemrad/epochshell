@@ -7,7 +7,7 @@ import qs.theme as T
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 480
+    popupWidth: Ui.panelWidth
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "homeassistant")
@@ -39,7 +39,7 @@ HoverPopupWindow {
         Flickable {
             visible: S.HomeAssistant.rows.count > 0
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.min(entities.implicitHeight, 420)
+            Layout.preferredHeight: Math.min(entities.implicitHeight, Ui.panelListMaxHeight)
             contentWidth: width
             contentHeight: entities.implicitHeight
             clip: true

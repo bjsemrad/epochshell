@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
@@ -41,7 +42,7 @@ Scope {
     }
 
     Timer {
-        interval: 250
+        interval: Ui.osdPollMs
         running: root.available
         repeat: true
         onTriggered: brightnessFile.reload()

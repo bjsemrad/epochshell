@@ -88,22 +88,22 @@ ColumnLayout {
         visible: T.Config.barFloating && !T.Config.barIsLedge
         key: "top gap"
         LevelSlider {
-            value: T.Config.barFloatingGap / 24
-            step: 1 / 24
+            value: T.Config.barFloatingGap / Ui.topGapMax
+            step: 1 / Ui.topGapMax
             label: T.Config.barFloatingGap + "px"
-            onMoved: v => T.Config.barFloatingGap = Math.round(v * 24)
-            onCommitted: v => T.Config.setSetting("barFloatingGap", Math.round(v * 24))
+            onMoved: v => T.Config.barFloatingGap = Math.round(v * Ui.topGapMax)
+            onCommitted: v => T.Config.setSetting("barFloatingGap", Math.round(v * Ui.topGapMax))
         }
     }
     KeyRow {
         visible: T.Config.barFloating
         key: "side gap"
         LevelSlider {
-            value: T.Config.barFloatingSideGap / 48
-            step: 1 / 48
+            value: T.Config.barFloatingSideGap / Ui.sideGapMax
+            step: 1 / Ui.sideGapMax
             label: T.Config.barFloatingSideGap + "px"
-            onMoved: v => T.Config.barFloatingSideGap = Math.round(v * 48)
-            onCommitted: v => T.Config.setSetting("barFloatingSideGap", Math.round(v * 48))
+            onMoved: v => T.Config.barFloatingSideGap = Math.round(v * Ui.sideGapMax)
+            onCommitted: v => T.Config.setSetting("barFloatingSideGap", Math.round(v * Ui.sideGapMax))
         }
     }
 
@@ -131,7 +131,7 @@ ColumnLayout {
         Stepper {
             value: T.Config.workspaceIconLimit
             from: 0
-            to: 6
+            to: Ui.iconLimitMax
             onStepped: v => page.choose("workspaceIconLimit", v)
         }
     }

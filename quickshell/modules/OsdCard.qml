@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import Quickshell
 import Quickshell.Wayland
 import qs.services as S
@@ -13,10 +14,10 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "epochshell-osd"
             anchors.top: true
-            margins.top: S.OsdService.barReady[S.OsdService.screenName] === undefined ? 50 : 8
+            margins.top: S.OsdService.barReady[S.OsdService.screenName] === undefined ? Ui.osdTopNoBar : Ui.osdTopGap
             exclusiveZone: 0
-            implicitWidth: 340
-            implicitHeight: 46
+            implicitWidth: Ui.osdWidth
+            implicitHeight: Ui.osdHeight
             color: "transparent"
             mask: Region {}
 

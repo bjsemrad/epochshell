@@ -5,6 +5,9 @@ import Quickshell.Io
 
 Singleton {
     id: root
+    readonly property int rescanMs: 120000
+    readonly property int retryMs: 5000
+    readonly property int resubscribeMs: 10000
 
     readonly property string socketPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/epochoxide.sock"
 
@@ -77,7 +80,7 @@ Singleton {
     }
 
     Timer {
-        interval: 120000
+        interval: root.rescanMs
         repeat: true
         running: root.connected && !root.streaming
         triggeredOnStart: true
@@ -85,14 +88,14 @@ Singleton {
     }
 
     Timer {
-        interval: 5000
+        interval: root.retryMs
         repeat: true
         running: !root.connected
         onTriggered: root.rebuildSocket()
     }
 
     Timer {
-        interval: 10000
+        interval: root.resubscribeMs
         repeat: true
         running: root.connected && !root.streaming
         onTriggered: root.rebuildSubscription()

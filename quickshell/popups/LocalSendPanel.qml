@@ -8,7 +8,7 @@ import qs.theme as T
 HoverPopupWindow {
     id: panel
 
-    popupWidth: 500
+    popupWidth: Ui.panelWidthWide
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "localsend")
@@ -73,7 +73,7 @@ HoverPopupWindow {
                     interactive: false
 
                     Row {
-                        spacing: 12
+                        spacing: Ui.space2XL
                         Repeater {
                             model: [{ label: "accept", accept: true }, { label: "decline", accept: false }]
                             delegate: Text {

@@ -24,7 +24,7 @@ ColumnLayout {
         visible: S.BatteryService.hasBattery
         key: "charge"
         Gauge {
-            segments: 20
+            segments: Ui.batterySegments
             value: S.BatteryService.percentage / 100
         }
     }

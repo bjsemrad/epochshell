@@ -10,10 +10,12 @@ import qs.popups.pages
 
 HoverPopupWindow {
     id: dash
+    readonly property int ethernetPollMs: 5000
+    readonly property int wifiPollMs: 10000
 
     property string page: "main"
 
-    popupWidth: 520
+    popupWidth: Ui.dashboardWidth
 
     readonly property var pageForName: ({
         "wifi": "wifi",
@@ -46,7 +48,7 @@ HoverPopupWindow {
 
     Timer {
         id: pageSettle
-        interval: 400
+        interval: Ui.pageSettleMs
         onTriggered: dash.stopHide = false
     }
 
@@ -91,7 +93,7 @@ HoverPopupWindow {
     }
 
     Timer {
-        interval: dash.page === "ethernet" ? 5000 : 10000
+        interval: dash.page === "ethernet" ? dash.ethernetPollMs : dash.wifiPollMs
         repeat: true
         running: dash.open && (dash.page === "wifi" || dash.page === "ethernet")
         onTriggered: S.Network.refresh()
@@ -127,7 +129,7 @@ HoverPopupWindow {
         font.pixelSize: Ui.valueSize
         text: "notifications"
     }
-    readonly property real valueColumn: Math.ceil(longestName.width) + 10
+    readonly property real valueColumn: Math.ceil(longestName.width) + Ui.spaceXL
 
     readonly property bool wired: S.Network.ethernetConnected || (!S.Network.wifiDevice && S.Network.ethernetDevice)
     readonly property var sink: Pipewire.defaultAudioSink
@@ -148,12 +150,12 @@ HoverPopupWindow {
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.bottomMargin: 4
+                Layout.bottomMargin: Ui.spaceS
                 spacing: 2
 
                 Text {
                     Layout.fillWidth: true
-                    Layout.leftMargin: 6
+                    Layout.leftMargin: Ui.spaceM
                     text: [dash.username, [dash.hostname, S.SystemInfo.kernel].filter(x => x && x.length > 0).join(" "),
                         Qt.formatDate(clock.date, "ddd d MMM").toLowerCase()].filter(x => x && x.length > 0).join(" · ")
                     color: Ui.detail
@@ -253,7 +255,7 @@ HoverPopupWindow {
                 onOpened: dash.goTo("audio")
 
                 LevelSlider {
-                    trackWidth: 110
+                    trackWidth: Ui.sliderTrackCompact
                     value: dash.sink && dash.sink.audio ? dash.sink.audio.volume : 0
                     muted: dash.sink !== null && dash.sink.audio !== null && dash.sink.audio.muted
                     onMoved: v => { if (dash.sink && dash.sink.audio) dash.sink.audio.volume = v; }

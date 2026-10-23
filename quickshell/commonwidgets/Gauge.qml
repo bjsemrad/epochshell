@@ -5,14 +5,14 @@ Row {
     id: gauge
 
     property real value: 0
-    property int segments: 10
+    property int segments: Ui.gaugeSegments
     property bool muted: false
     property string label: muted ? "muted" : Math.round(value * 100) + "%"
     property bool showLabel: true
     property int segmentHeight: Ui.segmentHeight
     property color filled: Ui.segmentOn
 
-    spacing: 8
+    spacing: Ui.spaceL
 
     Item {
         width: gauge.segments * (Ui.segmentWidth + Ui.segmentGap) - Ui.segmentGap

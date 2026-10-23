@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import Quickshell
 import qs.services as S
 
@@ -10,7 +11,7 @@ Scope {
             kind: "media",
             icon: S.AudioService.osdIcon,
             text: S.AudioService.osdMessage
-        }, 1600);
+        }, Ui.osdMediaMs);
     }
 
     Connections {

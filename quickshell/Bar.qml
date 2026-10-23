@@ -83,10 +83,10 @@ Scope {
                 && S.PopupManager.launcher.screenName === modelData.name
             readonly property bool osdHere: S.OsdService.visible && S.OsdService.inBar && S.OsdService.screenName === modelData.name
             readonly property real osdWidth: {
-                if (barWindow.centered) return 340;
-                const half = Math.min(barWindow.width / 2 - (leftSide.x + leftSide.width) - 12,
-                    rightSide.x - barWindow.width / 2 - 12);
-                return Math.max(220, Math.min(340, Math.floor(half * 2)));
+                if (barWindow.centered) return Ui.osdWidth;
+                const half = Math.min(barWindow.width / 2 - (leftSide.x + leftSide.width) - Ui.osdClearance,
+                    rightSide.x - barWindow.width / 2 - Ui.osdClearance);
+                return Math.max(Ui.osdMinWidth, Math.min(Ui.osdWidth, Math.floor(half * 2)));
             }
 
             BarPanels { id: pillPanels }
@@ -95,7 +95,7 @@ Scope {
             Rectangle {
                 id: pill
                 readonly property real natural: Math.max(barWindow.centeredContentWidth + barWindow.pillPadding * 2,
-                    barWindow.osdHere ? 340 + barWindow.pillPadding * 2 : 0,
+                    barWindow.osdHere ? Ui.osdWidth + barWindow.pillPadding * 2 : 0,
                     barWindow.launcherHere ? S.PopupManager.launcher.panelWidth : 0)
                 visible: barWindow.centered
                 x: Math.round((barWindow.width - width) / 2)
@@ -132,7 +132,7 @@ Scope {
                 y: T.Config.barHeight - 1
                 width: pill.width - T.Config.popupPadding * 2
                 height: 1
-                color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.10)
+                color: Ui.alpha(T.Config.surfaceText, Ui.hairlineAlpha)
             }
 
             Item {
@@ -159,16 +159,16 @@ Scope {
                 x: Math.round(centerSide.x - (barWindow.groupGap + width) / 2)
                 y: T.Config.barTopGap + Math.round((T.Config.barHeight - height) / 2)
                 width: 1
-                height: Math.round(T.Config.barHeight * 0.45)
-                color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.18)
+                height: Math.round(T.Config.barHeight * Ui.separatorHeight)
+                color: Ui.alpha(T.Config.surfaceText, Ui.separatorAlpha)
             }
             Rectangle {
                 visible: barWindow.centered && rightSide.width > 0 && !barWindow.osdHere
                 x: Math.round(centerSide.x + centerSide.width + (barWindow.groupGap - width) / 2)
                 y: T.Config.barTopGap + Math.round((T.Config.barHeight - height) / 2)
                 width: 1
-                height: Math.round(T.Config.barHeight * 0.45)
-                color: Qt.rgba(T.Config.surfaceText.r, T.Config.surfaceText.g, T.Config.surfaceText.b, 0.18)
+                height: Math.round(T.Config.barHeight * Ui.separatorHeight)
+                color: Ui.alpha(T.Config.surfaceText, Ui.separatorAlpha)
             }
 
             // Belt and braces with the backend's logind inhibitor: a Wayland idle-inhibit also
@@ -235,7 +235,7 @@ Scope {
             RowLayout {
                 id: rightSide
                 visible: !(barWindow.osdHere && barWindow.centered)
-                spacing: Math.max(4, Math.round(T.Config.barModuleSpacing / 2))
+                spacing: Math.max(Ui.spaceS, Math.round(T.Config.barModuleSpacing / 2))
                 readonly property var barPanels: barWindow.centered ? pillPanels : panelTracker
                 readonly property Item barPill: barWindow.centered ? pillBody : null
                 readonly property Item barStrip: barArea

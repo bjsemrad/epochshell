@@ -141,8 +141,8 @@ PanelWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.margins: 20
-        height: root.grid && root.tab === "wallpaper" ? Math.round(parent.height * 0.45) : 168
+        anchors.margins: Ui.stripMargin
+        height: root.grid && root.tab === "wallpaper" ? Math.round(parent.height * Ui.stripGridFraction) : Ui.stripHeight
         radius: T.Config.popupRadius
         antialiasing: true
         color: T.Config.popupBackground
@@ -192,20 +192,20 @@ PanelWindow {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 12
-            spacing: 6
+            anchors.margins: Ui.space2XL
+            spacing: Ui.spaceM
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 26
-                spacing: 18
+                Layout.preferredHeight: Ui.stripHeaderHeight
+                spacing: Ui.stripTabGap
 
                 Repeater {
                     model: ["wallpaper", "theme"]
                     delegate: Item {
                         required property string modelData
                         implicitWidth: tabText.implicitWidth
-                        implicitHeight: 24
+                        implicitHeight: Ui.stripControlHeight
                         Text {
                             id: tabText
                             anchors.verticalCenter: parent.verticalCenter
@@ -231,11 +231,11 @@ PanelWindow {
                 }
 
                 Row {
-                    spacing: 8
+                    spacing: Ui.spaceL
                     Text {
                         text: "›"
                         color: T.Config.accent
-                        font.pixelSize: Ui.detailSize + 2
+                        font.pixelSize: Ui.detailSize
                         font.family: Ui.font
                     }
                     Text {
@@ -268,7 +268,7 @@ PanelWindow {
                     ] : []
                     delegate: Row {
                         required property var modelData
-                        spacing: 8
+                        spacing: Ui.spaceL
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: strip.width < 900 ? modelData.label.charAt(0) : modelData.label
@@ -278,8 +278,8 @@ PanelWindow {
                         }
                         LevelSlider {
                             anchors.verticalCenter: parent.verticalCenter
-                            implicitHeight: 24
-                            trackWidth: 90
+                            implicitHeight: Ui.stripControlHeight
+                            trackWidth: Ui.sliderTrackTiny
                             value: T.Config[modelData.key]
                             onMoved: v => T.Config[modelData.key] = v
                             onCommitted: v => T.Config.setSetting(modelData.key, v)
@@ -306,18 +306,18 @@ PanelWindow {
                 id: thumb
                 required property string path
                 required property bool selected
-                width: 120
-                height: 68 + 22
-                opacity: selected ? 1 : 0.7
+                width: Ui.thumbWidth
+                height: Ui.thumbHeight + Ui.thumbLabel
+                opacity: selected ? 1 : Ui.unselectedAlpha
                 Image {
                     id: image
-                    width: 120
-                    height: 68
+                    width: Ui.thumbWidth
+                    height: Ui.thumbHeight
                     source: "file://" + thumb.path
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     cache: true
-                    sourceSize.width: 240
+                    sourceSize.width: Ui.thumbWidth * 2
                     clip: true
                 }
                 Rectangle {
@@ -328,11 +328,11 @@ PanelWindow {
                     color: T.Config.accent
                 }
                 Text {
-                    y: image.height + 6
+                    y: image.height + Ui.spaceM
                     width: image.width
                     text: S.Wallpaper.displayName(thumb.path) + (thumb.path === root.entryWallpaper ? " •" : "")
                     color: thumb.selected ? Ui.value : Ui.detail
-                    font.pixelSize: Ui.detailSize - 1
+                    font.pixelSize: Ui.detailSize
                     font.family: Ui.font
                     elide: Text.ElideMiddle
                 }
@@ -344,13 +344,13 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 orientation: ListView.Horizontal
-                spacing: 10
+                spacing: Ui.spaceXL
                 clip: true
                 model: root.wallpapers
                 currentIndex: root.wallpaperIndex
                 highlightRangeMode: ListView.ApplyRange
-                preferredHighlightBegin: width / 2 - 60
-                preferredHighlightEnd: width / 2 + 60
+                preferredHighlightBegin: width / 2 - Ui.thumbWidth / 2
+                preferredHighlightEnd: width / 2 + Ui.thumbWidth / 2
                 highlightMoveDuration: 0
                 delegate: Thumb {
                     required property string modelData
@@ -370,8 +370,8 @@ PanelWindow {
                 visible: root.tab === "wallpaper" && root.grid && root.wallpapers.length > 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                cellWidth: 130
-                cellHeight: 100
+                cellWidth: Ui.gridCellWidth
+                cellHeight: Ui.gridCellHeight
                 clip: true
                 model: root.wallpapers
                 currentIndex: root.wallpaperIndex
@@ -395,13 +395,13 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 orientation: ListView.Horizontal
-                spacing: 10
+                spacing: Ui.spaceXL
                 clip: true
                 model: root.themes
                 currentIndex: root.themeIndex
                 highlightRangeMode: ListView.ApplyRange
-                preferredHighlightBegin: width / 2 - 60
-                preferredHighlightEnd: width / 2 + 60
+                preferredHighlightBegin: width / 2 - Ui.thumbWidth / 2
+                preferredHighlightEnd: width / 2 + Ui.thumbWidth / 2
                 highlightMoveDuration: 0
                 delegate: Item {
                     id: specimen
@@ -411,52 +411,52 @@ PanelWindow {
                     function c(key) {
                         return T.Config.themeColor(specimen.modelData, key);
                     }
-                    width: 120
-                    height: 78 + 22
-                    opacity: selected ? 1 : 0.7
+                    width: Ui.thumbWidth
+                    height: Ui.specimenHeight + Ui.thumbLabel
+                    opacity: selected ? 1 : Ui.unselectedAlpha
 
                     Rectangle {
                         id: card
-                        width: 120
-                        height: 78
-                        radius: 4
+                        width: Ui.thumbWidth
+                        height: Ui.specimenHeight
+                        radius: Ui.specimenRadius
                         antialiasing: true
                         color: specimen.c("background")
                         clip: true
 
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: parent.width * 0.6
-                            height: 12
-                            bottomLeftRadius: 4
-                            bottomRightRadius: 4
+                            width: parent.width * Ui.specimenLedgeWidth
+                            height: Ui.specimenLedgeHeight
+                            bottomLeftRadius: Ui.specimenRadius
+                            bottomRightRadius: Ui.specimenRadius
                             color: specimen.c("surfaceContainer")
                         }
                         Rectangle {
-                            x: 10
-                            y: 26
-                            width: parent.width * 0.7
-                            height: 4
+                            x: Ui.specimenInset
+                            y: Ui.specimenLine1Y
+                            width: parent.width * Ui.specimenLineWidth
+                            height: Ui.specimenLineHeight
                             color: specimen.c("surfaceText")
                         }
                         Rectangle {
-                            x: 10
-                            y: 36
+                            x: Ui.specimenInset
+                            y: Ui.specimenLine2Y
                             width: parent.width * 0.5
-                            height: 4
+                            height: Ui.specimenLineHeight
                             color: specimen.c("inactive")
                         }
                         Row {
-                            x: 10
+                            x: Ui.specimenInset
                             anchors.bottom: parent.bottom
-                            anchors.bottomMargin: 10
-                            spacing: 4
+                            anchors.bottomMargin: Ui.specimenInset
+                            spacing: Ui.spaceS
                             Repeater {
                                 model: ["accent", "green", "red"]
                                 delegate: Rectangle {
                                     required property string modelData
-                                    width: 8
-                                    height: 8
+                                    width: Ui.swatchSize
+                                    height: Ui.swatchSize
                                     color: specimen.c(modelData)
                                 }
                             }
@@ -470,11 +470,11 @@ PanelWindow {
                         color: T.Config.accent
                     }
                     Text {
-                        y: card.height + 6
+                        y: card.height + Ui.spaceM
                         width: card.width
                         text: specimen.modelData + (specimen.modelData === root.entryTheme ? " •" : "")
                         color: specimen.selected ? Ui.value : Ui.detail
-                        font.pixelSize: Ui.detailSize - 1
+                        font.pixelSize: Ui.detailSize
                         font.family: Ui.font
                         elide: Text.ElideRight
                     }

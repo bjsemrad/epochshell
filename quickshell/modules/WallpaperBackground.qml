@@ -1,4 +1,5 @@
 import QtQuick
+import qs.commonwidgets
 import Quickshell
 import Quickshell.Wayland
 import qs.theme as T
@@ -131,7 +132,7 @@ Scope {
                 id: fade
                 property: "opacity"
                 to: 1
-                duration: 450
+                duration: Ui.wallpaperFadeMs
                 easing.type: Easing.InOutQuad
 
                 function begin(image) {

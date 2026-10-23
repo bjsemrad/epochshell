@@ -131,7 +131,7 @@ Item {
 
     Timer {
         id: closeTimer
-        interval: 300
+        interval: Ui.polkitCloseDelay
         repeat: false
         onTriggered: {
             root.closing = false
@@ -141,16 +141,16 @@ Item {
 
     Timer {
         id: errorTimer
-        interval: 1200
+        interval: Ui.polkitErrorMs
         repeat: false
         onTriggered: root.errorFlash = false
     }
 
     SequentialAnimation {
         id: shakeAnimation
-        NumberAnimation { target: root; property: "shakeOffset"; to: -8; duration: 35; easing.type: Easing.OutQuad }
-        NumberAnimation { target: root; property: "shakeOffset"; to: 8; duration: 50; easing.type: Easing.InOutQuad }
-        NumberAnimation { target: root; property: "shakeOffset"; to: 0; duration: 55; easing.type: Easing.OutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: Ui.shakeSmall[0]; duration: Ui.shakeSmallMs[0]; easing.type: Easing.OutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: Ui.shakeSmall[1]; duration: Ui.shakeSmallMs[1]; easing.type: Easing.InOutQuad }
+        NumberAnimation { target: root; property: "shakeOffset"; to: Ui.shakeSmall[2]; duration: Ui.shakeSmallMs[2]; easing.type: Easing.OutQuad }
     }
 
     FileView {
@@ -222,7 +222,7 @@ Item {
             screen: modelData
             visible: root.dialogVisible && modelData.name !== root.focusedScreenName
             anchors { top: true; bottom: true; left: true; right: true; }
-            color: Qt.rgba(0, 0, 0, 0.6)
+            color: Qt.rgba(0, 0, 0, Ui.scrimAlpha)
             // No exclusiveZone: setting one reverts exclusionMode to Normal, undoing Ignore.
             WlrLayershell.namespace: "epochshell-polkit-dim"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -239,7 +239,7 @@ Item {
         id: panel
         visible: root.dialogVisible
         anchors { top: true; bottom: true; left: true; right: true; }
-        color: Qt.rgba(0, 0, 0, 0.6)
+        color: Qt.rgba(0, 0, 0, Ui.scrimAlpha)
         // No exclusiveZone: setting one reverts exclusionMode to Normal, undoing Ignore.
         focusable: true
         screen: Quickshell.screens.find(s => s.name === root.focusedScreenName) || (Quickshell.screens.length > 0 ? Quickshell.screens[0] : null)
@@ -257,9 +257,9 @@ Item {
 
         Rectangle {
             id: dialog
-            readonly property real maxWidth: Math.max(240, panel.width - 40)
-            width: Math.min(Math.max(440, messageMeasure.implicitWidth + 48), dialog.maxWidth)
-            height: Math.min(contentCol.implicitHeight + 32, Math.max(panel.height - 80, 0))
+            readonly property real maxWidth: Math.max(Ui.dialogMinWidth, panel.width - Ui.dialogScreenMargin)
+            width: Math.min(Math.max(Ui.dialogWidth, messageMeasure.implicitWidth + Ui.dialogTextPad), dialog.maxWidth)
+            height: Math.min(contentCol.implicitHeight + Ui.dialogPadV, Math.max(panel.height - Ui.screenMarginV, 0))
             anchors.centerIn: parent
             anchors.horizontalCenterOffset: root.shakeOffset
             radius: T.Config.popupRadius
@@ -272,9 +272,9 @@ Item {
 
             readonly property color failureText: {
                 const red = T.Config.red;
-                for (let t = 0; t <= 1; t += 0.1) {
+                for (let t = 0; t <= 1; t += Ui.contrastStep) {
                     const c = Qt.rgba(red.r + (1 - red.r) * t, red.g + (1 - red.g) * t, red.b + (1 - red.b) * t, 1);
-                    if (Ui.contrast(c, T.Config.background) >= 4.5) return c;
+                    if (Ui.contrast(c, T.Config.background) >= Ui.contrastText) return c;
                 }
                 return Qt.rgba(1, 1, 1, 1);
             }
@@ -309,7 +309,7 @@ Item {
             Flickable {
                 id: scroller
                 anchors.fill: parent
-                anchors.margins: 16
+                anchors.margins: Ui.space4XL
                 clip: true
                 contentWidth: width
                 contentHeight: contentCol.implicitHeight
@@ -323,8 +323,8 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.bottomMargin: 10
-                        spacing: 10
+                        Layout.bottomMargin: Ui.spaceXL
+                        spacing: Ui.spaceXL
                         Text {
                             text: "󰒃"
                             color: T.Config.yellow
@@ -341,14 +341,14 @@ Item {
                     }
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.bottomMargin: 12
+                        Layout.bottomMargin: Ui.space2XL
                         implicitHeight: 1
                         color: Ui.divider
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        Layout.bottomMargin: 8
+                        Layout.bottomMargin: Ui.spaceL
                         textFormat: Text.StyledText
                         text: {
                             const esc = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -392,7 +392,7 @@ Item {
                         id: detailsRow
                         property bool open: false
                         value: "details"
-                        valueWidth: Ui.keyColumn - 10
+                        valueWidth: Ui.keyColumn - Ui.spaceXL
                         hasPage: !open
                         detail: open ? "" : ""
                         onOpened: open = true
@@ -407,8 +407,8 @@ Item {
                     RowLayout {
                         visible: T.Config.polkitPhrase.length > 0
                         Layout.fillWidth: true
-                        Layout.topMargin: 6
-                        spacing: 10
+                        Layout.topMargin: Ui.spaceM
+                        spacing: Ui.spaceXL
                         Text {
                             text: "󰌆"
                             color: Ui.detail
@@ -427,8 +427,8 @@ Item {
 
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.topMargin: 14
-                        implicitHeight: 48
+                        Layout.topMargin: Ui.space3XL
+                        implicitHeight: Ui.polkitPromptHeight
                         color: Ui.hover
 
                         Rectangle {
@@ -440,13 +440,13 @@ Item {
                         RowLayout {
                             visible: !root.fingerprintMode
                             anchors.fill: parent
-                            anchors.leftMargin: 14
-                            anchors.rightMargin: 14
-                            spacing: 10
+                            anchors.leftMargin: Ui.space3XL
+                            anchors.rightMargin: Ui.space3XL
+                            spacing: Ui.spaceXL
                             Text {
                                 text: "›"
                                 color: root.errorFlash ? T.Config.red : T.Config.accent
-                                font.pixelSize: Ui.valueSize + 4
+                                font.pixelSize: Ui.valueSize + 2
                                 font.family: Ui.font
                             }
                             TextInput {
@@ -490,13 +490,13 @@ Item {
                         RowLayout {
                             visible: root.fingerprintMode
                             anchors.fill: parent
-                            anchors.leftMargin: 14
-                            anchors.rightMargin: 14
-                            spacing: 12
+                            anchors.leftMargin: Ui.space3XL
+                            anchors.rightMargin: Ui.space3XL
+                            spacing: Ui.space2XL
                             Text {
                                 text: "󰈷"
                                 color: T.Config.accent
-                                font.pixelSize: 28
+                                font.pixelSize: Ui.fingerprintSize
                                 font.family: Ui.font
                             }
                             ColumnLayout {
@@ -521,7 +521,7 @@ Item {
                     Text {
                         visible: root.failedAttempts > 0
                         Layout.fillWidth: true
-                        Layout.topMargin: 6
+                        Layout.topMargin: Ui.spaceM
                         text: {
                             const what = root.currentSupplementary.length > 0 ? root.currentSupplementary.toLowerCase() : "wrong password";
                             const max = T.Config.polkitMaxAttempts;
@@ -537,7 +537,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.topMargin: 14
+                        Layout.topMargin: Ui.space3XL
                         spacing: 0
                         Text {
                             text: "esc · cancel"
@@ -547,7 +547,7 @@ Item {
                             MouseArea {
                                 id: cancelMouse
                                 anchors.fill: parent
-                                anchors.margins: -6
+                                anchors.margins: -Ui.hitSlop
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: root.cancelRequest()
@@ -556,10 +556,10 @@ Item {
                         Item { Layout.fillWidth: true }
                         Rectangle {
                             visible: !root.fingerprintMode
-                            implicitWidth: authText.implicitWidth + 16
-                            implicitHeight: authText.implicitHeight + 8
+                            implicitWidth: authText.implicitWidth + Ui.buttonPadX
+                            implicitHeight: authText.implicitHeight + Ui.buttonPadY
                             radius: Ui.hoverRadius
-                            color: authMouse.containsMouse ? Ui.alpha(T.Config.surfaceText, 0.14) : Ui.hover
+                            color: authMouse.containsMouse ? Ui.alpha(T.Config.surfaceText, Ui.buttonHoverAlpha) : Ui.hover
                             Text {
                                 id: authText
                                 anchors.centerIn: parent

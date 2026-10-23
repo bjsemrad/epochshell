@@ -31,7 +31,26 @@ Singleton {
     }
     readonly property bool inBar: root.barReady[root.screenName] === true
 
+    // Whether an open panel already shows this change: the dashboard's main and sound pages and the
+    // sound panel show the volume, the media panel the track. Then there is nothing to add.
+    function shownInPanel(kind) {
+        for (const entry of S.PopupManager.entries) {
+            const panel = entry.popup;
+            if (!panel || !panel.open || !panel.visible) continue;
+            if (kind === "volume") {
+                if (entry.name === "dashboard" && (panel.page === "main" || panel.page === "audio")) return true;
+                if (entry.name === "audio" && panel.page === undefined) return true;
+            }
+            if (kind === "media" && entry.name === "media") return true;
+        }
+        return false;
+    }
+
     function show(fields, duration) {
+        if (root.shownInPanel(String(fields.kind || ""))) {
+            root.visible = false;
+            return;
+        }
         root.kind = String(fields.kind || "");
         root.icon = String(fields.icon || "");
         root.value = Number(fields.value) || 0;

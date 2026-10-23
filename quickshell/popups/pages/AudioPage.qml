@@ -38,7 +38,7 @@ ColumnLayout {
     KeyRow {
         key: "volume"
         LevelSlider {
-            trackWidth: 200
+            trackWidth: Ui.sliderTrackWide
             value: page.sink && page.sink.audio ? page.sink.audio.volume : 0
             muted: page.sink !== null && page.sink.audio !== null && page.sink.audio.muted
             onMoved: v => { if (page.sink && page.sink.audio) page.sink.audio.volume = v; }
@@ -63,10 +63,10 @@ ColumnLayout {
     }
 
     KeyRow {
-        Layout.topMargin: 8
+        Layout.topMargin: Ui.spaceL
         key: "mic"
         LevelSlider {
-            trackWidth: 200
+            trackWidth: Ui.sliderTrackWide
             value: page.source && page.source.audio ? page.source.audio.volume : 0
             muted: page.source !== null && page.source.audio !== null && page.source.audio.muted
             onMoved: v => { if (page.source && page.source.audio) page.source.audio.volume = v; }

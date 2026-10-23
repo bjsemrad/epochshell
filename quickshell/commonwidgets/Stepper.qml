@@ -6,10 +6,10 @@ Row {
 
     property int value: 0
     property int from: 0
-    property int to: 10
+    property int to: Ui.stepperMax
     signal stepped(int value)
 
-    spacing: 10
+    spacing: Ui.spaceXL
 
     component Step: Text {
         id: step
@@ -23,7 +23,7 @@ Row {
         MouseArea {
             id: stepMouse
             anchors.fill: parent
-            anchors.margins: -4
+            anchors.margins: -Ui.hitSlopSmall
             hoverEnabled: true
             enabled: step.possible
             cursorShape: Qt.PointingHandCursor

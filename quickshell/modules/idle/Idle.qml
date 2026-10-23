@@ -6,6 +6,12 @@ import qs.services as S
 
 Scope {
     id: root
+    readonly property int screensOnDelay: 500
+    readonly property int releasePollMs: 50
+    readonly property int releaseTimeoutMs: 3000
+    readonly property int inhibitedRetryMs: 30000
+    readonly property int logindRestartMs: 2000
+    readonly property int screensAfterWakeMs: 2000
 
     readonly property string settingsPath: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/epochshell-idle.json"
 
@@ -110,7 +116,7 @@ Scope {
 
     Timer {
         id: screensAfterUnlock
-        interval: 500
+        interval: root.screensOnDelay
         onTriggered: if (root.screensOff && !S.Lock.locked) root.screens(true)
     }
 
@@ -129,7 +135,7 @@ Scope {
 
     Timer {
         id: suspendWhenReleased
-        interval: 50
+        interval: root.releasePollMs
         repeat: true
         property int waited: 0
         onRunningChanged: if (running) waited = 0
@@ -137,7 +143,7 @@ Scope {
             waited += interval;
             const released = !S.Lock.fingerprintActive
                 && Date.now() - S.Lock.fingerprintStoppedAt >= root.fingerprintSettleMs;
-            if (released || waited >= 3000) {
+            if (released || waited >= root.releaseTimeoutMs) {
                 suspendWhenReleased.stop();
                 suspendProcess.running = true;
             }
@@ -234,7 +240,7 @@ Scope {
     }
 
     Timer {
-        interval: 30000
+        interval: root.inhibitedRetryMs
         repeat: true
         running: lockStage.held || screenStage.held || suspendStage.held
         onTriggered: {
@@ -279,7 +285,7 @@ Scope {
 
     Timer {
         id: logindRestart
-        interval: 2000
+        interval: root.logindRestartMs
         onTriggered: logind.running = root.configured
     }
 
@@ -325,13 +331,13 @@ Scope {
 
     Timer {
         id: sleepRelease
-        interval: 50
+        interval: root.releasePollMs
         repeat: true
         property int waited: 0
         onRunningChanged: if (running) waited = 0
         onTriggered: {
             waited += interval;
-            if (root.readyToSleep() || waited >= 3000) {
+            if (root.readyToSleep() || waited >= root.releaseTimeoutMs) {
                 sleepRelease.stop();
                 root.delayReleased = true;
             }
@@ -340,7 +346,7 @@ Scope {
 
     Timer {
         id: screensAfterWake
-        interval: 2000
+        interval: root.screensAfterWakeMs
         onTriggered: root.screens(true, true)
     }
 
