@@ -7,6 +7,8 @@ Singleton {
     id: root
     readonly property int emptyQueryLimit: 30
     readonly property int queryLimit: 10
+    readonly property int browseLimit: 1000
+    readonly property int providerQueryLimit: 50
     readonly property int filesDebounceMs: 40
     readonly property int debounceMs: 150
     readonly property int requestTimeoutMs: 3000
@@ -173,17 +175,19 @@ Singleton {
     }
 
     function startQuery(providers, q) {
-        const limit = q === "" ? root.emptyQueryLimit : root.queryLimit;
+        const providerList = String(providers).split(",").filter(p => p.length > 0);
+        const single = providerList.length === 1;
+        const limit = q === "" ? (single ? root.browseLimit : root.emptyQueryLimit)
+            : (single ? root.providerQueryLimit : root.queryLimit);
         const silent = root._silentRefresh;
         root._silentRefresh = false;
         const meta = { providers: providers, query: q, limit: limit, silent: silent };
-        const providerList = String(providers).split(",").filter(p => p.length > 0);
         enqueueRequest("query", { type: "query", providers: providerList, query: q, limit: limit, exact: false, stream: providerList.length > 1 }, meta);
         if (!silent) root.searching = true;
     }
 
     function isDefaultAppsQuery(meta) {
-        return meta.providers === "apps" && meta.query === "" && meta.limit === root.emptyQueryLimit;
+        return meta.providers === "apps" && meta.query === "" && meta.limit === root.browseLimit;
     }
 
     function showCachedApps() {
