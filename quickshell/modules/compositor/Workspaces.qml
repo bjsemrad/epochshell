@@ -252,9 +252,9 @@ Rectangle {
                                         anchors.fill: parent
                                         source: S.CompositorService.getDesktopIcon(S.CompositorService.getDesktopEntry(String(ledgeIcon.modelData.app_id || "")))
                                         opacity: ledgeIcon.inColour ? 1.0 : Ui.iconQuietAlpha
-                                        layer.enabled: !ledgeIcon.inColour || ledgeItem.mono
+                                        layer.enabled: ledgeItem.mono
                                         layer.effect: MultiEffect {
-                                            saturation: ledgeItem.mono ? -1.0 : -0.5
+                                            saturation: -1.0
                                         }
                                     }
 

@@ -239,7 +239,7 @@ Singleton {
     readonly property real workspaceEmptyAlpha: 0.6
     readonly property real windowDimAlpha: 0.45
     readonly property real iconQuietAlpha: 0.6
-    readonly property real cellDimAlpha: 0.7
+    readonly property real cellDimAlpha: 0.85
     readonly property real columnBarAlpha: 0.20
     readonly property real titleAlpha: 0.45
 
