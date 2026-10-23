@@ -202,7 +202,7 @@ HoverPopupWindow {
                 onOpened: dash.goTo("ethernet")
             }
             ListRow {
-                visible: !dash.wired && S.Network.wifiDevice
+                visible: S.Network.wifiDevice
                 icon: S.Network.wifiEnabled ? S.Network.currentWifiIcon : "󰤮"
                 value: "wi-fi"
                 valueWidth: dash.valueColumn

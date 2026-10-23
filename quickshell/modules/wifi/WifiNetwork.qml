@@ -4,7 +4,7 @@ import qs.commonwidgets
 
 BarIconPopup {
     id: root
-    visible: S.Network.wifiDevice
+    visible: S.Network.wifiDevice && !S.Network.ethernetConnected
     mouseEnabled: true
     hoverEnabled: false
     iconText:  {
