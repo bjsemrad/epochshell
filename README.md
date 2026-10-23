@@ -234,7 +234,7 @@ a menu's icon is the fallback for entries that name none. Anything short and out
 range is treated as a glyph, so icon names are never mistaken for one.
 
 Menus are deployed the same way as everything else here — from the dotfiles repo, not by hand.
-`users/brian/modules/epochshell/` holds the keybinds menu: `menus/keybinds.sh` reads the running
+`users/user/modules/epochshell/` holds the keybinds menu: `menus/keybinds.sh` reads the running
 compositor's binds (niri's `config.kdl`, else `hyprctl binds` cross-referenced against
 `hyprland.lua` so a Lua config's binds still get readable names), wrapped in a derivation that
 carries its own `jq`/`python3`, and a `home.file` entry writes the `keybinds.toml` that points at
