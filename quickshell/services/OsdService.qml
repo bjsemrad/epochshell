@@ -16,20 +16,28 @@ Singleton {
     property bool muted: false
     property bool visible: false
 
-    property var barReady: ({})
-    function setBarReady(screenName, ready) {
-        if (root.barReady[screenName] === ready) return;
-        const next = Object.assign({}, root.barReady);
-        next[screenName] = ready;
-        root.barReady = next;
+    // Bars register themselves rather than pushing a flag: when a monitor reconnects, the old bar's
+    // teardown can run after the new bar is up, and a pushed flag from it would stick.
+    property var bars: ({})
+    function registerBar(screenName, bar) {
+        const next = Object.assign({}, root.bars);
+        next[screenName] = bar;
+        root.bars = next;
     }
+    function unregisterBar(screenName, bar) {
+        if (root.bars[screenName] !== bar) return;
+        const next = Object.assign({}, root.bars);
+        delete next[screenName];
+        root.bars = next;
+    }
+    readonly property var bar: root.bars[root.screenName] || null
 
     readonly property string screenName: {
         const focused = S.CompositorService.monitors.find(m => m.focused === true);
         if (focused) return String(focused.name);
         return Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "";
     }
-    readonly property bool inBar: root.barReady[root.screenName] === true
+    readonly property bool inBar: root.bar !== null && root.bar.osdReady === true
 
     // Whether an open panel already shows this change: the dashboard's main and sound pages and the
     // sound panel show the volume, the media panel the track. Then there is nothing to add.

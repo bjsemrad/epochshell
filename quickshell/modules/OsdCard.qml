@@ -14,7 +14,7 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "epochshell-osd"
             anchors.top: true
-            margins.top: S.OsdService.barReady[S.OsdService.screenName] === undefined ? Ui.osdTopNoBar : Ui.osdTopGap
+            margins.top: S.OsdService.bar === null ? Ui.osdTopNoBar : Ui.osdTopGap
             exclusiveZone: 0
             implicitWidth: Ui.osdWidth
             implicitHeight: Ui.osdHeight

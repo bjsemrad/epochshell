@@ -76,8 +76,8 @@ Scope {
 
             readonly property bool osdReady: panelTracker.openness <= 0 && pillPanels.openness <= 0
                 && !(S.PopupManager.launcher && S.PopupManager.launcher._visible)
-            onOsdReadyChanged: S.OsdService.setBarReady(modelData.name, osdReady)
-            Component.onCompleted: S.OsdService.setBarReady(modelData.name, osdReady)
+            Component.onCompleted: S.OsdService.registerBar(modelData.name, barWindow)
+            Component.onDestruction: S.OsdService.unregisterBar(modelData.name, barWindow)
             readonly property bool launcherHere: T.Config.barIsLedge && S.PopupManager.launcher !== null
                 && S.PopupManager.launcher.ledgeMode === true && S.PopupManager.launcher._visible
                 && S.PopupManager.launcher.screenName === modelData.name
