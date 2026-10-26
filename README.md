@@ -750,7 +750,8 @@ Derived bar values such as `barClockSize`, `barModuleHorizontalPadding`, and `ba
 
 ```toml
 barStyle = "full"           # "full", "floating" or "centered"
-barLedge = true             # centered only: hang from the top edge instead of floating
+barSpan = "pill"            # centered only: "pill", or "full" for an edge-to-edge bar with the items centered
+barLedge = true             # centered pill only: hang from the top edge instead of floating
 statusStyle = "individual"  # "individual" icons, or "dashboard": one capsule opening quick settings
 panelStyle = "attached"     # "attached" (grown out of the bar) or "floating" cards
 panelOutline = "fade"       # "none", "panel", "fade" or "bar"

@@ -27,7 +27,7 @@ PopupWindow {
     readonly property bool fromBar: anchorEdges === (Edges.Left | Edges.Bottom) && anchorRectY < 0
 
     readonly property bool attached: fromBar && T.Config.panelStyle !== "floating" && T.Config.barOpacity >= 0.5
-        && (!T.Config.barCentered || T.Config.barIsLedge)
+        && (!T.Config.barCentered || T.Config.barIsLedge || T.Config.barSpanFull)
 
     readonly property int floatingGap: Ui.floatingGap
 

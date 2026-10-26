@@ -50,7 +50,7 @@ Singleton {
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
     readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur", "barLedge", "workspaceShowTitle"]
     readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
-    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle", "workspaceHomes", "workspaceIconColor", "polkitPhrase", "launcherStyle"]
+    readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle", "workspaceHomes", "workspaceIconColor", "polkitPhrase", "launcherStyle", "barSpan"]
     readonly property string themeKey: "theme"
     readonly property string extendsKey: "extends"
     readonly property var intKeys: ["popupPadding", "popupRadius", "popupLayoutSpacing", "barIconSize", "barClockSize", "barModuleSpacing", "barIconTextSpacing", "barModuleHorizontalPadding", "barModuleVerticalPadding", "barFloatingGap", "barFloatingSideGap", "workspaceIconLimit", "workspaceMinimapMaxWidth", "polkitMaxAttempts", "widthPaddingSmall", "layoutMarginSmall", "fontSizeNormal", "fontSizeMedium", "fontSizeLarge", "fontSizeXLarge", "fontSizeSubtext", "cardRadius", "cardHeight", "barHeight", "switchHeight", "switchWidth", "switchKnobSize", "switchKnobRadius"]
@@ -90,9 +90,11 @@ Singleton {
     property int barFloatingSideGap: 10
     readonly property bool barCentered: barStyle === "centered"
     property bool barLedge: true
-    readonly property bool barIsLedge: barCentered && barLedge
+    property string barSpan: "pill"
+    readonly property bool barSpanFull: barCentered && barSpan === "full"
+    readonly property bool barIsLedge: barCentered && barLedge && !barSpanFull
     readonly property bool barCompact: settledStatusStyle === "dashboard"
-    readonly property bool barFloating: barStyle === "floating" || barCentered
+    readonly property bool barFloating: barStyle === "floating" || (barCentered && !barSpanFull)
     readonly property int barTopGap: barFloating && !barIsLedge ? barFloatingGap : 0
     readonly property int barSideGap: barFloating ? barFloatingSideGap : 0
     readonly property int barBottom: barTopGap + barHeight
@@ -459,6 +461,7 @@ Singleton {
         statusStyle = "individual";
         workspaceStyle = "minimap";
         barLedge = true;
+        barSpan = "pill";
         workspaceIconLimit = 2;
         workspaceShowTitle = false;
         workspaceIconColor = "color";

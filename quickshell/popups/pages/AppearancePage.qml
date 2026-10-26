@@ -60,6 +60,15 @@ ColumnLayout {
     }
     KeyRow {
         visible: T.Config.barCentered
+        key: "span"
+        Choice {
+            options: ["pill", "full"]
+            current: T.Config.barSpanFull ? "full" : "pill"
+            onPicked: v => page.choose("barSpan", v)
+        }
+    }
+    KeyRow {
+        visible: T.Config.barCentered && !T.Config.barSpanFull
         key: "ledge"
         toggles: true
         onToggled: page.choose("barLedge", !T.Config.barLedge)

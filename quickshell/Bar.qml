@@ -34,7 +34,7 @@ Scope {
 
             implicitHeight: T.Config.barBottom
 
-            mask: barWindow.centered ? pillMask : barMask
+            mask: barWindow.pillMode ? pillMask : barMask
             Region {
                 id: barMask
                 item: barArea
@@ -44,7 +44,7 @@ Scope {
                 item: pill
             }
 
-            BackgroundEffect.blurRegion: !T.Config.barBlur ? null : barWindow.centered ? pillBlur : barBlur
+            BackgroundEffect.blurRegion: !T.Config.barBlur ? null : barWindow.pillMode ? pillBlur : barBlur
             Region {
                 id: barBlur
                 item: barArea
@@ -64,10 +64,11 @@ Scope {
                 height: T.Config.barHeight
                 radius: T.Config.barFloating ? T.Config.popupRadius : 0
                 antialiasing: true
-                color: barWindow.centered ? "transparent" : T.Config.barBackground
+                color: barWindow.pillMode ? "transparent" : T.Config.barBackground
             }
 
             readonly property bool centered: T.Config.barCentered
+            readonly property bool pillMode: centered && !T.Config.barSpanFull
             readonly property int pillPadding: T.Config.barModuleSpacing
             readonly property int groupGap: T.Config.barModuleSpacing
             readonly property real centeredContentWidth: (leftSide.width > 0 ? leftSide.width + groupGap : 0)
@@ -97,7 +98,7 @@ Scope {
                 readonly property real natural: Math.max(barWindow.centeredContentWidth + barWindow.pillPadding * 2,
                     barWindow.osdHere ? Ui.osdWidth + barWindow.pillPadding * 2 : 0,
                     barWindow.launcherHere ? S.PopupManager.launcher.panelWidth : 0)
-                visible: barWindow.centered
+                visible: barWindow.pillMode
                 x: Math.round((barWindow.width - width) / 2)
                 y: T.Config.barTopGap
                 width: pillPanels.widthAround(natural, T.Config.popupRadius)
@@ -145,7 +146,7 @@ Scope {
             }
 
             Rectangle {
-                visible: !barWindow.centered && T.Config.panelOutline === "bar" && opacity > 0
+                visible: !barWindow.pillMode && T.Config.panelOutline === "bar" && opacity > 0
                 opacity: panelTracker.openness
                 x: barArea.x + barArea.radius
                 y: T.Config.barBottom - 1
@@ -182,8 +183,8 @@ Scope {
                 id: leftSide
                 visible: !(barWindow.osdHere && barWindow.centered)
                 spacing: T.Config.barModuleSpacing
-                readonly property var barPanels: barWindow.centered ? pillPanels : panelTracker
-                readonly property Item barPill: barWindow.centered ? pillBody : null
+                readonly property var barPanels: barWindow.pillMode ? pillPanels : panelTracker
+                readonly property Item barPill: barWindow.pillMode ? pillBody : null
                 readonly property Item barStrip: barArea
                 // Placed by x rather than anchors: an anchor removed at runtime leaves the item
                 // where it was until a binding re-evaluates.
@@ -206,8 +207,8 @@ Scope {
             Flickable {
                 id: centerSide
                 visible: !barWindow.osdHere
-                readonly property var barPanels: barWindow.centered ? pillPanels : panelTracker
-                readonly property Item barPill: barWindow.centered ? pillBody : null
+                readonly property var barPanels: barWindow.pillMode ? pillPanels : panelTracker
+                readonly property Item barPill: barWindow.pillMode ? pillBody : null
                 readonly property Item barStrip: barArea
                 x: barWindow.centered ? barWindow.centeredContentX + (leftSide.width > 0 ? leftSide.width + barWindow.groupGap : 0)
                     : Math.round((parent.width - width) / 2)
@@ -236,8 +237,8 @@ Scope {
                 id: rightSide
                 visible: !(barWindow.osdHere && barWindow.centered)
                 spacing: Math.max(Ui.spaceS, Math.round(T.Config.barModuleSpacing / 2))
-                readonly property var barPanels: barWindow.centered ? pillPanels : panelTracker
-                readonly property Item barPill: barWindow.centered ? pillBody : null
+                readonly property var barPanels: barWindow.pillMode ? pillPanels : panelTracker
+                readonly property Item barPill: barWindow.pillMode ? pillBody : null
                 readonly property Item barStrip: barArea
                 x: barWindow.centered ? centerSide.x + centerSide.width + barWindow.groupGap
                     : barArea.x + barArea.width - width - T.Config.barModuleSpacing
