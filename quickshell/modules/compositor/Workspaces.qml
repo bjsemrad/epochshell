@@ -217,7 +217,7 @@ Rectangle {
                     Row {
                         id: ledgeRow
                         anchors.horizontalCenter: parent.horizontalCenter
-                        y: ledgeItem.snap((parent.height - height) / 2 - 2)
+                        y: ledgeItem.snap((parent.height - height) / 2)
                         spacing: Ui.spaceWorkspace
 
                         Text {
