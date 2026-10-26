@@ -20,8 +20,15 @@ Scope {
             implicitHeight: Ui.osdHeight
             color: "transparent"
             mask: Region {}
+            BackgroundEffect.blurRegion: T.Config.popupBlur ? osdBlur : null
+            Region {
+                id: osdBlur
+                item: osdBody
+                radius: T.Config.popupRadius
+            }
 
             Rectangle {
+                id: osdBody
                 anchors.fill: parent
                 radius: T.Config.popupRadius
                 antialiasing: true

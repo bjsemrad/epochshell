@@ -98,7 +98,8 @@ Scope {
                 id: pill
                 readonly property real natural: Math.max(barWindow.centeredContentWidth + barWindow.pillPadding * 2,
                     barWindow.osdHere ? Ui.osdWidth + barWindow.pillPadding * 2 : 0,
-                    barWindow.launcherHere ? S.PopupManager.launcher.panelWidth : 0)
+                    barWindow.launcherHere ? barWindow.centeredContentWidth + barWindow.pillPadding * 2
+                        + Math.max(0, S.PopupManager.launcher.panelWidth - barWindow.centeredContentWidth - barWindow.pillPadding * 2) * S.PopupManager.launcher.reveal : 0)
                 visible: barWindow.pillMode
                 x: Math.round((barWindow.width - width) / 2)
                 y: T.Config.barTopGap
@@ -122,7 +123,7 @@ Scope {
                 radius: ledge.joined ? 0 : T.Config.popupRadius
                 flare: T.Config.popupRadius
                 readonly property bool joined: pillPanels.leadingJoin === "snap" || barWindow.launcherHere
-                outlineOpacity: joined ? (T.Config.panelOutline !== "none" ? (barWindow.launcherHere ? 1 : pillPanels.openness) : 0)
+                outlineOpacity: joined ? (T.Config.panelOutline !== "none" ? (barWindow.launcherHere ? S.PopupManager.launcher.reveal : pillPanels.openness) : 0)
                     : T.Config.panelOutline === "bar" ? pillPanels.openness : 0
                 outlineBottom: !joined
                 outlineFade: joined && T.Config.panelOutline === "fade" ? flare : 0

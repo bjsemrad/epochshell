@@ -31,6 +31,13 @@ PanelWindow {
     WlrLayershell.keyboardFocus: _visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     screen: Quickshell.screens.find(s => s.name === S.OsdService.screenName) || (Quickshell.screens.length > 0 ? Quickshell.screens[0] : null)
 
+    BackgroundEffect.blurRegion: T.Config.popupBlur ? cardBlur : null
+    Region {
+        id: cardBlur
+        item: card
+        radius: T.Config.popupRadius
+    }
+
     mask: Region {
         item: card
     }

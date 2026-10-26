@@ -248,6 +248,12 @@ Item {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
         exclusionMode: ExclusionMode.Ignore
+        BackgroundEffect.blurRegion: T.Config.popupBlur ? dialogBlur : null
+        Region {
+            id: dialogBlur
+            item: dialog
+            radius: T.Config.popupRadius
+        }
 
         MouseArea {
             anchors.fill: parent

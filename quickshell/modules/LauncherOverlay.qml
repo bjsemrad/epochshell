@@ -65,6 +65,19 @@ PanelWindow {
         listView.currentIndex = index;
     }
     property bool _visible: false
+
+    // Attached, the launcher drops out of the bar the way the panels do.
+    property real reveal: 1
+    NumberAnimation {
+        id: revealAnimation
+        target: root
+        property: "reveal"
+        from: 0
+        to: 1
+        duration: Ui.revealMs
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: [0.23, 1, 0.32, 1, 1, 1]
+    }
     property bool showingProviders: false
     readonly property bool backendDown: S.LauncherService.backendError.length > 0
 
@@ -128,7 +141,9 @@ PanelWindow {
         previewImage = "";
         previewProvider = "";
         previewSubtext = "";
+        reveal = ledgeMode ? 0 : 1;
         _visible = true;
+        if (ledgeMode) revealAnimation.restart();
         S.LauncherService.refreshProviders();
         S.LauncherService.setQuery("");
         inputField.forceActiveFocus();
@@ -143,6 +158,7 @@ PanelWindow {
     }
 
     function close() {
+        revealAnimation.stop();
         _visible = false;
         inputField.text = "";
         S.LauncherService.setScope("");
@@ -483,7 +499,7 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, Ui.backdropAlpha)
     }
 
-    BackgroundEffect.blurRegion: (root.ledgeMode ? T.Config.barBlur : T.Config.popupBlur) ? launcherBlur : null
+    BackgroundEffect.blurRegion: T.Config.popupBlur ? launcherBlur : null
     Region {
         id: launcherBlur
         Region {
@@ -501,11 +517,11 @@ PanelWindow {
     AttachedSurface {
         id: ledgeShape
         visible: root.ledgeMode
-        x: Math.round((root.width - width) / 2)
+        x: panel.x - flare
         y: 0
-        width: panel.width
+        width: panel.width + flare * 2
         height: panel.height
-        flare: 0
+        flare: T.Config.barSpanFull ? T.Config.popupRadius : 0
         radius: T.Config.popupRadius
         fillColor: T.Config.barBackground
         outlineOpacity: 1
@@ -514,7 +530,8 @@ PanelWindow {
     Rectangle {
         id: panel
         width: root.panelWidth
-        height: Math.min(content.implicitHeight, root.maxHeight)
+        height: Math.round(Math.min(content.implicitHeight, root.maxHeight) * (root.ledgeMode ? root.reveal : 1))
+        opacity: root.ledgeMode ? Math.min(1, root.reveal * Ui.revealFadeRate) : 1
         x: Math.round((root.width - width) / 2)
         y: root.ledgeMode ? 0 : Math.round(root.height * Ui.launcherTop)
         radius: root.ledgeMode ? 0 : T.Config.popupRadius

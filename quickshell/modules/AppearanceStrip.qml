@@ -12,6 +12,12 @@ PanelWindow {
     property bool _visible: false
     property string tab: "wallpaper"
     property string filter: ""
+    BackgroundEffect.blurRegion: T.Config.popupBlur ? stripBlur : null
+    Region {
+        id: stripBlur
+        item: strip
+        radius: T.Config.popupRadius
+    }
     property bool grid: false
 
     property string entryWallpaper: ""
@@ -262,9 +268,7 @@ PanelWindow {
 
                 Repeater {
                     model: root.tab === "theme" ? [
-                        { label: "bar", key: "barOpacity" },
-                        { label: "panels", key: "panelOpacity" },
-                        { label: "popups", key: "popupOpacity" }
+                        { label: "opacity", key: "barOpacity" }
                     ] : []
                     delegate: Row {
                         required property var modelData

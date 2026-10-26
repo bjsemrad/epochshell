@@ -30,6 +30,18 @@ Scope {
             mask: Region {
                 item: toastColumn
             }
+            BackgroundEffect.blurRegion: T.Config.popupBlur ? toastBlur : null
+            Region {
+                id: toastBlur
+                regions: {
+                    const shapes = [];
+                    for (let i = 0; i < toastRepeater.count; i++) {
+                        const slot = toastRepeater.itemAt(i);
+                        if (slot) shapes.push(slot.blurShape);
+                    }
+                    return shapes;
+                }
+            }
 
             anchors {
                 top: true
@@ -49,6 +61,7 @@ Scope {
                 spacing: T.Config.popupLayoutSpacing
 
                 Repeater {
+                    id: toastRepeater
                     model: S.Notifications.toastModel
 
                     delegate: Item {
@@ -71,6 +84,10 @@ Scope {
                         implicitHeight: card.implicitHeight
 
                         property bool hovered: false
+                        readonly property Region blurShape: Region {
+                            item: card
+                            radius: T.Config.popupRadius
+                        }
 
                         Timer {
                             id: expiry

@@ -48,8 +48,10 @@ Singleton {
     property bool themeFromUserDir: true
     onThemeNameChanged: themeFromUserDir = true
     readonly property var colorKeys: ["accent", "accentLightShade", "inactive", "active", "activeSelection", "background", "surface", "surfaceVariant", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceText", "outline", "purple", "green", "orange", "blue", "yellow", "cyan", "red", "bg_blue", "bg_yellow"]
-    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur", "barLedge", "workspaceShowTitle"]
-    readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity", "panelOpacity", "popupOpacity"]
+    readonly property var boolKeys: ["hideInactiveWorkspaces", "workspaceIcons", "blur", "blurPopups", "barLedge", "workspaceShowTitle"]
+    readonly property var realKeys: ["workspaceStripMaxWidthRatio", "barOpacity"]
+    // Keys earlier versions wrote to settings.toml; skipped quietly rather than warned about.
+    readonly property var retiredKeys: ["panelOpacity", "popupOpacity", "launcherDesign"]
     readonly property var stringKeys: ["fontFamily", "barStyle", "panelOutline", "panelStyle", "statusStyle", "workspaceStyle", "workspaceHomes", "workspaceIconColor", "polkitPhrase", "launcherStyle", "barSpan"]
     readonly property string themeKey: "theme"
     readonly property string extendsKey: "extends"
@@ -199,17 +201,15 @@ Singleton {
 
     property bool blur: true
     readonly property bool barBlur: blur && barOpacity < 0.99
-    readonly property bool panelBlur: blur && panelOpacity < 0.99
-    readonly property bool popupBlur: blur && popupOpacity < 0.99
+    property bool blurPopups: true
+    readonly property bool popupBlur: barBlur && blurPopups
     property real workspaceStripMaxWidthRatio: 0.45
 
     property real barOpacity: 1.0
-    property real panelOpacity: 1.0
-    property real popupOpacity: 1.0
 
     readonly property color barBackground: Qt.rgba(background.r, background.g, background.b, barOpacity)
-    readonly property color panelBackground: Qt.rgba(background.r, background.g, background.b, panelOpacity)
-    readonly property color popupBackground: Qt.rgba(background.r, background.g, background.b, popupOpacity)
+    readonly property color panelBackground: barBackground
+    readonly property color popupBackground: barBackground
 
     function tint(c) {
         const w = surfaceText;
@@ -225,7 +225,7 @@ Singleton {
     }
 
     function onPanel(c) {
-        return panelOpacity >= 0.99 ? c : tint(c);
+        return barOpacity >= 0.99 ? c : tint(c);
     }
 
     FileView {
@@ -494,10 +494,9 @@ Singleton {
         hideInactiveWorkspaces = true;
         workspaceIcons = true;
         blur = true;
+        blurPopups = true;
         workspaceStripMaxWidthRatio = 0.45;
         barOpacity = 1.0;
-        panelOpacity = 1.0;
-        popupOpacity = 1.0;
 
         updateDerived({});
     }
@@ -520,6 +519,7 @@ Singleton {
     }
 
     function applyOverride(key, value, overridden) {
+        if (retiredKeys.indexOf(key) !== -1) return;
         if (colorKeys.indexOf(key) === -1 && boolKeys.indexOf(key) === -1 && realKeys.indexOf(key) === -1 && stringKeys.indexOf(key) === -1 && intKeys.indexOf(key) === -1) {
             console.warn("Unknown EpochShell config key:", key);
             return;

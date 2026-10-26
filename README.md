@@ -686,28 +686,47 @@ Derived colors such as `accentLightShade`, `inactive`, `active`, and `activeSele
 ### Opacity and blur
 
 ```toml
-barOpacity = 1.0      # the bar: 0 fully see-through, 1 solid
-panelOpacity = 1.0    # the panels that grow out of the bar
-popupOpacity = 1.0    # everything that floats free: OSDs, notifications, the launcher
-blur = true           # blur behind the bar and panels while they are see-through
+barOpacity = 1.0      # the bar and everything that opens from it: 0 fully see-through, 1 solid
+blur = true           # blur behind the shell while it is see-through
+blurPopups = true     # with blur on: also blur panels, the launcher and cards, not only the bar
 ```
 
-Everything ships solid. For a frosted look, turn the bar and panels down together -- 80% works
-well -- so the two read as one sheet of glass, with the compositor blurring what is behind them.
+One opacity covers the whole shell: the bar, the panels and launcher that drop out of it, and
+the floating cards (settings, notifications, the volume card, the polkit prompt). They all read as
+one surface. Everything ships solid; 80% is a good start for a see-through look.
 
-The **Appearance** card (the dashboard's appearance row, or `epochctl settings toggle`) has a slider for each and a
-switch for blur. Moving a slider applies it live; letting go writes it to
-`~/.local/state/epochshell/settings.toml`. That matters on a home-manager install, where
-`config.toml` cannot be written -- the settings file is writable and wins over both the theme and
-`config.toml`.
+Blur is a three-way choice on the Appearance card: **off**, **bar** only, or **all**, which also
+blurs the panels, launcher, settings card, notifications, volume card, polkit prompt and the
+theme/wallpaper strip.
 
-Each applies the theme's `background` at that alpha, so a theme that changes the ground changes
-these with it, and a theme may set any of them itself. Fills drawn on a see-through surface --
-hovers on the bar, tiles and rows in a panel -- become a wash of the text colour rather than a solid
-grey, so the frost carries through them.
+Set both from the **Appearance** card (the dashboard's appearance row, or `epochctl settings
+toggle`). Moving the slider applies it live; letting go writes it to
+`~/.local/state/epochshell/settings.toml`, which wins over both the theme and `config.toml`, and
+is writable even on a home-manager install where `config.toml` is not.
+
+The colour is the theme's `background` at that alpha, so a theme that changes the ground changes
+this with it. Fills drawn on a see-through surface, like hovers and rows, become a wash of the text
+colour rather than a solid grey, so the transparency carries through them.
 
 Blur uses the `ext-background-effect` protocol, which niri (26.04 and later) applies with no
-configuration. On Hyprland, a layer rule blurs the bar:
+configuration. niri's default blur is "xray": it blurs the wallpaper, not the windows actually
+behind the shell. To blur what is really there:
+
+```kdl
+layer-rule {
+    match namespace="^(quickshell|epochshell-.*)$"
+    background-effect {
+        xray false
+    }
+    popups {
+        background-effect {
+            xray false
+        }
+    }
+}
+```
+
+On Hyprland, a layer rule blurs the bar:
 
 ```lua
 hl.layer_rule({

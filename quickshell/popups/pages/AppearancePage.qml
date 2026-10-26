@@ -94,6 +94,17 @@ ColumnLayout {
         }
     }
     KeyRow {
+        key: "blur"
+        Choice {
+            options: ["off", "bar", "all"]
+            current: !T.Config.blur ? "off" : T.Config.blurPopups ? "all" : "bar"
+            onPicked: v => {
+                page.choose("blur", v !== "off");
+                if (v !== "off") page.choose("blurPopups", v === "all");
+            }
+        }
+    }
+    KeyRow {
         visible: T.Config.barFloating && !T.Config.barIsLedge
         key: "top gap"
         LevelSlider {
@@ -188,31 +199,6 @@ ColumnLayout {
             options: ["none", "panel", "fade", "bar"]
             current: ["none", "panel", "fade", "bar"].indexOf(T.Config.panelOutline) >= 0 ? T.Config.panelOutline : "none"
             onPicked: v => page.choose("panelOutline", v)
-        }
-    }
-    KeyRow {
-        key: "opacity"
-        LevelSlider {
-            value: T.Config.panelOpacity
-            onMoved: v => T.Config.panelOpacity = v
-            onCommitted: v => T.Config.setSetting("panelOpacity", v)
-        }
-    }
-    KeyRow {
-        key: "overlays"
-        LevelSlider {
-            value: T.Config.popupOpacity
-            onMoved: v => T.Config.popupOpacity = v
-            onCommitted: v => T.Config.setSetting("popupOpacity", v)
-        }
-    }
-    KeyRow {
-        key: "blur"
-        toggles: true
-        onToggled: page.choose("blur", !T.Config.blur)
-        ToggleSwitch {
-            checked: T.Config.blur
-            onToggled: page.choose("blur", !T.Config.blur)
         }
     }
 }

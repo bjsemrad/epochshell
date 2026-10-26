@@ -185,7 +185,7 @@ PopupWindow {
         item: attachedBody
     }
 
-    BackgroundEffect.blurRegion: !T.Config.panelBlur ? null : popup.attached ? attachedBlur : floatingBlur
+    BackgroundEffect.blurRegion: !T.Config.popupBlur ? null : popup.attached ? attachedBlur : floatingBlur
     Region {
         id: attachedBlur
         Region {
