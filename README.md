@@ -142,6 +142,98 @@ Super+Alt+L { spawn "epochctl" "lock"; }
 Everything else is set from the Appearance card or `epochctl`; see [Configuration](#configuration)
 for the keys you can pin in Nix.
 
+## Compositor setup
+
+The shell works on niri and Hyprland with no compositor config at all. These rules make blur and
+the wallpaper behave.
+
+### niri
+
+Blur comes through the `ext-background-effect` protocol, which niri 26.04 and later applies with
+no config. Turn it on in the shell with the **blur** row on the Appearance card: **bar**, or
+**all** to blur the panels, launcher and cards too.
+
+Out of the box, niri blurs two kinds of shell surface two different ways:
+
+- **The bar, launcher, settings card, notifications and OSD** are layer surfaces, which niri
+  blurs in **xray** mode: they show a frosted copy of the *wallpaper*, ignoring the windows
+  behind them.
+- **The panels hanging from the bar** (dashboard, calendar, and so on) are popups, which niri
+  blurs for real: they show a blurred copy of the *windows* behind them. Over a dark terminal,
+  that comes out as a nearly solid slab.
+
+So the panels and the launcher don't match:
+
+<p align="center"><img src="docs/screenshots/blur-niri-default.png" alt="niri default: the calendar blurs the window behind it, the launcher frosts the wallpaper" width="100%"></p>
+
+Pick one look for everything with a layer rule.
+
+**Frosted (recommended).** Every surface frosts the wallpaper, so the shell looks the same over
+any window. This turns xray on for the panels to match everything else:
+
+```kdl
+layer-rule {
+    match namespace="^(quickshell|epochshell-.*)$"
+    popups {
+        background-effect {
+            xray true
+        }
+    }
+}
+```
+
+<p align="center"><img src="docs/screenshots/blur-niri-frosted.png" alt="Frosted: the calendar and launcher both frost the wallpaper" width="100%"></p>
+
+**See-through.** Every surface blurs whatever is really behind it. It's livelier, but how a panel
+looks depends on the window under it:
+
+```kdl
+layer-rule {
+    match namespace="^(quickshell|epochshell-.*)$"
+    background-effect {
+        xray false
+    }
+}
+```
+
+<p align="center"><img src="docs/screenshots/blur-niri-real.png" alt="See-through: the calendar and launcher both blur the window behind them" width="100%"></p>
+
+The bar is the `quickshell` namespace. The launcher, settings card, notifications, OSD, polkit
+prompt and theme strip are all `epochshell-...`, and the panels are popups of the bar. Both rules
+take effect as soon as niri reloads its config.
+
+To see the wallpaper behind the zoomed-out workspaces in the overview (shell wallpaper backend
+only):
+
+```kdl
+layer-rule {
+    match namespace="^epochshell-wallpaper$"
+    place-within-backdrop true
+}
+```
+
+### Hyprland
+
+Hyprland blurs layers only when a rule asks it to:
+
+```lua
+hl.layer_rule({
+  name = "epochshell-blur",
+  match = { namespace = "^(quickshell|epochshell-.*)$" },
+  blur = true,
+  blur_popups = true,  -- the panels hanging from the bar
+  ignore_alpha = 0.3,  -- skip the clear parts of full-screen surfaces, and the launcher's dim backdrop
+  xray = true,         -- frost the wallpaper, like the niri setup above; false blurs the windows behind
+})
+```
+
+`ignore_alpha` matters here. The launcher and notifications sit in full-screen transparent
+windows, and without it Hyprland blurs the whole screen behind them. Keep the shell's opacity
+above that value, or the cards stop blurring too.
+
+For the lock screen to survive a shell crash, Hyprland also needs
+`misc:allow_session_lock_restore = true`; see [Lock screen](#lock-screen).
+
 ## Layout
 
 ```text
@@ -480,15 +572,8 @@ The cost is that the wallpaper lives and dies with the shell: a crash or reload 
 background colour until the shell is back (systemd restarts it). Choose `hyprpaper` if that
 matters to you.
 
-**niri:** the overview draws its backdrop rather than the background layer, so to see the wallpaper
-behind the zoomed-out workspaces add:
-
-```kdl
-layer-rule {
-    match namespace="^epochshell-wallpaper$"
-    place-within-backdrop true
-}
-```
+**niri:** the overview draws its backdrop rather than the background layer; see
+[Compositor setup](#compositor-setup) for the rule that puts the wallpaper behind it.
 
 #### hyprpaper
 
@@ -708,33 +793,7 @@ The colour is the theme's `background` at that alpha, so a theme that changes th
 this with it. Fills drawn on a see-through surface, like hovers and rows, become a wash of the text
 colour rather than a solid grey, so the transparency carries through them.
 
-Blur uses the `ext-background-effect` protocol, which niri (26.04 and later) applies with no
-configuration. niri's default blur is "xray": it blurs the wallpaper, not the windows actually
-behind the shell. To blur what is really there:
-
-```kdl
-layer-rule {
-    match namespace="^(quickshell|epochshell-.*)$"
-    background-effect {
-        xray false
-    }
-    popups {
-        background-effect {
-            xray false
-        }
-    }
-}
-```
-
-On Hyprland, a layer rule blurs the bar:
-
-```lua
-hl.layer_rule({
-  name = "epochshell-blur",
-  match = { namespace = "^(quickshell)$" },
-  blur = true,
-})
-```
+Blur needs a line or two of compositor config; see [Compositor setup](#compositor-setup).
 
 ### Font Keys
 
