@@ -131,9 +131,9 @@ Scope {
 
             Rectangle {
                 visible: T.Config.barIsLedge && (pillPanels.leadingJoin === "snap" || barWindow.launcherHere)
-                x: pill.x + T.Config.popupPadding
+                x: barWindow.pillMode ? pill.x + T.Config.popupPadding : barArea.x
                 y: T.Config.barHeight - 1
-                width: pill.width - T.Config.popupPadding * 2
+                width: barWindow.pillMode ? pill.width - T.Config.popupPadding * 2 : barArea.width
                 height: 1
                 color: Ui.alpha(T.Config.surfaceText, Ui.hairlineAlpha)
             }
@@ -148,8 +148,8 @@ Scope {
             }
 
             Rectangle {
-                visible: !barWindow.centered && T.Config.panelOutline === "bar" && opacity > 0
-                opacity: panelTracker.openness
+                visible: !barWindow.pillMode && T.Config.panelOutline === "bar" && opacity > 0
+                opacity: barWindow.hangPanels.openness
                 x: barArea.x + barArea.radius
                 y: T.Config.barBottom - 1
                 width: barArea.width - barArea.radius * 2

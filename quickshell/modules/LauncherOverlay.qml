@@ -524,7 +524,9 @@ PanelWindow {
         flare: T.Config.barSpanFull ? T.Config.popupRadius : 0
         radius: T.Config.popupRadius
         fillColor: T.Config.barBackground
-        outlineOpacity: 1
+        // On a full-span bar there is no ledge to carry the outline, so it follows the panels'.
+        outlineOpacity: !T.Config.barSpanFull ? 1 : ["panel", "bar", "fade"].indexOf(T.Config.panelOutline) !== -1 ? root.reveal : 0
+        outlineFade: T.Config.barSpanFull && T.Config.panelOutline === "fade" ? flare : 0
     }
 
     Rectangle {

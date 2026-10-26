@@ -186,32 +186,54 @@ PopupWindow {
     }
 
     // Never null or empty: a niri rule forcing xray on popups paints a popup with no region (or an
-    // empty one) edge to edge, clear margins included. One pixel under the panel's own top row
-    // gives it a region and nothing visible to paint.
+    // empty one, as while a panel's body is still zero height opening) edge to edge, clear margins
+    // included. One pixel under the panel's own top row keeps a region with nothing visible to paint.
+    readonly property real _anchorX: attached ? attachedBody.x + attachedBody.width / 2 : contentSection.x + contentSection.width / 2
+    readonly property real _anchorY: attached ? 0 : contentSection.y + T.Config.popupRadius
     BackgroundEffect.blurRegion: !T.Config.popupBlur ? noBlur : popup.attached ? attachedBlur : floatingBlur
     Region {
         id: noBlur
-        x: popup.attached ? attachedBody.x + attachedBody.width / 2 : contentSection.x + contentSection.width / 2
-        y: popup.attached ? 0 : contentSection.y + T.Config.popupRadius
+        x: popup._anchorX
+        y: popup._anchorY
         width: 1
         height: 1
     }
+    // While the panel grows, the region trails its edge: the region lands a frame ahead of the paint,
+    // and any of it past the painted edge shows a frame of bare wallpaper. Starting at half open and
+    // catching up by the end keeps it behind even the opening's first, largest steps.
+    readonly property real _blurHeight: cardHeight * Math.max(0, 2 * reveal - 1)
     Region {
         id: attachedBlur
         Region {
-            item: attachedBody
+            x: attachedBody.x
+            width: attachedBody.width
+            height: popup._blurHeight
             radius: T.Config.popupRadius
         }
         Region {
             x: attachedBody.x
             width: attachedBody.width
-            height: Math.min(attachedBody.height, T.Config.popupRadius)
+            height: Math.min(popup._blurHeight, T.Config.popupRadius)
+        }
+        Region {
+            x: popup._anchorX
+            y: popup._anchorY
+            width: 1
+            height: 1
         }
     }
     Region {
         id: floatingBlur
-        item: contentSection
-        radius: T.Config.popupRadius
+        Region {
+            item: contentSection
+            radius: T.Config.popupRadius
+        }
+        Region {
+            x: popup._anchorX
+            y: popup._anchorY
+            width: 1
+            height: 1
+        }
     }
 
     Item {
@@ -226,7 +248,7 @@ PopupWindow {
             rightFlush: popup.atRightEdge && popup._barInset === 0
             fillColor: popup.onLedge ? T.Config.barBackground : T.Config.panelBackground
             outlineOpacity: ["panel", "bar", "fade"].indexOf(T.Config.panelOutline) !== -1 ? popup.reveal : 0
-            outlineFade: T.Config.panelOutline === "fade" && !popup._ledgeCard ? popup.flare : 0
+            outlineFade: T.Config.panelOutline === "fade" && (!popup._ledgeCard || T.Config.barSpanFull) ? popup.flare : 0
         }
 
         Item {
