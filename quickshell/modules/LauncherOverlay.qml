@@ -483,6 +483,21 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, Ui.backdropAlpha)
     }
 
+    BackgroundEffect.blurRegion: (root.ledgeMode ? T.Config.barBlur : T.Config.popupBlur) ? launcherBlur : null
+    Region {
+        id: launcherBlur
+        Region {
+            item: panel
+            radius: T.Config.popupRadius
+        }
+        Region {
+            x: panel.x
+            y: panel.y
+            width: panel.width
+            height: root.ledgeMode ? Math.min(panel.height, T.Config.popupRadius) : 0
+        }
+    }
+
     AttachedSurface {
         id: ledgeShape
         visible: root.ledgeMode

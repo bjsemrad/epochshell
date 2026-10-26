@@ -200,6 +200,7 @@ Singleton {
     property bool blur: true
     readonly property bool barBlur: blur && barOpacity < 0.99
     readonly property bool panelBlur: blur && panelOpacity < 0.99
+    readonly property bool popupBlur: blur && popupOpacity < 0.99
     property real workspaceStripMaxWidthRatio: 0.45
 
     property real barOpacity: 1.0
