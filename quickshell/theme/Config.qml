@@ -162,9 +162,10 @@ Singleton {
     property int popupRadius: 10
     property int popupLayoutSpacing: 8
 
-    property int barIconSize: 18
+    readonly property int defaultBarIconSize: 15
+    property int barIconSize: defaultBarIconSize
     property int barClockSize: barIconSize
-    property int barModuleSpacing: 10
+    property int barModuleSpacing: 8
     property int barIconTextSpacing: 5
     property int barModuleHorizontalPadding: widthPaddingSmall
     property int barModuleVerticalPadding: popupPadding
@@ -183,7 +184,8 @@ Singleton {
     property int cardRadius: 10
     property int cardHeight: 50
 
-    property int barHeight: 40
+    readonly property int defaultBarHeight: 32
+    property int barHeight: defaultBarHeight
 
     property int switchHeight: 42
     property int switchWidth: 24
@@ -468,7 +470,7 @@ Singleton {
         popupPadding = 10;
         popupRadius = 10;
         popupLayoutSpacing = 8;
-        barIconSize = 18;
+        barIconSize = defaultBarIconSize;
         widthPaddingSmall = 14;
         layoutMarginSmall = 5;
         fontSizeNormal = 14;
@@ -478,7 +480,7 @@ Singleton {
         fontSizeSubtext = 11;
         cardRadius = 10;
         cardHeight = 50;
-        barHeight = 40;
+        barHeight = defaultBarHeight;
         barFloatingGap = 4;
         barFloatingSideGap = 10;
         switchHeight = 42;

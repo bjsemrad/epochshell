@@ -731,10 +731,10 @@ fontSizeSubtext = 11
 ### Bar Keys
 
 ```toml
-barHeight = 40
-barIconSize = 18
-barClockSize = 11
-barModuleSpacing = 10
+barHeight = 32
+barIconSize = 15
+barClockSize = 15
+barModuleSpacing = 8
 barIconTextSpacing = 5
 barModuleHorizontalPadding = 14
 barModuleVerticalPadding = 10
