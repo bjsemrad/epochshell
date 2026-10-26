@@ -85,14 +85,14 @@ Singleton {
     /* Misc */
     property string fontFamily: "JetBrainsMono Nerd Font Propo"
 
-    readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "full"
+    readonly property string defaultBarStyle: Quickshell.env("EPOCHSHELL_BAR_STYLE") || "centered"
     property string barStyle: defaultBarStyle
 
     property int barFloatingGap: 4
     property int barFloatingSideGap: 10
     readonly property bool barCentered: barStyle === "centered"
     property bool barLedge: true
-    property string barSpan: "pill"
+    property string barSpan: "full"
     readonly property bool barSpanFull: barCentered && barSpan === "full"
     readonly property bool barIsLedge: barCentered && (barLedge || barSpanFull)
     readonly property bool barCompact: settledStatusStyle === "dashboard"
@@ -462,7 +462,7 @@ Singleton {
         statusStyle = "individual";
         workspaceStyle = "minimap";
         barLedge = true;
-        barSpan = "pill";
+        barSpan = "full";
         workspaceIconLimit = 2;
         workspaceShowTitle = false;
         workspaceIconColor = "color";

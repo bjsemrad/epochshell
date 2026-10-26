@@ -62,19 +62,12 @@ ColumnLayout {
         visible: T.Config.barCentered
         key: "span"
         Choice {
-            options: ["pill", "full"]
-            current: T.Config.barSpanFull ? "full" : "pill"
-            onPicked: v => page.choose("barSpan", v)
-        }
-    }
-    KeyRow {
-        visible: T.Config.barCentered && !T.Config.barSpanFull
-        key: "ledge"
-        toggles: true
-        onToggled: page.choose("barLedge", !T.Config.barLedge)
-        ToggleSwitch {
-            checked: T.Config.barLedge
-            onToggled: page.choose("barLedge", !T.Config.barLedge)
+            options: ["full", "ledge", "float"]
+            current: T.Config.barSpanFull ? "full" : T.Config.barLedge ? "ledge" : "float"
+            onPicked: v => {
+                page.choose("barSpan", v === "full" ? "full" : "pill");
+                if (v !== "full") page.choose("barLedge", v === "ledge");
+            }
         }
     }
     KeyRow {

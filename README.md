@@ -17,8 +17,9 @@ OSDs, lock screen, polkit prompt, and wallpaper. It stays out of the way until y
 The look is a single **readout**: monospace text, thin rules, one accent colour, rows that read
 top to bottom like an instrument panel. Every surface uses that grammar — the dashboard, the
 launcher, the settings card, the lock screen — so nothing feels bolted on. Panels grow out of the
-bar rather than floating over it, and the bar itself can sit full width, float, or hang from the top
-edge as a small centered ledge.
+bar rather than floating over it. By default the bar runs edge to edge with everything grouped in
+the centre; it can also hang from the top edge as a small ledge, float, or spread its items across
+a classic full-width bar.
 
 It is three projects that work as one:
 
@@ -37,10 +38,15 @@ the theme.
 
 ### The bar
 
-Five layouts, all set live from the Appearance card. From the top: **full**, **floating**,
-**floating with individual status icons**, **pill workspaces**, and the **centered ledge** used in
-these screenshots, which hangs from the top edge and widens to hold whatever opens out of it. Full
-width with individual icons is the default.
+All set live from the Appearance card. From the top:
+
+1. **Centered, full span** (the default, used in these screenshots). The bar runs edge to edge
+   with everything grouped in the middle, and panels and the launcher drop out of the centre.
+2. **Centered ledge.** Only the middle is drawn, hanging from the top edge and widening to hold
+   whatever opens out of it.
+3. **Centered pill.** The same group as a small floating pill.
+4. **Floating**, here with pill workspaces and one icon per status item.
+5. **Full**, the classic bar with its items spread to the edges.
 
 <p align="center"><img src="docs/screenshots/bars.png" alt="Bar layouts" width="100%"></p>
 
@@ -66,8 +72,8 @@ chevron opens a page in place.
 ### Launcher
 
 Applications, files, clipboard history, windows, a calculator, a command runner, and any custom
-menu you write: all one launcher, backed by EpochOxide's providers. On the ledge it drops out of
-the bar like the dashboard does; elsewhere it floats. A prefix jumps to a provider, and `;` lists
+menu you write: all one launcher, backed by EpochOxide's providers. On a centered bar it drops out
+of the bar like the dashboard does; elsewhere it floats. A prefix jumps to a provider, and `;` lists
 them all.
 
 <p align="center">
@@ -275,8 +281,8 @@ epochctl launcher open
 epochctl launcher toggle
 ```
 
-With the bar as a centered ledge the launcher drops out of the bar like the dashboard; otherwise,
-or with `launcherStyle = "floating"`, it is a card below the bar. Opening it closes any open
+With a centered bar (full span or ledge) the launcher drops out of the bar like the dashboard;
+otherwise, or with `launcherStyle = "floating"`, it is a card below the bar. Opening it closes any open
 panel, and opening a panel closes it.
 
 Provider prefixes come from EpochOxide itself: the launcher reads the `providers` response and
@@ -827,8 +833,8 @@ Derived bar values such as `barClockSize`, `barModuleHorizontalPadding`, and `ba
 ### Style Keys
 
 ```toml
-barStyle = "full"           # "full", "floating" or "centered"
-barSpan = "pill"            # centered only: "pill", or "full" for an edge-to-edge bar with the items centered
+barStyle = "centered"       # "centered", "full" or "floating"
+barSpan = "full"            # centered only: "full" for an edge-to-edge bar with the items centered, or "pill"
 barLedge = true             # centered pill only: hang from the top edge instead of floating
 statusStyle = "individual"  # "individual" icons, or "dashboard": one capsule opening quick settings
 panelStyle = "attached"     # "attached" (grown out of the bar) or "floating" cards
@@ -837,7 +843,7 @@ workspaceStyle = "minimap"  # "minimap", "pill", "plain" or "ledge"
 workspaceIcons = true
 workspaceIconLimit = 2      # ledge only: icons per workspace before "+n"
 workspaceHomes = ""         # ledge only: "app:workspace" pairs; an app elsewhere stays in colour
-launcherStyle = "attached"  # "attached" (drops out of a centered ledge) or "floating"
+launcherStyle = "attached"  # "attached" (drops out of a centered bar) or "floating"
 ```
 
 Every size, gap, alpha and duration in the shell is a named token in
