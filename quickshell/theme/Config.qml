@@ -698,7 +698,10 @@ Singleton {
         const out = ["# Written by EpochShell. Settings changed from a control in the shell land", "# here, and win over both the selected theme and config.toml.", ""];
         for (const k in values)
             out.push(k + " = " + values[k]);
-        settingsWriter.setText(out.join("\n") + "\n");
+        // Kept in memory at once: a control setting two keys in a row would otherwise build the
+        // second write from the file before the first, and the reload would undo the first.
+        root.settingsText = out.join("\n") + "\n";
+        settingsWriter.setText(root.settingsText);
         return true;
     }
 
