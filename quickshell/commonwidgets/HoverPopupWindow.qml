@@ -185,7 +185,17 @@ PopupWindow {
         item: attachedBody
     }
 
-    BackgroundEffect.blurRegion: !T.Config.popupBlur ? null : popup.attached ? attachedBlur : floatingBlur
+    // Never null or empty: a niri rule forcing xray on popups paints a popup with no region (or an
+    // empty one) edge to edge, clear margins included. One pixel under the panel's own top row
+    // gives it a region and nothing visible to paint.
+    BackgroundEffect.blurRegion: !T.Config.popupBlur ? noBlur : popup.attached ? attachedBlur : floatingBlur
+    Region {
+        id: noBlur
+        x: popup.attached ? attachedBody.x + attachedBody.width / 2 : contentSection.x + contentSection.width / 2
+        y: popup.attached ? 0 : contentSection.y + T.Config.popupRadius
+        width: 1
+        height: 1
+    }
     Region {
         id: attachedBlur
         Region {
