@@ -20,7 +20,7 @@ Rectangle {
     readonly property bool ledgeStyle: T.Config.workspaceStyle === "ledge" || minimapStyle
     readonly property bool pills: T.Config.workspaceStyle !== "plain" && !ledgeStyle
 
-    implicitHeight: ledgeStyle ? T.Config.barHeight : inner.implicitHeight + verticalPadding
+    implicitHeight: ledgeStyle ? T.Config.barHeight : Math.min(T.Config.barHeight, inner.implicitHeight + verticalPadding)
     implicitWidth: inner.implicitWidth + padding * 2
 
     visible: S.CompositorService.workspaces.length > 0
