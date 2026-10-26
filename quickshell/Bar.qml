@@ -69,6 +69,7 @@ Scope {
 
             readonly property bool centered: T.Config.barCentered
             readonly property bool pillMode: centered && !T.Config.barSpanFull
+            readonly property var hangPanels: centered ? pillPanels : panelTracker
             readonly property int pillPadding: T.Config.barModuleSpacing
             readonly property int groupGap: T.Config.barModuleSpacing
             readonly property real centeredContentWidth: (leftSide.width > 0 ? leftSide.width + groupGap : 0)
@@ -112,7 +113,7 @@ Scope {
 
             AttachedSurface {
                 id: ledge
-                visible: T.Config.barIsLedge
+                visible: T.Config.barIsLedge && barWindow.pillMode
                 x: pill.x - flare
                 y: 0
                 width: pill.width + flare * 2
@@ -146,7 +147,7 @@ Scope {
             }
 
             Rectangle {
-                visible: !barWindow.pillMode && T.Config.panelOutline === "bar" && opacity > 0
+                visible: !barWindow.centered && T.Config.panelOutline === "bar" && opacity > 0
                 opacity: panelTracker.openness
                 x: barArea.x + barArea.radius
                 y: T.Config.barBottom - 1
@@ -183,8 +184,8 @@ Scope {
                 id: leftSide
                 visible: !(barWindow.osdHere && barWindow.centered)
                 spacing: T.Config.barModuleSpacing
-                readonly property var barPanels: barWindow.pillMode ? pillPanels : panelTracker
-                readonly property Item barPill: barWindow.pillMode ? pillBody : null
+                readonly property var barPanels: barWindow.hangPanels
+                readonly property Item barPill: barWindow.centered ? pillBody : null
                 readonly property Item barStrip: barArea
                 // Placed by x rather than anchors: an anchor removed at runtime leaves the item
                 // where it was until a binding re-evaluates.
@@ -207,8 +208,8 @@ Scope {
             Flickable {
                 id: centerSide
                 visible: !barWindow.osdHere
-                readonly property var barPanels: barWindow.pillMode ? pillPanels : panelTracker
-                readonly property Item barPill: barWindow.pillMode ? pillBody : null
+                readonly property var barPanels: barWindow.hangPanels
+                readonly property Item barPill: barWindow.centered ? pillBody : null
                 readonly property Item barStrip: barArea
                 x: barWindow.centered ? barWindow.centeredContentX + (leftSide.width > 0 ? leftSide.width + barWindow.groupGap : 0)
                     : Math.round((parent.width - width) / 2)
@@ -237,8 +238,8 @@ Scope {
                 id: rightSide
                 visible: !(barWindow.osdHere && barWindow.centered)
                 spacing: Math.max(Ui.spaceS, Math.round(T.Config.barModuleSpacing / 2))
-                readonly property var barPanels: barWindow.pillMode ? pillPanels : panelTracker
-                readonly property Item barPill: barWindow.pillMode ? pillBody : null
+                readonly property var barPanels: barWindow.hangPanels
+                readonly property Item barPill: barWindow.centered ? pillBody : null
                 readonly property Item barStrip: barArea
                 x: barWindow.centered ? centerSide.x + centerSide.width + barWindow.groupGap
                     : barArea.x + barArea.width - width - T.Config.barModuleSpacing

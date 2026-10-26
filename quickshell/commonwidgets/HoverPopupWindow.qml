@@ -27,7 +27,7 @@ PopupWindow {
     readonly property bool fromBar: anchorEdges === (Edges.Left | Edges.Bottom) && anchorRectY < 0
 
     readonly property bool attached: fromBar && T.Config.panelStyle !== "floating" && T.Config.barOpacity >= 0.5
-        && (!T.Config.barCentered || T.Config.barIsLedge || T.Config.barSpanFull)
+        && (!T.Config.barCentered || T.Config.barIsLedge)
 
     readonly property int floatingGap: Ui.floatingGap
 
@@ -62,7 +62,7 @@ PopupWindow {
     readonly property real _barInset: barStrip && barStrip.radius > 0 ? barStrip.radius : 0
     property real _nudge: 0
 
-    readonly property real flare: attached && !_ledgeCard ? T.Config.popupRadius : 0
+    readonly property real flare: attached && (!_ledgeCard || T.Config.barSpanFull) ? T.Config.popupRadius : 0
     readonly property real _flareRight: atRightEdge && _barInset === 0 ? 0 : flare
 
     readonly property real cardHeight: contentLayout.implicitHeight + padding + bottomPadding

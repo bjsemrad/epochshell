@@ -92,7 +92,7 @@ Singleton {
     property bool barLedge: true
     property string barSpan: "pill"
     readonly property bool barSpanFull: barCentered && barSpan === "full"
-    readonly property bool barIsLedge: barCentered && barLedge && !barSpanFull
+    readonly property bool barIsLedge: barCentered && (barLedge || barSpanFull)
     readonly property bool barCompact: settledStatusStyle === "dashboard"
     readonly property bool barFloating: barStyle === "floating" || (barCentered && !barSpanFull)
     readonly property int barTopGap: barFloating && !barIsLedge ? barFloatingGap : 0
