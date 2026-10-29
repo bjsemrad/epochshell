@@ -117,7 +117,11 @@ HoverPopupWindow {
                         required property int urgency
                         required property real timestamp
                         required property int groupCount
-                        readonly property bool open: panel.large || index === 0 || panel.expanded[notificationId] === true
+                        // Read in full: clicked open, or the large view. The newest also shows a little more.
+                        readonly property bool full: panel.large || panel.expanded[notificationId] === true
+                        function focusApp() {
+                            S.Notifications.focusFromHistory(item.notificationId, item.appName, item.index, item.windowClass);
+                        }
                         readonly property string bodyText: panel.plain(body)
                         Layout.fillWidth: true
                         spacing: 0
@@ -133,14 +137,17 @@ HoverPopupWindow {
                             statusColor: item.urgency === 2 ? Ui.danger : Ui.detail
                             hoverStatus: "dismiss · right-click"
                             active: item.urgency === 2
+                            // A click reads the message rather than leaving for the app; with nothing to
+                            // read, it goes to the app. The link under an open message does that too.
                             onClicked: {
-                                if (!item.open && bodyNote.truncated) {
-                                    const next = Object.assign({}, panel.expanded);
-                                    next[item.notificationId] = true;
-                                    panel.expanded = next;
+                                if (item.bodyText.length === 0) {
+                                    item.focusApp();
                                     return;
                                 }
-                                S.Notifications.focusFromHistory(item.notificationId, item.appName, item.index, item.windowClass);
+                                if (panel.large) return;
+                                const next = Object.assign({}, panel.expanded);
+                                next[item.notificationId] = !item.full;
+                                panel.expanded = next;
                             }
                             onSecondaryClicked: S.Notifications.dismissHistory(item.index)
                         }
@@ -149,10 +156,28 @@ HoverPopupWindow {
                             id: bodyNote
                             visible: item.bodyText.length > 0
                             Layout.leftMargin: Ui.iconColumn + Ui.space2XL
-                            Layout.bottomMargin: Ui.spaceM
                             text: item.bodyText
-                            maximumLineCount: panel.large ? 1000 : item.open ? Ui.notificationBodyLines : Ui.notificationPreviewLines
+                            Layout.bottomMargin: item.full ? 0 : Ui.spaceM
+                            maximumLineCount: item.full ? 1000 : item.index === 0 ? Ui.notificationBodyLines : Ui.notificationPreviewLines
                             elide: Text.ElideRight
+                        }
+                        Text {
+                            visible: item.full && item.bodyText.length > 0
+                            Layout.leftMargin: Ui.iconColumn + Ui.space2XL + Ui.spaceM
+                            Layout.topMargin: Ui.spaceS
+                            Layout.bottomMargin: Ui.spaceM
+                            text: "open in " + (item.appName.length > 0 ? item.appName : "app") + " ›"
+                            color: openMouse.containsMouse ? Ui.accent : Ui.detail
+                            font.pixelSize: Ui.detailSize
+                            font.family: Ui.font
+                            MouseArea {
+                                id: openMouse
+                                anchors.fill: parent
+                                anchors.margins: -Ui.hitSlop
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: item.focusApp()
+                            }
                         }
                     }
                 }
