@@ -57,6 +57,8 @@ Singleton {
     readonly property int sectionLabelHeight: 28
     readonly property int panelListMaxHeight: 420
     readonly property int notificationBodyLines: 4
+    readonly property int notificationPreviewLines: 2
+    readonly property int notificationsLargeWidth: 780
     readonly property int dotSize: 7
     readonly property int swatchSize: 8
     readonly property int badgeGap: 3

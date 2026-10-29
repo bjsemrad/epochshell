@@ -12,7 +12,11 @@ Item {
     property bool switchable: false
     property bool hasSwitch: false
     property bool checked: false
+    // An optional icon button before the status, e.g. a panel's expand control.
+    property string actionIcon: ""
+    property string actionHint: ""
     signal back()
+    signal actionClicked()
     signal statusClicked()
     signal toggled()
 
@@ -49,6 +53,22 @@ Item {
             font.family: Ui.font
             font.bold: true
             elide: Text.ElideRight
+        }
+
+        Text {
+            visible: header.actionIcon.length > 0
+            text: actionMouse.containsMouse && header.actionHint.length > 0 ? header.actionHint + "  " + header.actionIcon : header.actionIcon
+            color: actionMouse.containsMouse ? Ui.value : Ui.detail
+            font.pixelSize: Ui.detailSize
+            font.family: Ui.font
+            MouseArea {
+                id: actionMouse
+                anchors.fill: parent
+                anchors.margins: -Ui.hitSlop
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: header.actionClicked()
+            }
         }
 
         Text {

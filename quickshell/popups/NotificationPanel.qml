@@ -8,9 +8,28 @@ import qs.theme as T
 HoverPopupWindow {
     id: panel
 
-    popupWidth: Ui.panelWidthWide
+    popupWidth: large ? Ui.notificationsLargeWidth : Ui.panelWidthWide
 
     property var expanded: ({})
+    // The large view: wider, as tall as the screen allows, and every body in full. Kept across
+    // closes for the session, so a shortcut reopens it the way it was left.
+    property bool large: false
+    readonly property real listMaxHeight: large && screen
+        ? Math.max(Ui.panelListMaxHeight, screen.height - T.Config.barHeight - Ui.screenMarginV * 2)
+        : Ui.panelListMaxHeight
+
+    // Held open while the card resizes, like the dashboard's page change: the edge moving past the
+    // pointer would otherwise read as leaving.
+    function setLarge(value) {
+        panel.stopHide = true;
+        panel.large = value;
+        sizeSettle.restart();
+    }
+    Timer {
+        id: sizeSettle
+        interval: Ui.pageSettleMs
+        onTriggered: panel.stopHide = false
+    }
 
     Component.onDestruction: S.PopupManager.unregister(panel)
     Component.onCompleted: S.PopupManager.register(panel, "notifications")
@@ -54,6 +73,9 @@ HoverPopupWindow {
 
         PageHeader {
             title: "notifications"
+            actionIcon: panel.large ? "󰘕" : "󰘖"
+            actionHint: panel.large ? "smaller" : "larger"
+            onActionClicked: panel.setLarge(!panel.large)
             status: "do not disturb"
             active: S.Notifications.doNotDisturb
             hasSwitch: true
@@ -69,7 +91,7 @@ HoverPopupWindow {
         Flickable {
             visible: S.Notifications.historyModel.count > 0
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.min(list.implicitHeight, Ui.panelListMaxHeight)
+            Layout.preferredHeight: Math.min(list.implicitHeight, panel.listMaxHeight)
             contentWidth: width
             contentHeight: list.implicitHeight
             clip: true
@@ -94,7 +116,8 @@ HoverPopupWindow {
                         required property string image
                         required property int urgency
                         required property real timestamp
-                        readonly property bool open: index === 0 || panel.expanded[notificationId] === true
+                        required property int groupCount
+                        readonly property bool open: panel.large || index === 0 || panel.expanded[notificationId] === true
                         readonly property string bodyText: panel.plain(body)
                         Layout.fillWidth: true
                         spacing: 0
@@ -103,13 +126,15 @@ HoverPopupWindow {
                             iconSource: panel.iconSourceOf(item.image.length > 0 ? item.image : item.appIcon)
                             icon: "󰂚"
                             value: item.summary.length > 0 ? item.summary : item.appName
-                            detail: item.summary.length > 0 ? item.appName : ""
-                            status: panel.ago(item.timestamp)
+                            detail: (item.summary.length > 0 ? item.appName : "")
+                                + (item.groupCount > 1 ? (item.summary.length > 0 ? " · " : "") + (item.groupCount - 1) + " more" : "")
+                            status: panel.large ? Qt.formatTime(new Date(item.timestamp), "hh:mm") + " · " + panel.ago(item.timestamp)
+                                : panel.ago(item.timestamp)
                             statusColor: item.urgency === 2 ? Ui.danger : Ui.detail
                             hoverStatus: "dismiss · right-click"
                             active: item.urgency === 2
                             onClicked: {
-                                if (!item.open && item.bodyText.length > 0) {
+                                if (!item.open && bodyNote.truncated) {
                                     const next = Object.assign({}, panel.expanded);
                                     next[item.notificationId] = true;
                                     panel.expanded = next;
@@ -119,12 +144,14 @@ HoverPopupWindow {
                             }
                             onSecondaryClicked: S.Notifications.dismissHistory(item.index)
                         }
+                        // Every row previews its body; opening one (or the large view) shows more.
                         Note {
-                            visible: item.open && item.bodyText.length > 0
+                            id: bodyNote
+                            visible: item.bodyText.length > 0
                             Layout.leftMargin: Ui.iconColumn + Ui.space2XL
                             Layout.bottomMargin: Ui.spaceM
                             text: item.bodyText
-                            maximumLineCount: Ui.notificationBodyLines
+                            maximumLineCount: panel.large ? 1000 : item.open ? Ui.notificationBodyLines : Ui.notificationPreviewLines
                             elide: Text.ElideRight
                         }
                     }
