@@ -137,16 +137,16 @@ HoverPopupWindow {
                             statusColor: item.urgency === 2 ? Ui.danger : Ui.detail
                             hoverStatus: "dismiss · right-click"
                             active: item.urgency === 2
-                            // A click reads the message rather than leaving for the app; with nothing to
-                            // read, it goes to the app. The link under an open message does that too.
+                            // A cut-off message opens in place on a click, and folds on the next; one
+                            // already shown whole goes to the app, as does the link under an open one.
                             onClicked: {
-                                if (item.bodyText.length === 0) {
+                                const expanded = panel.expanded[item.notificationId] === true;
+                                if (panel.large || (!expanded && !bodyNote.truncated)) {
                                     item.focusApp();
                                     return;
                                 }
-                                if (panel.large) return;
                                 const next = Object.assign({}, panel.expanded);
-                                next[item.notificationId] = !item.full;
+                                next[item.notificationId] = !expanded;
                                 panel.expanded = next;
                             }
                             onSecondaryClicked: S.Notifications.dismissHistory(item.index)
@@ -157,12 +157,13 @@ HoverPopupWindow {
                             visible: item.bodyText.length > 0
                             Layout.leftMargin: Ui.iconColumn + Ui.space2XL
                             text: item.bodyText
-                            Layout.bottomMargin: item.full ? 0 : Ui.spaceM
+                            Layout.bottomMargin: openLink.visible ? 0 : Ui.spaceM
                             maximumLineCount: item.full ? 1000 : item.index === 0 ? Ui.notificationBodyLines : Ui.notificationPreviewLines
                             elide: Text.ElideRight
                         }
                         Text {
-                            visible: item.full && item.bodyText.length > 0
+                            id: openLink
+                            visible: panel.expanded[item.notificationId] === true && !panel.large && item.bodyText.length > 0
                             Layout.leftMargin: Ui.iconColumn + Ui.space2XL + Ui.spaceM
                             Layout.topMargin: Ui.spaceS
                             Layout.bottomMargin: Ui.spaceM
