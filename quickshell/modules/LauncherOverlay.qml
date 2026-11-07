@@ -22,6 +22,10 @@ PanelWindow {
     }
     color: "transparent"
     exclusiveZone: 0
+    // Attached, it tucks one pixel under the bar, as the panels do (anchorRectY -1): at a fractional
+    // scale the bar's last row and this surface's first are each partly covered, and a compositor
+    // that does not snap them to whole pixels (Hyprland) lets the background through between.
+    margins.top: root.ledgeMode ? -1 : 0
     focusable: true
     readonly property string screenName: {
         const focused = S.CompositorService.monitors.find(m => m.focused === true);
