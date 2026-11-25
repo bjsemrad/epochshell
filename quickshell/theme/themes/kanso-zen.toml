@@ -1,22 +1,22 @@
 # EpochShell theme: kanso-zen
 #
-# Kanso's darkest variant, from kanso.nvim: an ink-black ground with a faint blue in it, and the
-# same dusty Kanagawa hues kanagawa-dragon uses. The two share every colour below except the ground
-# and the accent, so this one is told apart by those.
+# Kanso's darkest variant, from kanso.nvim, on matte-black's ground (#121212) in place of kanso's
+# own blue-black #090e13: the same dusty Kanagawa hues kanagawa-dragon uses, over the neutral black
+# the rest of this setup sits on. Everything above the ground is still kanso's.
 #
 # The accent is the palette's `blue` (#7fb4ca, the terminal's bright blue), not blue3 (#8ba4b0)
-# that kanagawa-dragon wears: 8.57 against the ground to blue3's 7.41, so it reads as the active
+# that kanagawa-dragon wears: 8.28 against the ground to blue3's 7.17, so it reads as the active
 # colour on a bar this dark rather than as one more muted hue.
 #
-# The ladder is kanso's own zenBg ramp. `surfaceContainer` is zenBg2 at 1.28 above the ground --
+# The ladder above the ground is kanso's zenBg ramp. `surfaceContainer` is zenBg2, 1.23 above it --
 # the hover and selected-row ground, and about the 1.31 matte-black settled on as visibly a hover.
 # `surfaceContainerHighest` is gray5, the palette's next tone up, as dragon does with its own.
 #
-# Text is kanso's fg unchanged: 11.6 against the ground, a little brighter than matte-black's 10.1
-# and still well clear of the accent. `outline` is gray3 (6.29), the palette's punctuation grey,
-# rather than gray2 (7.97), which would sit too close to the text to read as secondary.
+# Text is kanso's fg unchanged: 11.2 against the ground, a little brighter than matte-black's 10.1
+# and still well clear of the accent. `outline` is gray3 (6.08), the palette's punctuation grey,
+# rather than gray2, which would sit too close to the text to read as secondary.
 
-background = "#090e13"
+background = "#121212"
 surface = "#1c1e25"
 surfaceVariant = "#393b44"
 surfaceContainer = "#22262d"

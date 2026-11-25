@@ -1,19 +1,19 @@
 # EpochShell theme: kanso-ink
 #
-# Kanso's middle dark variant, from kanso.nvim: kanso-zen on a lifted ink-grey ground (#14171d
-# against zen's #090e13). Every hue and the accent are the same as kanso-zen; only the ladder moves.
+# Kanso's middle dark variant, from kanso.nvim, on matte-black's ground (#121212) in place of
+# kanso's own #14171d, as kanso-zen does. Every hue and the accent are the same as kanso-zen; what
+# sets ink apart is its lighter ladder above the ground.
 #
-# The accent is the palette's `blue` (#7fb4ca), as in kanso-zen: 7.93 against this ground.
+# The accent is the palette's `blue` (#7fb4ca), as in kanso-zen: 8.28 against this ground.
 #
-# `surfaceContainer` is inkBg3 rather than inkBg2. inkBg2 sits only 1.18 above this ground, which
-# is too faint to read as a hover; inkBg3, at 1.61, is what kanso itself draws a selected item with
+# `surfaceContainer` is inkBg3 rather than inkBg2. inkBg2 sits only 1.23 above this ground, which
+# is too faint to read as a hover; inkBg3, at 1.68, is what kanso itself draws a selected item with
 # (its visual selection and popup-menu selection). The two above it step up the same ramp: inkBg4,
 # then gray5.
 #
-# Text is kanso's fg unchanged at 10.7, the same weight matte-black carries. `outline` is gray3
-# (5.82), as in kanso-zen.
+# Text is kanso's fg unchanged at 11.2. `outline` is gray3 (6.08), as in kanso-zen.
 
-background = "#14171d"
+background = "#121212"
 surface = "#1f1f26"
 surfaceVariant = "#4b4e57"
 surfaceContainer = "#393b44"
