@@ -1,0 +1,35 @@
+# EpochShell theme: kanso-ink
+#
+# Kanso's middle dark variant, from kanso.nvim: kanso-zen on a lifted ink-grey ground (#14171d
+# against zen's #090e13). Every hue and the accent are the same as kanso-zen; only the ladder moves.
+#
+# The accent is the palette's `blue` (#7fb4ca), as in kanso-zen: 7.93 against this ground.
+#
+# `surfaceContainer` is inkBg3 rather than inkBg2. inkBg2 sits only 1.18 above this ground, which
+# is too faint to read as a hover; inkBg3, at 1.61, is what kanso itself draws a selected item with
+# (its visual selection and popup-menu selection). The two above it step up the same ramp: inkBg4,
+# then gray5.
+#
+# Text is kanso's fg unchanged at 10.7, the same weight matte-black carries. `outline` is gray3
+# (5.82), as in kanso-zen.
+
+background = "#14171d"
+surface = "#1f1f26"
+surfaceVariant = "#4b4e57"
+surfaceContainer = "#393b44"
+surfaceContainerHigh = "#4b4e57"
+surfaceContainerHighest = "#5c6066"
+surfaceText = "#c5c9c7"
+outline = "#909398"
+
+accent = "#7fb4ca"
+
+purple = "#a292a3"
+green = "#8a9a7b"
+orange = "#b6927b"
+blue = "#7fb4ca"
+yellow = "#c4b28a"
+cyan = "#8ea4a2"
+red = "#c4746e"
+bg_blue = "#8ea4a2"
+bg_yellow = "#c4b28a"
